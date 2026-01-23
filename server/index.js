@@ -25,6 +25,10 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Trust proxy - required for Render and other cloud platforms
+// This allows express-rate-limit to correctly identify users behind a reverse proxy
+app.set('trust proxy', 1);
+
 // ===========================================
 // SECURITY MIDDLEWARE
 // ===========================================
