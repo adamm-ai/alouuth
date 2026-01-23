@@ -60,7 +60,7 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-const maxFileSize = parseInt(process.env.MAX_FILE_SIZE) || 50 * 1024 * 1024; // 50MB default
+const maxFileSize = parseInt(process.env.MAX_FILE_SIZE) || 3 * 1024 * 1024 * 1024; // 3GB default
 
 export const upload = multer({
   storage,
@@ -70,10 +70,17 @@ export const upload = multer({
   }
 });
 
+// Format bytes to human readable
+const formatBytes = (bytes) => {
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)}KB`;
+  if (bytes < 1024 * 1024 * 1024) return `${Math.round(bytes / (1024 * 1024))}MB`;
+  return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)}GB`;
+};
+
 export const handleUploadError = (err, req, res, next) => {
   if (err instanceof multer.MulterError) {
     if (err.code === 'LIMIT_FILE_SIZE') {
-      return res.status(400).json({ error: 'File too large. Maximum size is 50MB.' });
+      return res.status(400).json({ error: `File too large. Maximum size is ${formatBytes(maxFileSize)}.` });
     }
     return res.status(400).json({ error: err.message });
   }
