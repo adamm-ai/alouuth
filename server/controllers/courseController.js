@@ -210,9 +210,49 @@ export const updateCourse = async (req, res) => {
       return res.status(404).json({ error: 'Course not found.' });
     }
 
+    const course = result.rows[0];
+
+    // Fetch lessons to include in response
+    const lessonsResult = await pool.query(`
+      SELECT l.*,
+             (SELECT json_agg(json_build_object(
+               'id', q.id,
+               'question', q.question,
+               'options', q.options,
+               'correctAnswer', q.correct_answer,
+               'explanation', q.explanation
+             ) ORDER BY q.order_index)
+             FROM quiz_questions q WHERE q.lesson_id = l.id) as quiz
+      FROM lessons l
+      WHERE l.course_id = $1
+      ORDER BY l.order_index ASC
+    `, [id]);
+
     res.json({
       message: 'Course updated successfully',
-      course: result.rows[0]
+      course: {
+        id: course.id,
+        title: course.title,
+        description: course.description,
+        thumbnail: course.thumbnail_url,
+        level: course.level,
+        totalDuration: course.total_duration,
+        enrolledCount: 0,
+        lessons: lessonsResult.rows.map(l => ({
+          id: l.id,
+          title: l.title,
+          description: l.description,
+          type: l.type,
+          durationMin: l.duration_min,
+          videoUrl: l.video_url,
+          videoSource: l.video_source,
+          fileUrl: l.file_url,
+          fileName: l.file_name,
+          pageCount: l.page_count,
+          content: l.content,
+          quiz: l.quiz || []
+        }))
+      }
     });
   } catch (error) {
     console.error('Update course error:', error);
