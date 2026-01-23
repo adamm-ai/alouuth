@@ -407,9 +407,13 @@ export const dataService = {
   // FILE UPLOAD
   // ============================================
 
-  uploadFile: async (file: File) => {
+  uploadFile: async (file: File, onProgress?: (progress: number) => void) => {
     if (USE_MOCK) {
-      await delay(1000);
+      // Simulate upload progress
+      for (let i = 0; i <= 100; i += 10) {
+        await delay(100);
+        onProgress?.(i);
+      }
       return {
         file: {
           originalName: file.name,
@@ -421,7 +425,7 @@ export const dataService = {
       };
     }
 
-    return api.upload.uploadFile(file);
+    return api.upload.uploadFile(file, onProgress);
   },
 };
 

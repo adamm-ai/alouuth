@@ -368,21 +368,50 @@ export const adminAPI = {
 // ============================================
 
 export const uploadAPI = {
-  uploadFile: async (file: File) => {
-    const formData = new FormData();
-    formData.append('file', file);
+  uploadFile: async (
+    file: File,
+    onProgress?: (progress: number) => void
+  ): Promise<{ message: string; file: { originalName: string; fileName: string; fileUrl: string; mimeType: string; size: number } }> => {
+    return new Promise((resolve, reject) => {
+      const formData = new FormData();
+      formData.append('file', file);
 
-    const response = await fetch(`${API_BASE_URL}/upload/single`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${authToken}`,
-      },
-      body: formData,
+      const xhr = new XMLHttpRequest();
+
+      // Progress tracking
+      xhr.upload.addEventListener('progress', (event) => {
+        if (event.lengthComputable && onProgress) {
+          const progress = Math.round((event.loaded / event.total) * 100);
+          onProgress(progress);
+        }
+      });
+
+      xhr.addEventListener('load', () => {
+        try {
+          const data = JSON.parse(xhr.responseText);
+          if (xhr.status >= 200 && xhr.status < 300) {
+            resolve(data);
+          } else {
+            reject(new Error(data.error || 'Upload failed'));
+          }
+        } catch {
+          reject(new Error('Invalid server response'));
+        }
+      });
+
+      xhr.addEventListener('error', () => {
+        reject(new Error('Network error during upload'));
+      });
+
+      xhr.addEventListener('timeout', () => {
+        reject(new Error('Upload timed out'));
+      });
+
+      xhr.open('POST', `${API_BASE_URL}/upload/single`);
+      xhr.setRequestHeader('Authorization', `Bearer ${authToken}`);
+      xhr.timeout = 600000; // 10 minute timeout for large files
+      xhr.send(formData);
     });
-
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error);
-    return data;
   },
 
   uploadMultiple: async (files: File[]) => {

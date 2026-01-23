@@ -1812,6 +1812,8 @@ const App: React.FC = () => {
     const [activeLessonId, setActiveLessonId] = useState<string | null>(null);
     const [newLessonType, setNewLessonType] = useState<ContentType>('video');
     const [isSaving, setIsSaving] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState(0);
 
     // Pending Users State
     const [pendingUsers, setPendingUsers] = useState<PendingUser[]>([]);
@@ -2195,9 +2197,15 @@ const App: React.FC = () => {
                                    label="Upload Video"
                                    accept="video/mp4,video/webm,video/ogg,.mp4,.webm,.ogg"
                                    currentFile={activeLesson.fileName}
+                                   isUploading={isUploading}
+                                   uploadProgress={uploadProgress}
                                    onFileSelect={async (file) => {
                                      try {
-                                       const result = await dataService.uploadFile(file);
+                                       setIsUploading(true);
+                                       setUploadProgress(0);
+                                       const result = await dataService.uploadFile(file, (progress) => {
+                                         setUploadProgress(progress);
+                                       });
                                        updateLesson(activeLesson.id, {
                                          fileUrl: result.file.fileUrl,
                                          fileName: result.file.originalName,
@@ -2206,6 +2214,9 @@ const App: React.FC = () => {
                                      } catch (error) {
                                        console.error('Failed to upload video:', error);
                                        alert('Failed to upload video. Please try again.');
+                                     } finally {
+                                       setIsUploading(false);
+                                       setUploadProgress(0);
                                      }
                                    }}
                                  />
@@ -2255,11 +2266,31 @@ const App: React.FC = () => {
                        {/* 2. Document (PDF/PPT) Editor */}
                        {(activeLesson.type === 'pdf' || activeLesson.type === 'presentation') && (
                          <GlassCard className="space-y-6">
-                            <FileDropZone 
+                            <FileDropZone
                               label={`Upload ${activeLesson.type === 'pdf' ? 'PDF Document' : 'PowerPoint Presentation'}`}
-                              accept={activeLesson.type === 'pdf' ? '.pdf' : '.ppt,.pptx'}
+                              accept={activeLesson.type === 'pdf' ? '.pdf,application/pdf' : '.ppt,.pptx,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation'}
                               currentFile={activeLesson.fileName}
-                              onFileSelect={(file) => updateLesson(activeLesson.id, { fileName: file.name, fileUrl: 'fake-url' })}
+                              isUploading={isUploading}
+                              uploadProgress={uploadProgress}
+                              onFileSelect={async (file) => {
+                                try {
+                                  setIsUploading(true);
+                                  setUploadProgress(0);
+                                  const result = await dataService.uploadFile(file, (progress) => {
+                                    setUploadProgress(progress);
+                                  });
+                                  updateLesson(activeLesson.id, {
+                                    fileUrl: result.file.fileUrl,
+                                    fileName: result.file.originalName
+                                  });
+                                } catch (error) {
+                                  console.error('Failed to upload file:', error);
+                                  alert('Failed to upload file. Please try again.');
+                                } finally {
+                                  setIsUploading(false);
+                                  setUploadProgress(0);
+                                }
+                              }}
                             />
                             
                             <div className="grid grid-cols-2 gap-4">

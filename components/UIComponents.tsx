@@ -89,12 +89,14 @@ export const Badge: React.FC<{ children: React.ReactNode; type?: 'default' | 'su
   );
 };
 
-export const FileDropZone: React.FC<{ 
-  label: string; 
-  accept: string; 
+export const FileDropZone: React.FC<{
+  label: string;
+  accept: string;
   onFileSelect: (file: File) => void;
-  currentFile?: string; 
-}> = ({ label, accept, onFileSelect, currentFile }) => {
+  currentFile?: string;
+  isUploading?: boolean;
+  uploadProgress?: number;
+}> = ({ label, accept, onFileSelect, currentFile, isUploading = false, uploadProgress = 0 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -104,27 +106,45 @@ export const FileDropZone: React.FC<{
   };
 
   return (
-    <div 
-      onClick={() => inputRef.current?.click()}
-      className="group relative h-40 w-full border-2 border-dashed border-white/10 rounded-3xl bg-zinc-900/30 hover:bg-zinc-800/40 hover:border-yellow-400/50 transition-all cursor-pointer flex flex-col items-center justify-center p-6 overflow-hidden"
+    <div
+      onClick={() => !isUploading && inputRef.current?.click()}
+      className={`group relative h-40 w-full border-2 border-dashed rounded-3xl bg-zinc-900/30 transition-all flex flex-col items-center justify-center p-6 overflow-hidden ${
+        isUploading
+          ? 'border-yellow-400/50 cursor-wait'
+          : 'border-white/10 hover:bg-zinc-800/40 hover:border-yellow-400/50 cursor-pointer'
+      }`}
     >
-      <input 
-        type="file" 
-        ref={inputRef} 
-        className="hidden" 
-        accept={accept} 
-        onChange={handleChange} 
+      <input
+        type="file"
+        ref={inputRef}
+        className="hidden"
+        accept={accept}
+        onChange={handleChange}
+        disabled={isUploading}
       />
-      
+
       {/* Animated background grid */}
       <div className="absolute inset-0 opacity-0 group-hover:opacity-10 bg-[linear-gradient(45deg,transparent_25%,rgba(250,204,21,0.2)_50%,transparent_75%,transparent_100%)] bg-[length:20px_20px] transition-opacity" />
 
-      {currentFile ? (
+      {isUploading ? (
+        <div className="flex flex-col items-center relative z-10 w-full px-4">
+          <div className="h-12 w-12 rounded-full bg-yellow-400/20 flex items-center justify-center text-yellow-400 mb-3 shadow-[0_0_20px_rgba(250,204,21,0.3)]">
+            <Upload size={24} className="animate-bounce" />
+          </div>
+          <p className="text-sm font-medium text-yellow-400 mb-2">Uploading... {uploadProgress}%</p>
+          <div className="w-full max-w-xs h-2 bg-zinc-800 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-yellow-400 shadow-[0_0_10px_rgba(250,204,21,0.6)] transition-all duration-300"
+              style={{ width: `${uploadProgress}%` }}
+            />
+          </div>
+        </div>
+      ) : currentFile ? (
         <div className="flex flex-col items-center animate-fade-in relative z-10">
           <div className="h-12 w-12 rounded-full bg-yellow-400/20 flex items-center justify-center text-yellow-400 mb-2 shadow-[0_0_20px_rgba(250,204,21,0.2)]">
-            <FileText size={24} />
+            <Check size={24} />
           </div>
-          <p className="text-sm font-medium text-yellow-400 text-center break-all">{currentFile}</p>
+          <p className="text-sm font-medium text-yellow-400 text-center break-all max-w-full truncate px-2">{currentFile}</p>
           <p className="text-xs text-zinc-500 mt-1">Click to replace</p>
         </div>
       ) : (
