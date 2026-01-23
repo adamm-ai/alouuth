@@ -45,6 +45,7 @@ const fileFilter = (req, file, cb) => {
     'application/vnd.openxmlformats-officedocument.presentationml.presentation',
     'video/mp4',
     'video/webm',
+    'video/ogg',
     'video/quicktime',
     'image/jpeg',
     'image/png',

@@ -191,14 +191,14 @@ const App: React.FC = () => {
                 icon={<Layout size={20} />}
                 label="Overview"
                 active={currentView === 'ADMIN' && adminSection === 'OVERVIEW'}
-                onClick={() => { setCurrentView('ADMIN'); setAdminSection('OVERVIEW'); }}
+                onClick={() => { if (currentView !== 'ADMIN') setCurrentView('ADMIN'); setAdminSection('OVERVIEW'); }}
               />
 
               <SidebarItem
                 icon={<UserCheck size={20} />}
                 label="User Approvals"
                 active={currentView === 'ADMIN' && adminSection === 'USERS'}
-                onClick={() => { setCurrentView('ADMIN'); setAdminSection('USERS'); }}
+                onClick={() => { if (currentView !== 'ADMIN') setCurrentView('ADMIN'); setAdminSection('USERS'); }}
                 badge={<span className="ml-auto px-2 py-0.5 text-[10px] rounded-full bg-red-500/30 text-red-400 font-bold animate-pulse">ACTION</span>}
               />
 
@@ -206,14 +206,14 @@ const App: React.FC = () => {
                 icon={<BookOpen size={20} />}
                 label="Course Manager"
                 active={currentView === 'ADMIN' && adminSection === 'COURSES'}
-                onClick={() => { setCurrentView('ADMIN'); setAdminSection('COURSES'); }}
+                onClick={() => { if (currentView !== 'ADMIN') setCurrentView('ADMIN'); setAdminSection('COURSES'); }}
               />
 
               <SidebarItem
                 icon={<Trophy size={20} />}
                 label="Analytics"
                 active={currentView === 'ADMIN' && adminSection === 'ANALYTICS'}
-                onClick={() => { setCurrentView('ADMIN'); setAdminSection('ANALYTICS'); }}
+                onClick={() => { if (currentView !== 'ADMIN') setCurrentView('ADMIN'); setAdminSection('ANALYTICS'); }}
               />
 
               <div className="h-px bg-white/5 my-4" />
@@ -1925,6 +1925,28 @@ const App: React.FC = () => {
       setEditingCourse({ ...editingCourse, lessons: updatedLessons });
     };
 
+    const deleteLesson = (id: string) => {
+      if (!editingCourse || !editingCourse.lessons) return;
+      if (!confirm('Are you sure you want to delete this lesson?')) return;
+      const updatedLessons = editingCourse.lessons.filter(l => l.id !== id);
+      setEditingCourse({ ...editingCourse, lessons: updatedLessons });
+      if (activeLessonId === id) {
+        setActiveLessonId(updatedLessons[0]?.id || null);
+      }
+    };
+
+    const deleteCourse = async (courseId: string) => {
+      if (!confirm('Are you sure you want to delete this course? This action cannot be undone.')) return;
+      try {
+        await dataService.deleteCourse(courseId);
+        const freshCourses = await dataService.getCourses();
+        setCourses(freshCourses);
+      } catch (error) {
+        console.error('Failed to delete course:', error);
+        alert('Failed to delete course. Please try again.');
+      }
+    };
+
     // Save course to backend
     const handleSaveCourse = async () => {
       if (!editingCourse) return;
@@ -2104,7 +2126,10 @@ const App: React.FC = () => {
                                  {lesson.type}
                                </div>
                              </div>
-                             <button className="opacity-0 group-hover:opacity-100 p-1 hover:text-red-400 transition-opacity">
+                             <button
+                              onClick={(e) => { e.stopPropagation(); deleteLesson(lesson.id); }}
+                              className="opacity-0 group-hover:opacity-100 p-1 hover:text-red-400 transition-opacity"
+                            >
                                <Trash2 size={14} />
                              </button>
                           </div>
@@ -2149,35 +2174,78 @@ const App: React.FC = () => {
                        {/* 1. Video Editor */}
                        {activeLesson.type === 'video' && (
                          <GlassCard className="space-y-6">
-                           <div className="flex gap-4">
-                             <div className="flex-1">
-                               <label className="block text-sm text-zinc-400 mb-1">Video URL (YouTube/Vimeo)</label>
-                               <input 
-                                 className="w-full bg-zinc-900/50 border border-white/10 rounded-xl p-3 outline-none focus:border-yellow-400"
-                                 placeholder="https://..."
-                                 value={activeLesson.videoUrl || ''}
-                                 onChange={(e) => updateLesson(activeLesson.id, { videoUrl: e.target.value })}
-                               />
-                             </div>
-                             <div className="w-32">
-                               <label className="block text-sm text-zinc-400 mb-1">Duration (min)</label>
-                               <input 
-                                 type="number"
-                                 className="w-full bg-zinc-900/50 border border-white/10 rounded-xl p-3 outline-none focus:border-yellow-400"
-                                 value={activeLesson.durationMin}
-                                 onChange={(e) => updateLesson(activeLesson.id, { durationMin: parseInt(e.target.value) })}
-                               />
+                           {/* Video Source Options */}
+                           <div className="space-y-4">
+                             <label className="block text-sm text-zinc-400 mb-2">Video Source</label>
+                             <div className="grid grid-cols-2 gap-4">
+                               {/* Option 1: URL */}
+                               <div className="space-y-2">
+                                 <div className="text-xs text-zinc-500 uppercase font-bold">From URL (YouTube/Vimeo)</div>
+                                 <input
+                                   className="w-full bg-zinc-900/50 border border-white/10 rounded-xl p-3 outline-none focus:border-yellow-400 text-sm"
+                                   placeholder="https://youtube.com/watch?v=..."
+                                   value={activeLesson.videoUrl || ''}
+                                   onChange={(e) => updateLesson(activeLesson.id, { videoUrl: e.target.value, fileUrl: undefined })}
+                                 />
+                               </div>
+                               {/* Option 2: Upload */}
+                               <div className="space-y-2">
+                                 <div className="text-xs text-zinc-500 uppercase font-bold">Upload from Computer</div>
+                                 <FileDropZone
+                                   label="Upload Video"
+                                   accept="video/mp4,video/webm,video/ogg,.mp4,.webm,.ogg"
+                                   currentFile={activeLesson.fileName}
+                                   onFileSelect={async (file) => {
+                                     try {
+                                       const result = await dataService.uploadFile(file);
+                                       updateLesson(activeLesson.id, {
+                                         fileUrl: result.file.fileUrl,
+                                         fileName: result.file.originalName,
+                                         videoUrl: undefined
+                                       });
+                                     } catch (error) {
+                                       console.error('Failed to upload video:', error);
+                                       alert('Failed to upload video. Please try again.');
+                                     }
+                                   }}
+                                 />
+                               </div>
                              </div>
                            </div>
-                           
+
+                           {/* Duration */}
+                           <div className="w-48">
+                             <label className="block text-sm text-zinc-400 mb-1">Duration (min)</label>
+                             <input
+                               type="number"
+                               className="w-full bg-zinc-900/50 border border-white/10 rounded-xl p-3 outline-none focus:border-yellow-400"
+                               value={activeLesson.durationMin}
+                               onChange={(e) => updateLesson(activeLesson.id, { durationMin: parseInt(e.target.value) })}
+                             />
+                           </div>
+
                            {/* Preview */}
-                           <div className="aspect-video bg-black rounded-xl border border-white/10 flex items-center justify-center text-zinc-500">
+                           <div className="aspect-video bg-black rounded-xl border border-white/10 flex items-center justify-center text-zinc-500 overflow-hidden">
                               {activeLesson.videoUrl ? (
-                                <iframe src={activeLesson.videoUrl} className="w-full h-full rounded-xl" />
+                                isYouTubeUrl(activeLesson.videoUrl) ? (
+                                  <iframe
+                                    src={`https://www.youtube.com/embed/${getYouTubeVideoId(activeLesson.videoUrl)}`}
+                                    className="w-full h-full"
+                                    allowFullScreen
+                                  />
+                                ) : (
+                                  <iframe src={activeLesson.videoUrl} className="w-full h-full" allowFullScreen />
+                                )
+                              ) : activeLesson.fileUrl ? (
+                                <video
+                                  src={activeLesson.fileUrl}
+                                  controls
+                                  className="w-full h-full"
+                                />
                               ) : (
                                 <div className="text-center">
                                   <MonitorPlay size={48} className="mx-auto mb-2 opacity-50"/>
-                                  <p>Enter a URL to preview</p>
+                                  <p>Enter a URL or upload a video to preview</p>
                                 </div>
                               )}
                            </div>
@@ -2694,7 +2762,10 @@ const App: React.FC = () => {
                      <SecondaryButton onClick={() => handleEditCourse(course)} className="h-10 px-4 text-xs flex items-center gap-2">
                        Edit Content
                      </SecondaryButton>
-                     <button className="h-10 w-10 flex items-center justify-center rounded-full border border-red-900/30 text-red-400 hover:bg-red-900/20 transition-colors">
+                     <button
+                       onClick={() => deleteCourse(course.id)}
+                       className="h-10 w-10 flex items-center justify-center rounded-full border border-red-900/30 text-red-400 hover:bg-red-900/20 transition-colors"
+                     >
                        <Trash2 size={16} />
                      </button>
                   </div>
