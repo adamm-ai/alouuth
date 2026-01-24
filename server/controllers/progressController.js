@@ -1,14 +1,99 @@
 import pool from '../config/database.js';
 
-// Enroll in a course
+// Helper: Check if user has completed prerequisite course
+async function checkPrerequisites(userId, courseId) {
+  // Get course and its prerequisite
+  const courseResult = await pool.query(`
+    SELECT c.id, c.level, c.prerequisite_course_id,
+           pc.title as prereq_title
+    FROM courses c
+    LEFT JOIN courses pc ON pc.id = c.prerequisite_course_id
+    WHERE c.id = $1
+  `, [courseId]);
+
+  if (courseResult.rows.length === 0) {
+    return { allowed: false, reason: 'Course not found' };
+  }
+
+  const course = courseResult.rows[0];
+
+  // If course has explicit prerequisite, check it
+  if (course.prerequisite_course_id) {
+    const prereqCheck = await pool.query(`
+      SELECT completed_at FROM enrollments
+      WHERE user_id = $1 AND course_id = $2 AND completed_at IS NOT NULL
+    `, [userId, course.prerequisite_course_id]);
+
+    if (prereqCheck.rows.length === 0) {
+      return {
+        allowed: false,
+        reason: `You must complete "${course.prereq_title}" first`,
+        prerequisiteCourseId: course.prerequisite_course_id
+      };
+    }
+  }
+
+  // Level-based prerequisites: Intermediate requires a completed Beginner, Advanced requires completed Intermediate
+  if (course.level === 'Intermediate') {
+    const beginnerCheck = await pool.query(`
+      SELECT e.id FROM enrollments e
+      JOIN courses c ON c.id = e.course_id
+      WHERE e.user_id = $1 AND c.level = 'Beginner' AND e.completed_at IS NOT NULL
+    `, [userId]);
+
+    if (beginnerCheck.rows.length === 0) {
+      return { allowed: false, reason: 'Complete a Beginner course first to unlock Intermediate courses' };
+    }
+  }
+
+  if (course.level === 'Advanced') {
+    const intermediateCheck = await pool.query(`
+      SELECT e.id FROM enrollments e
+      JOIN courses c ON c.id = e.course_id
+      WHERE e.user_id = $1 AND c.level = 'Intermediate' AND e.completed_at IS NOT NULL
+    `, [userId]);
+
+    if (intermediateCheck.rows.length === 0) {
+      return { allowed: false, reason: 'Complete an Intermediate course first to unlock Advanced courses' };
+    }
+  }
+
+  return { allowed: true };
+}
+
+// Helper: Check if quiz score passes the threshold
+function checkQuizPassed(score, totalQuestions, passingScore = 70) {
+  const percentage = totalQuestions > 0 ? Math.round((score / totalQuestions) * 100) : 0;
+  return {
+    passed: percentage >= passingScore,
+    percentage,
+    passingScore
+  };
+}
+
+// Enroll in a course with prerequisite checking
 export const enrollInCourse = async (req, res) => {
   try {
     const { courseId } = req.params;
 
     // Check if course exists
-    const courseCheck = await pool.query('SELECT id FROM courses WHERE id = $1', [courseId]);
+    const courseCheck = await pool.query(
+      'SELECT id, deadline, is_mandatory FROM courses WHERE id = $1',
+      [courseId]
+    );
     if (courseCheck.rows.length === 0) {
       return res.status(404).json({ error: 'Course not found.' });
+    }
+
+    const course = courseCheck.rows[0];
+
+    // Check prerequisites
+    const prereqResult = await checkPrerequisites(req.user.id, courseId);
+    if (!prereqResult.allowed) {
+      return res.status(403).json({
+        error: prereqResult.reason,
+        prerequisiteCourseId: prereqResult.prerequisiteCourseId
+      });
     }
 
     // Check if already enrolled
@@ -21,10 +106,10 @@ export const enrollInCourse = async (req, res) => {
       return res.status(400).json({ error: 'Already enrolled in this course.' });
     }
 
-    // Create enrollment
+    // Create enrollment with course deadline if set
     await pool.query(
-      'INSERT INTO enrollments (user_id, course_id) VALUES ($1, $2)',
-      [req.user.id, courseId]
+      'INSERT INTO enrollments (user_id, course_id, deadline) VALUES ($1, $2, $3)',
+      [req.user.id, courseId, course.deadline]
     );
 
     res.status(201).json({ message: 'Successfully enrolled in course.' });
@@ -89,14 +174,14 @@ export const updateLessonProgress = async (req, res) => {
   }
 };
 
-// Mark lesson as complete
+// Mark lesson as complete with quiz pass/fail validation
 export const completeLesson = async (req, res) => {
   try {
     const { lessonId } = req.params;
-    const { quizScore } = req.body;
+    const { quizScore, totalQuestions } = req.body;
 
     const lessonResult = await pool.query(
-      'SELECT id, course_id, type FROM lessons WHERE id = $1',
+      'SELECT id, course_id, type, passing_score FROM lessons WHERE id = $1',
       [lessonId]
     );
 
@@ -105,20 +190,55 @@ export const completeLesson = async (req, res) => {
     }
 
     const lesson = lessonResult.rows[0];
+    const passingScore = lesson.passing_score || 70;
 
-    // Upsert completion
+    // For quiz lessons, validate pass/fail
+    let passed = true;
+    let quizResult = null;
+
+    if (lesson.type === 'quiz' && quizScore !== undefined && totalQuestions) {
+      quizResult = checkQuizPassed(quizScore, totalQuestions, passingScore);
+      passed = quizResult.passed;
+
+      // If quiz not passed, don't mark as completed
+      if (!passed) {
+        // Still record the attempt
+        await pool.query(`
+          INSERT INTO lesson_progress (user_id, lesson_id, course_id, status, progress_percent, quiz_score, passed, started_at)
+          VALUES ($1, $2, $3, 'IN_PROGRESS', 0, $4, false, CURRENT_TIMESTAMP)
+          ON CONFLICT (user_id, lesson_id)
+          DO UPDATE SET
+            quiz_score = $4,
+            quiz_attempts = lesson_progress.quiz_attempts + 1,
+            passed = false,
+            last_accessed = CURRENT_TIMESTAMP
+        `, [req.user.id, lessonId, lesson.course_id, quizResult.percentage]);
+
+        return res.json({
+          message: 'Quiz not passed',
+          passed: false,
+          quizResult,
+          courseProgress: await calculateCourseProgress(req.user.id, lesson.course_id)
+        });
+      }
+    }
+
+    // Upsert completion (passed or non-quiz lesson)
+    const scoreToStore = quizResult ? quizResult.percentage : quizScore;
+
     await pool.query(`
-      INSERT INTO lesson_progress (user_id, lesson_id, course_id, status, progress_percent, quiz_score, completed_at, started_at)
-      VALUES ($1, $2, $3, 'COMPLETED', 100, $4, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+      INSERT INTO lesson_progress (user_id, lesson_id, course_id, status, progress_percent, quiz_score, passed, completed_at, started_at)
+      VALUES ($1, $2, $3, 'COMPLETED', 100, $4, $5, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
       ON CONFLICT (user_id, lesson_id)
       DO UPDATE SET
         status = 'COMPLETED',
         progress_percent = 100,
         quiz_score = COALESCE($4, lesson_progress.quiz_score),
+        passed = $5,
         quiz_attempts = CASE WHEN $4 IS NOT NULL THEN lesson_progress.quiz_attempts + 1 ELSE lesson_progress.quiz_attempts END,
         completed_at = CURRENT_TIMESTAMP,
         last_accessed = CURRENT_TIMESTAMP
-    `, [req.user.id, lessonId, lesson.course_id, quizScore]);
+    `, [req.user.id, lessonId, lesson.course_id, scoreToStore, passed]);
 
     // Calculate course progress
     const courseProgress = await calculateCourseProgress(req.user.id, lesson.course_id);
@@ -134,6 +254,8 @@ export const completeLesson = async (req, res) => {
 
     res.json({
       message: 'Lesson completed successfully',
+      passed: true,
+      quizResult,
       courseProgress
     });
   } catch (error) {
@@ -253,3 +375,121 @@ async function calculateCourseProgress(userId, courseId) {
   const { total_lessons, completed_lessons } = result.rows[0];
   return total_lessons > 0 ? Math.round((completed_lessons / total_lessons) * 100) : 0;
 }
+
+// Check if user can access a course (prerequisites check)
+export const checkCourseAccess = async (req, res) => {
+  try {
+    const { courseId } = req.params;
+    const prereqResult = await checkPrerequisites(req.user.id, courseId);
+
+    res.json({
+      canAccess: prereqResult.allowed,
+      reason: prereqResult.reason,
+      prerequisiteCourseId: prereqResult.prerequisiteCourseId
+    });
+  } catch (error) {
+    console.error('Check access error:', error);
+    res.status(500).json({ error: 'Failed to check course access.' });
+  }
+};
+
+// Get user's courses with deadline status
+export const getDeadlines = async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT
+        e.id as enrollment_id,
+        c.id as course_id,
+        c.title,
+        c.is_mandatory,
+        COALESCE(e.deadline, c.deadline) as deadline,
+        e.completed_at,
+        e.enrolled_at,
+        CASE
+          WHEN e.completed_at IS NOT NULL THEN 'completed'
+          WHEN COALESCE(e.deadline, c.deadline) IS NULL THEN 'no_deadline'
+          WHEN COALESCE(e.deadline, c.deadline) < NOW() THEN 'overdue'
+          WHEN COALESCE(e.deadline, c.deadline) < NOW() + INTERVAL '7 days' THEN 'urgent'
+          WHEN COALESCE(e.deadline, c.deadline) < NOW() + INTERVAL '14 days' THEN 'upcoming'
+          ELSE 'on_track'
+        END as status,
+        EXTRACT(DAY FROM COALESCE(e.deadline, c.deadline) - NOW())::int as days_remaining
+      FROM enrollments e
+      JOIN courses c ON c.id = e.course_id
+      WHERE e.user_id = $1
+      ORDER BY
+        CASE WHEN e.completed_at IS NOT NULL THEN 1 ELSE 0 END,
+        COALESCE(e.deadline, c.deadline) ASC NULLS LAST
+    `, [req.user.id]);
+
+    // Update overdue status in enrollments
+    await pool.query(`
+      UPDATE enrollments
+      SET is_overdue = true
+      WHERE user_id = $1
+        AND completed_at IS NULL
+        AND (deadline < NOW() OR course_id IN (
+          SELECT id FROM courses WHERE deadline < NOW()
+        ))
+    `, [req.user.id]);
+
+    res.json({
+      deadlines: result.rows.map(row => ({
+        enrollmentId: row.enrollment_id,
+        courseId: row.course_id,
+        title: row.title,
+        isMandatory: row.is_mandatory,
+        deadline: row.deadline,
+        completedAt: row.completed_at,
+        enrolledAt: row.enrolled_at,
+        status: row.status,
+        daysRemaining: row.days_remaining
+      }))
+    });
+  } catch (error) {
+    console.error('Get deadlines error:', error);
+    res.status(500).json({ error: 'Failed to get deadlines.' });
+  }
+};
+
+// Get lesson passing requirements
+export const getLessonRequirements = async (req, res) => {
+  try {
+    const { lessonId } = req.params;
+
+    const result = await pool.query(`
+      SELECT
+        l.id,
+        l.title,
+        l.type,
+        l.passing_score,
+        lp.quiz_score,
+        lp.quiz_attempts,
+        lp.passed,
+        lp.status
+      FROM lessons l
+      LEFT JOIN lesson_progress lp ON lp.lesson_id = l.id AND lp.user_id = $1
+      WHERE l.id = $2
+    `, [req.user.id, lessonId]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Lesson not found.' });
+    }
+
+    const lesson = result.rows[0];
+
+    res.json({
+      lessonId: lesson.id,
+      title: lesson.title,
+      type: lesson.type,
+      passingScore: lesson.passing_score || 70,
+      currentScore: lesson.quiz_score,
+      attempts: lesson.quiz_attempts || 0,
+      passed: lesson.passed || false,
+      status: lesson.status || 'NOT_STARTED'
+    });
+  } catch (error) {
+    console.error('Get lesson requirements error:', error);
+    res.status(500).json({ error: 'Failed to get lesson requirements.' });
+  }
+};

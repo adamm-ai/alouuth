@@ -1,6 +1,6 @@
 import pool from '../config/database.js';
 
-// Get admin dashboard stats
+// Get admin dashboard stats with real data
 export const getDashboardStats = async (req, res) => {
   try {
     // Total learners
@@ -22,6 +22,14 @@ export const getDashboardStats = async (req, res) => {
       'SELECT COUNT(*) as count FROM enrollments WHERE completed_at IS NOT NULL'
     );
 
+    // Overdue enrollments
+    const overdueResult = await pool.query(`
+      SELECT COUNT(*) as count FROM enrollments e
+      LEFT JOIN courses c ON c.id = e.course_id
+      WHERE e.completed_at IS NULL
+        AND (e.deadline < NOW() OR (e.deadline IS NULL AND c.deadline < NOW()))
+    `);
+
     // Average completion rate
     const totalEnrollments = parseInt(enrollmentsResult.rows[0].count);
     const completedEnrollments = parseInt(completedResult.rows[0].count);
@@ -37,6 +45,26 @@ export const getDashboardStats = async (req, res) => {
       WHERE lp.status = 'COMPLETED'
     `);
 
+    // Average quiz score across all learners
+    const avgQuizResult = await pool.query(`
+      SELECT AVG(quiz_score) as avg_score
+      FROM lesson_progress
+      WHERE quiz_score IS NOT NULL
+    `);
+
+    // Quiz pass rate
+    const quizPassResult = await pool.query(`
+      SELECT
+        COUNT(CASE WHEN passed = true THEN 1 END) as passed,
+        COUNT(*) as total
+      FROM lesson_progress
+      WHERE quiz_score IS NOT NULL
+    `);
+
+    const quizPassRate = parseInt(quizPassResult.rows[0].total) > 0
+      ? Math.round((parseInt(quizPassResult.rows[0].passed) / parseInt(quizPassResult.rows[0].total)) * 100)
+      : 0;
+
     res.json({
       stats: {
         totalLearners: parseInt(learnersResult.rows[0].count),
@@ -44,7 +72,10 @@ export const getDashboardStats = async (req, res) => {
         totalLessons: parseInt(lessonsResult.rows[0].count),
         totalEnrollments: totalEnrollments,
         completionRate: completionRate,
-        totalStudyHours: Math.round(parseFloat(studyHoursResult.rows[0].total_hours) || 0)
+        totalStudyHours: Math.round(parseFloat(studyHoursResult.rows[0].total_hours) || 0),
+        overdueEnrollments: parseInt(overdueResult.rows[0].count) || 0,
+        averageQuizScore: Math.round(parseFloat(avgQuizResult.rows[0].avg_score) || 0),
+        quizPassRate: quizPassRate
       }
     });
   } catch (error) {
@@ -53,7 +84,7 @@ export const getDashboardStats = async (req, res) => {
   }
 };
 
-// Get ministry engagement stats
+// Get ministry engagement stats with enhanced data
 export const getMinistryStats = async (req, res) => {
   try {
     const result = await pool.query(`
@@ -61,9 +92,17 @@ export const getMinistryStats = async (req, res) => {
         u.ministry,
         COUNT(DISTINCT u.id) as total_learners,
         COUNT(DISTINCT CASE WHEN u.last_login > NOW() - INTERVAL '30 days' THEN u.id END) as active_learners,
-        COUNT(DISTINCT CASE WHEN e.completed_at IS NOT NULL THEN e.id END) as courses_completed
+        COUNT(DISTINCT CASE WHEN e.completed_at IS NOT NULL THEN e.id END) as courses_completed,
+        COUNT(DISTINCT CASE
+          WHEN e.completed_at IS NULL AND (e.deadline < NOW() OR c.deadline < NOW())
+          THEN e.id END) as overdue_count,
+        COALESCE(AVG(
+          CASE WHEN lp.quiz_score IS NOT NULL THEN lp.quiz_score END
+        ), 0) as avg_quiz_score
       FROM users u
       LEFT JOIN enrollments e ON e.user_id = u.id
+      LEFT JOIN courses c ON c.id = e.course_id
+      LEFT JOIN lesson_progress lp ON lp.user_id = u.id
       WHERE u.ministry IS NOT NULL AND u.role IN ('LEARNER', 'SUPERUSER')
       GROUP BY u.ministry
       ORDER BY total_learners DESC
@@ -75,12 +114,110 @@ export const getMinistryStats = async (req, res) => {
         totalLearners: parseInt(row.total_learners),
         activeLearners: parseInt(row.active_learners),
         coursesCompleted: parseInt(row.courses_completed),
+        overdueCount: parseInt(row.overdue_count) || 0,
+        avgQuizScore: Math.round(parseFloat(row.avg_quiz_score) || 0),
         value: parseInt(row.total_learners) // For chart compatibility
       }))
     });
   } catch (error) {
     console.error('Get ministry stats error:', error);
     res.status(500).json({ error: 'Failed to get ministry stats.' });
+  }
+};
+
+// Get per-course breakdown by ministry
+export const getMinistryCourseStats = async (req, res) => {
+  try {
+    const { ministry } = req.query;
+
+    let whereClause = '';
+    const params = [];
+
+    if (ministry) {
+      whereClause = 'WHERE u.ministry = $1';
+      params.push(ministry);
+    }
+
+    const result = await pool.query(`
+      SELECT
+        u.ministry,
+        c.id as course_id,
+        c.title as course_title,
+        COUNT(DISTINCT e.user_id) as enrolled_count,
+        COUNT(DISTINCT CASE WHEN e.completed_at IS NOT NULL THEN e.user_id END) as completed_count,
+        COUNT(DISTINCT CASE
+          WHEN e.completed_at IS NULL AND (e.deadline < NOW() OR c.deadline < NOW())
+          THEN e.user_id END) as overdue_count,
+        COALESCE(AVG(lp.quiz_score), 0) as avg_score
+      FROM users u
+      JOIN enrollments e ON e.user_id = u.id
+      JOIN courses c ON c.id = e.course_id
+      LEFT JOIN lesson_progress lp ON lp.user_id = u.id AND lp.course_id = c.id
+      ${whereClause || 'WHERE u.ministry IS NOT NULL'}
+      GROUP BY u.ministry, c.id, c.title
+      ORDER BY u.ministry, enrolled_count DESC
+    `, params);
+
+    res.json({
+      ministryCourseStats: result.rows.map(row => ({
+        ministry: row.ministry,
+        courseId: row.course_id,
+        courseTitle: row.course_title,
+        enrolledCount: parseInt(row.enrolled_count),
+        completedCount: parseInt(row.completed_count),
+        overdueCount: parseInt(row.overdue_count) || 0,
+        avgScore: Math.round(parseFloat(row.avg_score) || 0),
+        completionRate: parseInt(row.enrolled_count) > 0
+          ? Math.round((parseInt(row.completed_count) / parseInt(row.enrolled_count)) * 100)
+          : 0
+      }))
+    });
+  } catch (error) {
+    console.error('Get ministry course stats error:', error);
+    res.status(500).json({ error: 'Failed to get ministry course stats.' });
+  }
+};
+
+// Get overdue learners
+export const getOverdueLearners = async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT
+        u.id as user_id,
+        u.name,
+        u.email,
+        u.ministry,
+        c.id as course_id,
+        c.title as course_title,
+        c.is_mandatory,
+        COALESCE(e.deadline, c.deadline) as deadline,
+        e.enrolled_at,
+        EXTRACT(DAY FROM NOW() - COALESCE(e.deadline, c.deadline))::int as days_overdue
+      FROM enrollments e
+      JOIN users u ON u.id = e.user_id
+      JOIN courses c ON c.id = e.course_id
+      WHERE e.completed_at IS NULL
+        AND (e.deadline < NOW() OR (e.deadline IS NULL AND c.deadline < NOW()))
+      ORDER BY days_overdue DESC
+    `);
+
+    res.json({
+      overdueLearners: result.rows.map(row => ({
+        userId: row.user_id,
+        name: row.name,
+        email: row.email,
+        ministry: row.ministry,
+        courseId: row.course_id,
+        courseTitle: row.course_title,
+        isMandatory: row.is_mandatory,
+        deadline: row.deadline,
+        enrolledAt: row.enrolled_at,
+        daysOverdue: row.days_overdue
+      }))
+    });
+  } catch (error) {
+    console.error('Get overdue learners error:', error);
+    res.status(500).json({ error: 'Failed to get overdue learners.' });
   }
 };
 
@@ -239,6 +376,9 @@ export const getCoursesWithStats = async (req, res) => {
         c.*,
         COUNT(DISTINCT e.user_id) as enrolled_count,
         COUNT(DISTINCT CASE WHEN e.completed_at IS NOT NULL THEN e.id END) as completed_count,
+        COUNT(DISTINCT CASE
+          WHEN e.completed_at IS NULL AND (e.deadline < NOW() OR c.deadline < NOW())
+          THEN e.id END) as overdue_count,
         COUNT(DISTINCT l.id) as lesson_count,
         u.name as created_by_name
       FROM courses c
@@ -258,8 +398,12 @@ export const getCoursesWithStats = async (req, res) => {
         level: c.level,
         totalDuration: c.total_duration,
         isPublished: c.is_published,
+        isMandatory: c.is_mandatory,
+        deadline: c.deadline,
+        prerequisiteCourseId: c.prerequisite_course_id,
         enrolledCount: parseInt(c.enrolled_count),
         completedCount: parseInt(c.completed_count),
+        overdueCount: parseInt(c.overdue_count) || 0,
         lessonCount: parseInt(c.lesson_count),
         createdBy: c.created_by_name,
         createdAt: c.created_at
@@ -268,5 +412,104 @@ export const getCoursesWithStats = async (req, res) => {
   } catch (error) {
     console.error('Get courses with stats error:', error);
     res.status(500).json({ error: 'Failed to get courses.' });
+  }
+};
+
+// Set course deadline and mandatory status
+export const setCourseDeadline = async (req, res) => {
+  try {
+    const { courseId } = req.params;
+    const { deadline, isMandatory, prerequisiteCourseId } = req.body;
+
+    const result = await pool.query(`
+      UPDATE courses
+      SET deadline = $1,
+          is_mandatory = COALESCE($2, is_mandatory),
+          prerequisite_course_id = $3,
+          updated_at = CURRENT_TIMESTAMP
+      WHERE id = $4
+      RETURNING id, title, deadline, is_mandatory, prerequisite_course_id
+    `, [deadline || null, isMandatory, prerequisiteCourseId || null, courseId]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Course not found.' });
+    }
+
+    // Update existing enrollments without a custom deadline to use the course deadline
+    if (deadline) {
+      await pool.query(`
+        UPDATE enrollments
+        SET deadline = $1
+        WHERE course_id = $2 AND deadline IS NULL AND completed_at IS NULL
+      `, [deadline, courseId]);
+    }
+
+    res.json({
+      message: 'Course deadline updated successfully',
+      course: result.rows[0]
+    });
+  } catch (error) {
+    console.error('Set course deadline error:', error);
+    res.status(500).json({ error: 'Failed to set course deadline.' });
+  }
+};
+
+// Set user-specific enrollment deadline
+export const setEnrollmentDeadline = async (req, res) => {
+  try {
+    const { enrollmentId } = req.params;
+    const { deadline } = req.body;
+
+    const result = await pool.query(`
+      UPDATE enrollments
+      SET deadline = $1,
+          is_overdue = CASE WHEN $1 < NOW() THEN true ELSE false END
+      WHERE id = $2
+      RETURNING id, user_id, course_id, deadline, is_overdue
+    `, [deadline, enrollmentId]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Enrollment not found.' });
+    }
+
+    res.json({
+      message: 'Enrollment deadline updated',
+      enrollment: result.rows[0]
+    });
+  } catch (error) {
+    console.error('Set enrollment deadline error:', error);
+    res.status(500).json({ error: 'Failed to set enrollment deadline.' });
+  }
+};
+
+// Set quiz passing score for a lesson
+export const setLessonPassingScore = async (req, res) => {
+  try {
+    const { lessonId } = req.params;
+    const { passingScore } = req.body;
+
+    if (passingScore < 0 || passingScore > 100) {
+      return res.status(400).json({ error: 'Passing score must be between 0 and 100.' });
+    }
+
+    const result = await pool.query(`
+      UPDATE lessons
+      SET passing_score = $1,
+          updated_at = CURRENT_TIMESTAMP
+      WHERE id = $2
+      RETURNING id, title, type, passing_score
+    `, [passingScore, lessonId]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Lesson not found.' });
+    }
+
+    res.json({
+      message: 'Lesson passing score updated',
+      lesson: result.rows[0]
+    });
+  } catch (error) {
+    console.error('Set lesson passing score error:', error);
+    res.status(500).json({ error: 'Failed to set passing score.' });
   }
 };

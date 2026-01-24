@@ -224,14 +224,49 @@ export const dataService = {
     });
   },
 
-  completeLesson: async (lessonId: string, quizScore?: number): Promise<number> => {
+  completeLesson: async (lessonId: string, quizScore?: number, totalQuestions?: number): Promise<{ courseProgress: number; passed: boolean; quizResult?: any }> => {
     if (USE_MOCK) {
       await delay(300);
-      return 100; // Return mock progress
+      const passed = quizScore && totalQuestions ? (quizScore / totalQuestions * 100) >= 70 : true;
+      return { courseProgress: 100, passed, quizResult: { passed, percentage: quizScore ? quizScore / (totalQuestions || 1) * 100 : 100, passingScore: 70 } };
     }
 
-    const response = await api.progress.completeLesson(lessonId, quizScore);
-    return response.courseProgress;
+    const response = await api.progress.completeLesson(lessonId, quizScore, totalQuestions);
+    return {
+      courseProgress: response.courseProgress,
+      passed: response.passed,
+      quizResult: response.quizResult
+    };
+  },
+
+  // Check if user can access a course (prerequisites)
+  checkCourseAccess: async (courseId: string): Promise<{ canAccess: boolean; reason?: string; prerequisiteCourseId?: string }> => {
+    if (USE_MOCK) {
+      await delay(200);
+      return { canAccess: true };
+    }
+
+    return api.progress.checkCourseAccess(courseId);
+  },
+
+  // Get user's deadlines
+  getDeadlines: async () => {
+    if (USE_MOCK) {
+      await delay(300);
+      return { deadlines: [] };
+    }
+
+    return api.progress.getDeadlines();
+  },
+
+  // Get lesson requirements
+  getLessonRequirements: async (lessonId: string) => {
+    if (USE_MOCK) {
+      await delay(200);
+      return { lessonId, passingScore: 70, attempts: 0, passed: false, status: 'NOT_STARTED' };
+    }
+
+    return api.progress.getLessonRequirements(lessonId);
   },
 
   getDashboardStats: async () => {
@@ -294,10 +329,39 @@ export const dataService = {
   getMinistryStats: async () => {
     if (USE_MOCK) {
       await delay(400);
-      return { ministryStats: MINISTRY_STATS.map(s => ({ ...s, totalLearners: s.value, activeLearners: Math.floor(s.value * 0.7), coursesCompleted: Math.floor(s.value * 0.3) })) };
+      return { ministryStats: MINISTRY_STATS.map(s => ({ ...s, totalLearners: s.value, activeLearners: Math.floor(s.value * 0.7), coursesCompleted: Math.floor(s.value * 0.3), overdueCount: Math.floor(s.value * 0.1), avgQuizScore: 75 })) };
     }
 
     return api.admin.getMinistryStats();
+  },
+
+  getMinistryCourseStats: async (ministry?: string) => {
+    if (USE_MOCK) {
+      await delay(400);
+      return {
+        ministryCourseStats: MOCK_COURSES.slice(0, 3).map(c => ({
+          ministry: ministry || 'Finance Ministry',
+          courseId: c.id,
+          courseTitle: c.title,
+          enrolledCount: Math.floor(Math.random() * 50) + 10,
+          completedCount: Math.floor(Math.random() * 30),
+          overdueCount: Math.floor(Math.random() * 5),
+          avgScore: Math.floor(Math.random() * 30) + 70,
+          completionRate: Math.floor(Math.random() * 40) + 50
+        }))
+      };
+    }
+
+    return api.admin.getMinistryCourseStats(ministry);
+  },
+
+  getOverdueLearners: async () => {
+    if (USE_MOCK) {
+      await delay(400);
+      return { overdueLearners: [] };
+    }
+
+    return api.admin.getOverdueLearners();
   },
 
   getContentStats: async () => {
@@ -401,6 +465,37 @@ export const dataService = {
     }
 
     await api.courses.deleteLesson(lessonId);
+  },
+
+  // ============================================
+  // DEADLINE & SETTINGS MANAGEMENT (Admin)
+  // ============================================
+
+  setCourseDeadline: async (courseId: string, data: { deadline?: string | null; isMandatory?: boolean; prerequisiteCourseId?: string | null }) => {
+    if (USE_MOCK) {
+      await delay(500);
+      return { message: 'Course deadline updated', course: { id: courseId, ...data } };
+    }
+
+    return api.admin.setCourseDeadline(courseId, data);
+  },
+
+  setEnrollmentDeadline: async (enrollmentId: string, deadline: string) => {
+    if (USE_MOCK) {
+      await delay(300);
+      return { message: 'Enrollment deadline updated', enrollment: { id: enrollmentId, deadline } };
+    }
+
+    return api.admin.setEnrollmentDeadline(enrollmentId, deadline);
+  },
+
+  setLessonPassingScore: async (lessonId: string, passingScore: number) => {
+    if (USE_MOCK) {
+      await delay(300);
+      return { message: 'Passing score updated', lesson: { id: lessonId, passingScore } };
+    }
+
+    return api.admin.setLessonPassingScore(lessonId, passingScore);
   },
 
   // ============================================

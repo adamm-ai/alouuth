@@ -32,7 +32,11 @@ import {
   Eye,
   EyeOff,
   AlertCircle,
-  Loader2
+  Loader2,
+  XCircle,
+  Calendar,
+  AlertTriangle,
+  Target
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from 'recharts';
 import { LiquidBackground } from './components/LiquidBackground';
@@ -138,7 +142,39 @@ const App: React.FC = () => {
     loadDashboardStats();
   }, [currentView, dashboardStatsLoaded]);
 
+  // Learning Path Enforcement: Check if user can access a course based on level
+  const canAccessCourse = (course: Course): { allowed: boolean; reason?: string } => {
+    const levelOrder = ['Beginner', 'Intermediate', 'Advanced'];
+    const courseLevel = levelOrder.indexOf(course.level);
+
+    // Beginner courses are always accessible
+    if (courseLevel === 0) return { allowed: true };
+
+    // For higher levels, check if previous level courses are completed
+    const previousLevel = levelOrder[courseLevel - 1];
+    const previousLevelCourses = courses.filter(c => c.level === previousLevel);
+
+    // Check if at least one course from previous level is completed (100% progress)
+    const hasCompletedPrevious = previousLevelCourses.some(c => c.progress >= 100);
+
+    if (!hasCompletedPrevious && previousLevelCourses.length > 0) {
+      return {
+        allowed: false,
+        reason: `Complete at least one ${previousLevel} course first to unlock ${course.level} courses.`
+      };
+    }
+
+    return { allowed: true };
+  };
+
   const handleStartCourse = async (course: Course) => {
+    // Check level enforcement
+    const accessCheck = canAccessCourse(course);
+    if (!accessCheck.allowed) {
+      alert(accessCheck.reason);
+      return;
+    }
+
     // Auto-enroll user in course if not already enrolled
     try {
       await dataService.enrollInCourse(course.id);
@@ -154,20 +190,29 @@ const App: React.FC = () => {
     setCurrentView('COURSE_PLAYER');
   };
 
-  const handleLessonComplete = async (quizScore?: number) => {
+  const handleLessonComplete = async (quizScore?: number, totalQuestions?: number) => {
     if (!activeCourse || !activeLesson) return;
 
     // 1. Call backend API to persist progress
     try {
-      const courseProgress = await dataService.completeLesson(activeLesson.id, quizScore);
-      console.log('Lesson completed, course progress:', courseProgress);
+      const result = await dataService.completeLesson(activeLesson.id, quizScore, totalQuestions);
+      console.log('Lesson completed, course progress:', result.courseProgress, 'passed:', result.passed);
+
+      // For quiz lessons, check if passed
+      if (activeLesson.type === 'quiz' && !result.passed) {
+        // Quiz not passed - show failure message but don't mark as complete
+        setQuizPassed(false);
+        return; // Don't proceed with completion
+      }
+
+      setQuizPassed(true);
     } catch (error) {
       console.error('Failed to save progress to backend:', error);
     }
 
     // 2. Mark current lesson as complete locally
     const updatedLessons = activeCourse.lessons.map(l =>
-        l.id === activeLesson.id ? { ...l, isCompleted: true } : l
+        l.id === activeLesson.id ? { ...l, isCompleted: true, passed: true } : l
     );
 
     // 3. Calculate new progress
@@ -930,6 +975,8 @@ const App: React.FC = () => {
     const [currentQIdx, setCurrentQIdx] = useState(0);
     const [quizAnswers, setQuizAnswers] = useState<number[]>([]);
     const [quizScore, setQuizScore] = useState(0);
+    const [quizPassed, setQuizPassed] = useState<boolean | null>(null);
+    const PASSING_SCORE = activeLesson?.passingScore || 70;
 
     // Download State
     const [isDownloaded, setIsDownloaded] = useState(false);
@@ -1692,33 +1739,61 @@ const App: React.FC = () => {
                           </div>
                         )}
 
-                        {quizState === 'RESULT' && (
+                        {quizState === 'RESULT' && (() => {
+                          const scorePercent = Math.round((quizScore / activeLesson.quiz.length) * 100);
+                          const passed = scorePercent >= PASSING_SCORE;
+                          return (
                           <div className="text-center space-y-8 animate-fade-in">
-                            <div className="w-32 h-32 rounded-3xl bg-gradient-to-br from-yellow-400/30 to-yellow-500/10 border border-yellow-400/40 mx-auto flex items-center justify-center shadow-[0_0_60px_rgba(250,204,21,0.3)]">
-                              <Trophy size={64} className="text-yellow-400 drop-shadow-[0_0_25px_rgba(250,204,21,0.6)]" />
+                            <div className={`w-32 h-32 rounded-3xl mx-auto flex items-center justify-center shadow-[0_0_60px_${passed ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}] ${
+                              passed
+                                ? 'bg-gradient-to-br from-green-400/30 to-green-500/10 border border-green-400/40'
+                                : 'bg-gradient-to-br from-red-400/30 to-red-500/10 border border-red-400/40'
+                            }`}>
+                              {passed ? (
+                                <Trophy size={64} className="text-green-400 drop-shadow-[0_0_25px_rgba(34,197,94,0.6)]" />
+                              ) : (
+                                <XCircle size={64} className="text-red-400 drop-shadow-[0_0_25px_rgba(239,68,68,0.6)]" />
+                              )}
                             </div>
                             <div>
-                              <h2 className="text-3xl font-bold text-white mb-4">Quiz Complete!</h2>
-                              <div className="text-7xl font-black bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 via-yellow-300 to-white mb-3">
-                                {Math.round((quizScore / activeLesson.quiz.length) * 100)}%
+                              <h2 className={`text-3xl font-bold mb-4 ${passed ? 'text-green-400' : 'text-red-400'}`}>
+                                {passed ? 'Quiz Passed!' : 'Quiz Not Passed'}
+                              </h2>
+                              <div className={`text-7xl font-black bg-clip-text text-transparent bg-gradient-to-r mb-3 ${
+                                passed
+                                  ? 'from-green-400 via-green-300 to-white'
+                                  : 'from-red-400 via-red-300 to-white'
+                              }`}>
+                                {scorePercent}%
                               </div>
                               <p className="text-zinc-400 text-lg">
-                                You answered <span className="text-yellow-400 font-bold">{quizScore}</span> out of <span className="text-white font-bold">{activeLesson.quiz.length}</span> correctly
+                                You answered <span className={passed ? 'text-green-400' : 'text-red-400'} style={{fontWeight: 'bold'}}>{quizScore}</span> out of <span className="text-white font-bold">{activeLesson.quiz.length}</span> correctly
                               </p>
+                              <p className="text-zinc-500 text-sm mt-2">
+                                Passing score: {PASSING_SCORE}%
+                              </p>
+                              {!passed && (
+                                <p className="text-yellow-400/80 text-sm mt-4 px-4 py-2 rounded-lg bg-yellow-400/10 border border-yellow-400/20 inline-block">
+                                  You need to score at least {PASSING_SCORE}% to complete this lesson
+                                </p>
+                              )}
                             </div>
                             <div className="flex gap-4 justify-center pt-4">
                               <SecondaryButton
-                                onClick={() => { setQuizState('INTRO'); setCurrentQIdx(0); setQuizAnswers([]); }}
+                                onClick={() => { setQuizState('INTRO'); setCurrentQIdx(0); setQuizAnswers([]); setQuizPassed(null); }}
                                 className="px-8"
                               >
-                                <RefreshCw size={16} className="mr-2" /> Retry
+                                <RefreshCw size={16} className="mr-2" /> {passed ? 'Retry' : 'Try Again'}
                               </SecondaryButton>
-                              <PrimaryButton onClick={() => handleLessonComplete(Math.round((quizScore / (activeLesson?.quiz?.length || 1)) * 100))} className="px-8">
-                                <Award size={16} className="mr-2" /> Complete & Continue
-                              </PrimaryButton>
+                              {passed && (
+                                <PrimaryButton onClick={() => handleLessonComplete(quizScore, activeLesson?.quiz?.length)} className="px-8">
+                                  <Award size={16} className="mr-2" /> Complete & Continue
+                                </PrimaryButton>
+                              )}
                             </div>
                           </div>
-                        )}
+                          );
+                        })()}
                       </div>
                     </LiquidVideoFrame>
                   )}
@@ -1860,9 +1935,28 @@ const App: React.FC = () => {
     // Track deleted lessons for backend sync
     const [deletedLessonIds, setDeletedLessonIds] = useState<string[]>([]);
 
+    // Real Analytics State
+    const [fullStats, setFullStats] = useState<{
+      totalLearners: number;
+      totalCourses: number;
+      totalLessons: number;
+      totalEnrollments: number;
+      completionRate: number;
+      totalStudyHours: number;
+      overdueEnrollments?: number;
+      averageQuizScore?: number;
+      quizPassRate?: number;
+    } | null>(null);
+    const [ministryStats, setMinistryStats] = useState<any[]>([]);
+    const [contentStats, setContentStats] = useState<any[]>([]);
+    const [overdueLearners, setOverdueLearners] = useState<any[]>([]);
+    const [selectedMinistry, setSelectedMinistry] = useState<string | null>(null);
+    const [ministryCourseStats, setMinistryCourseStats] = useState<any[]>([]);
+
     // Track if data has been loaded (to prevent re-fetching)
     const [pendingUsersLoaded, setPendingUsersLoaded] = useState(false);
     const [allUsersLoaded, setAllUsersLoaded] = useState(false);
+    const [statsLoaded, setStatsLoaded] = useState(false);
 
     // Load pending users only once
     useEffect(() => {
@@ -1881,6 +1975,46 @@ const App: React.FC = () => {
       };
       loadPendingUsers();
     }, [pendingUsersLoaded]);
+
+    // Load real analytics data
+    useEffect(() => {
+      if (statsLoaded) return;
+      const loadStats = async () => {
+        try {
+          const [statsRes, ministryRes, contentRes, overdueRes] = await Promise.all([
+            dataService.getFullAdminStats(),
+            dataService.getMinistryStats(),
+            dataService.getContentStats(),
+            dataService.getOverdueLearners()
+          ]);
+          setFullStats(statsRes.stats);
+          setMinistryStats(ministryRes.ministryStats || []);
+          setContentStats(contentRes.contentStats || []);
+          setOverdueLearners(overdueRes.overdueLearners || []);
+          setStatsLoaded(true);
+        } catch (err) {
+          console.error('Failed to load admin stats:', err);
+        }
+      };
+      loadStats();
+    }, [statsLoaded]);
+
+    // Load ministry course breakdown when a ministry is selected
+    useEffect(() => {
+      if (!selectedMinistry) {
+        setMinistryCourseStats([]);
+        return;
+      }
+      const loadMinistryCourseStats = async () => {
+        try {
+          const res = await dataService.getMinistryCourseStats(selectedMinistry);
+          setMinistryCourseStats(res.ministryCourseStats || []);
+        } catch (err) {
+          console.error('Failed to load ministry course stats:', err);
+        }
+      };
+      loadMinistryCourseStats();
+    }, [selectedMinistry]);
 
     // Load all users when USERS section is active (only once)
     useEffect(() => {
@@ -2258,6 +2392,42 @@ const App: React.FC = () => {
                           className="w-full bg-zinc-900/50 border border-white/10 rounded-xl p-3 text-white focus:border-yellow-400 outline-none"
                         />
                       </div>
+
+                      {/* Deadline and Mandatory Settings */}
+                      <div className="pt-4 border-t border-white/10">
+                        <h4 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
+                          <Calendar size={16} className="text-yellow-400" />
+                          Deadline & Requirements
+                        </h4>
+                        <div className="space-y-3">
+                          <div>
+                            <label className="text-xs text-zinc-500 font-bold uppercase mb-2 block">Completion Deadline</label>
+                            <input
+                              type="datetime-local"
+                              value={editingCourse.deadline ? new Date(editingCourse.deadline).toISOString().slice(0, 16) : ''}
+                              onChange={e => setEditingCourse({...editingCourse, deadline: e.target.value ? new Date(e.target.value).toISOString() : undefined})}
+                              className="w-full bg-zinc-900/50 border border-white/10 rounded-xl p-3 text-white focus:border-yellow-400 outline-none"
+                            />
+                            <p className="text-[10px] text-zinc-500 mt-1">Leave empty for no deadline</p>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <button
+                              onClick={() => setEditingCourse({...editingCourse, isMandatory: !editingCourse.isMandatory})}
+                              className={`w-12 h-6 rounded-full transition-colors relative ${
+                                editingCourse.isMandatory ? 'bg-yellow-400' : 'bg-zinc-700'
+                              }`}
+                            >
+                              <div className={`w-5 h-5 rounded-full bg-white absolute top-0.5 transition-transform ${
+                                editingCourse.isMandatory ? 'translate-x-6' : 'translate-x-0.5'
+                              }`} />
+                            </button>
+                            <div>
+                              <span className="text-sm text-white">Mandatory Training</span>
+                              <p className="text-[10px] text-zinc-500">Mark as required for all learners</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                    </div>
                  ) : (
                    <div className="flex-1 flex flex-col">
@@ -2492,6 +2662,30 @@ const App: React.FC = () => {
                        {/* 3. Quiz Editor */}
                        {activeLesson.type === 'quiz' && (
                          <div className="space-y-4">
+                            {/* Passing Score Setting */}
+                            <GlassCard className="!bg-yellow-400/5 !border-yellow-400/20">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                  <Target size={20} className="text-yellow-400" />
+                                  <div>
+                                    <label className="text-sm font-bold text-white block">Passing Score</label>
+                                    <p className="text-xs text-zinc-500">Minimum % required to complete this quiz</p>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    max="100"
+                                    value={activeLesson.passingScore || 70}
+                                    onChange={(e) => updateLesson(activeLesson.id, { passingScore: parseInt(e.target.value) || 70 })}
+                                    className="w-20 bg-zinc-900 border border-white/20 rounded-lg px-3 py-2 text-white text-center focus:border-yellow-400 outline-none"
+                                  />
+                                  <span className="text-zinc-400">%</span>
+                                </div>
+                              </div>
+                            </GlassCard>
+
                             {activeLesson.quiz?.map((q, qIdx) => (
                               <GlassCard key={q.id} className="relative group">
                                 <button
@@ -2807,31 +3001,51 @@ const App: React.FC = () => {
                 </PrimaryButton>
               </div>
 
-          {/* KPI Cards - Glass Effect */}
+          {/* KPI Cards - Glass Effect - Real Data */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <GlassCard className="relative overflow-hidden group">
                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><Users size={64} /></div>
                <div className="text-zinc-400 text-sm font-medium uppercase tracking-wider mb-2">Total Learners</div>
-               <div className="text-4xl font-bold text-white mb-1">2,405</div>
-               <div className="text-yellow-400 text-xs flex items-center gap-1"><div className="w-1.5 h-1.5 rounded-full bg-yellow-400"></div> +128 this week</div>
+               <div className="text-4xl font-bold text-white mb-1">{fullStats?.totalLearners?.toLocaleString() || '—'}</div>
+               <div className="text-yellow-400 text-xs flex items-center gap-1"><div className="w-1.5 h-1.5 rounded-full bg-yellow-400"></div> {fullStats?.totalEnrollments || 0} enrollments</div>
             </GlassCard>
             <GlassCard className="relative overflow-hidden group">
                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><BookOpen size={64} /></div>
                <div className="text-zinc-400 text-sm font-medium uppercase tracking-wider mb-2">Content Library</div>
-               <div className="text-4xl font-bold text-white mb-1">{totalLessons}</div>
-               <div className="text-zinc-400 text-xs">Across {courses.length} courses</div>
+               <div className="text-4xl font-bold text-white mb-1">{fullStats?.totalLessons || totalLessons}</div>
+               <div className="text-zinc-400 text-xs">Across {fullStats?.totalCourses || courses.length} courses</div>
             </GlassCard>
             <GlassCard className="relative overflow-hidden group">
-               <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><MonitorPlay size={64} /></div>
-               <div className="text-zinc-400 text-sm font-medium uppercase tracking-wider mb-2">Study Hours</div>
-               <div className="text-4xl font-bold text-white mb-1">12.5k</div>
-               <div className="text-white text-xs">Video + Reading + Quizzes</div>
-            </GlassCard>
-             <GlassCard className="relative overflow-hidden group">
                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><CheckCircle size={64} /></div>
                <div className="text-zinc-400 text-sm font-medium uppercase tracking-wider mb-2">Completion Rate</div>
-               <div className="text-4xl font-bold text-white mb-1">68%</div>
+               <div className="text-4xl font-bold text-white mb-1">{fullStats?.completionRate ?? '—'}%</div>
                <div className="text-yellow-400 text-xs">Avg. per enrollment</div>
+            </GlassCard>
+            <GlassCard className="relative overflow-hidden group">
+               <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><Target size={64} /></div>
+               <div className="text-zinc-400 text-sm font-medium uppercase tracking-wider mb-2">Quiz Pass Rate</div>
+               <div className="text-4xl font-bold text-white mb-1">{fullStats?.quizPassRate ?? '—'}%</div>
+               <div className="text-zinc-400 text-xs">Avg score: {fullStats?.averageQuizScore ?? '—'}%</div>
+            </GlassCard>
+          </div>
+
+          {/* Second Row KPIs - Study Hours & Overdue */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <GlassCard className="relative overflow-hidden group">
+               <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><MonitorPlay size={64} /></div>
+               <div className="text-zinc-400 text-sm font-medium uppercase tracking-wider mb-2">Total Study Hours</div>
+               <div className="text-4xl font-bold text-white mb-1">{fullStats?.totalStudyHours ? (fullStats.totalStudyHours >= 1000 ? `${(fullStats.totalStudyHours / 1000).toFixed(1)}k` : fullStats.totalStudyHours) : '—'}</div>
+               <div className="text-white text-xs">Total learning time logged</div>
+            </GlassCard>
+            <GlassCard className={`relative overflow-hidden group ${(fullStats?.overdueEnrollments || 0) > 0 ? 'border-red-500/30' : ''}`}>
+               <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><AlertTriangle size={64} /></div>
+               <div className="text-zinc-400 text-sm font-medium uppercase tracking-wider mb-2">Overdue Enrollments</div>
+               <div className={`text-4xl font-bold mb-1 ${(fullStats?.overdueEnrollments || 0) > 0 ? 'text-red-400' : 'text-green-400'}`}>
+                 {fullStats?.overdueEnrollments ?? 0}
+               </div>
+               <div className={`text-xs ${(fullStats?.overdueEnrollments || 0) > 0 ? 'text-red-400/80' : 'text-green-400/80'}`}>
+                 {(fullStats?.overdueEnrollments || 0) > 0 ? 'Learners past deadline' : 'All on track'}
+               </div>
             </GlassCard>
           </div>
 
@@ -2876,6 +3090,55 @@ const App: React.FC = () => {
                       <ChevronRight size={24} className="text-yellow-400 group-hover:translate-x-1 transition-transform" />
                     </div>
                   </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Overdue Learners Alert */}
+          {overdueLearners.length > 0 && (
+            <div className="relative group">
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-orange-500/20 via-red-500/20 to-orange-500/20 rounded-[26px] blur-md opacity-60" />
+              <div className="relative rounded-2xl overflow-hidden backdrop-blur-xl bg-gradient-to-br from-orange-900/20 via-black/40 to-red-900/10 border border-orange-500/30 p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-red-500/30 to-orange-500/20 border border-red-400/40 flex items-center justify-center">
+                      <AlertTriangle size={24} className="text-red-400" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-white">{overdueLearners.length} Overdue Enrollment{overdueLearners.length > 1 ? 's' : ''}</h3>
+                      <p className="text-sm text-zinc-400">Learners past their training deadline</p>
+                    </div>
+                  </div>
+                  <span className="px-3 py-1 text-xs rounded-full bg-red-500/20 text-red-400 font-medium border border-red-500/30">
+                    Requires Attention
+                  </span>
+                </div>
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {overdueLearners.slice(0, 5).map((learner, idx) => (
+                    <div key={idx} className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/10">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-red-500/20 to-orange-500/10 flex items-center justify-center text-xs font-bold text-red-400">
+                          {learner.daysOverdue}d
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-white">{learner.name}</p>
+                          <p className="text-xs text-zinc-500">{learner.courseTitle}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xs text-zinc-400">{learner.ministry}</p>
+                        {learner.isMandatory && (
+                          <span className="text-xs text-red-400">Mandatory</span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                  {overdueLearners.length > 5 && (
+                    <p className="text-center text-sm text-zinc-500 pt-2">
+                      + {overdueLearners.length - 5} more overdue
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
@@ -3045,24 +3308,132 @@ const App: React.FC = () => {
           </div>
 
           {/* Analytics Section */}
-          <div className={adminSection === 'ANALYTICS' ? '' : 'hidden'}>
+          <div className={adminSection === 'ANALYTICS' ? 'space-y-6' : 'hidden'}>
               <div>
                 <h2 className="text-3xl font-bold">Analytics Dashboard</h2>
                 <p className="text-zinc-400 mt-1">Detailed insights into platform engagement</p>
               </div>
 
+              {/* Ministry Progress Tracking - Enhanced with per-course breakdown */}
+              <GlassCard className="p-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-xl font-bold">Ministry Training Progress</h3>
+                  {selectedMinistry && (
+                    <button
+                      onClick={() => setSelectedMinistry(null)}
+                      className="text-sm text-yellow-400 hover:text-yellow-300 flex items-center gap-1"
+                    >
+                      <ArrowLeft size={14} /> Back to all ministries
+                    </button>
+                  )}
+                </div>
+
+                {!selectedMinistry ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {ministryStats.length > 0 ? ministryStats.map((ministry, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => setSelectedMinistry(ministry.name)}
+                        className="p-4 rounded-xl bg-white/5 border border-white/10 hover:border-yellow-400/30 hover:bg-white/10 transition-all text-left group"
+                      >
+                        <div className="flex justify-between items-start mb-2">
+                          <div className="text-sm font-medium text-white truncate group-hover:text-yellow-400 transition-colors">{ministry.name}</div>
+                          <div className="flex gap-2">
+                            {ministry.overdueCount > 0 && (
+                              <Badge type="default" className="!bg-red-500/20 !text-red-400 !border-red-500/30">
+                                {ministry.overdueCount} overdue
+                              </Badge>
+                            )}
+                            <Badge type={ministry.activeLearners > 0 ? 'success' : 'default'}>
+                              {ministry.activeLearners} active
+                            </Badge>
+                          </div>
+                        </div>
+                        <div className="text-2xl font-bold text-yellow-400 mb-1">{ministry.totalLearners}</div>
+                        <div className="text-xs text-zinc-500 mb-3">learners enrolled</div>
+                        <div className="flex justify-between text-xs text-zinc-400 mb-1">
+                          <span>Courses Completed</span>
+                          <span className="text-white">{ministry.coursesCompleted}</span>
+                        </div>
+                        <div className="flex justify-between text-xs text-zinc-400 mb-1">
+                          <span>Avg Quiz Score</span>
+                          <span className="text-white">{ministry.avgQuizScore || 0}%</span>
+                        </div>
+                        <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-gradient-to-r from-yellow-400 to-yellow-500 rounded-full"
+                            style={{ width: `${ministry.totalLearners > 0 ? Math.min(100, (ministry.coursesCompleted / ministry.totalLearners) * 100) : 0}%` }}
+                          />
+                        </div>
+                        <div className="text-xs text-zinc-500 mt-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          Click to view course breakdown <ChevronRight size={12} />
+                        </div>
+                      </button>
+                    )) : (
+                      <div className="col-span-3 text-center text-zinc-500 py-8">No ministry data available yet</div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="text-lg font-medium text-white mb-4">
+                      {selectedMinistry} - Per-Course Breakdown
+                    </div>
+                    {ministryCourseStats.length > 0 ? (
+                      <div className="space-y-3">
+                        {ministryCourseStats.map((stat, idx) => (
+                          <div key={idx} className="p-4 rounded-xl bg-white/5 border border-white/10">
+                            <div className="flex justify-between items-start mb-3">
+                              <div>
+                                <div className="font-medium text-white">{stat.courseTitle}</div>
+                                <div className="text-xs text-zinc-500">{stat.enrolledCount} enrolled</div>
+                              </div>
+                              <div className="flex gap-2">
+                                {stat.overdueCount > 0 && (
+                                  <Badge type="default" className="!bg-red-500/20 !text-red-400 !border-red-500/30">
+                                    {stat.overdueCount} overdue
+                                  </Badge>
+                                )}
+                                <Badge type="success">{stat.completionRate}% complete</Badge>
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-3 gap-4 text-center">
+                              <div>
+                                <div className="text-lg font-bold text-green-400">{stat.completedCount}</div>
+                                <div className="text-xs text-zinc-500">Completed</div>
+                              </div>
+                              <div>
+                                <div className="text-lg font-bold text-yellow-400">{stat.enrolledCount - stat.completedCount}</div>
+                                <div className="text-xs text-zinc-500">In Progress</div>
+                              </div>
+                              <div>
+                                <div className="text-lg font-bold text-white">{stat.avgScore}%</div>
+                                <div className="text-xs text-zinc-500">Avg Score</div>
+                              </div>
+                            </div>
+                            <div className="h-1.5 bg-white/10 rounded-full overflow-hidden mt-3">
+                              <div
+                                className="h-full bg-gradient-to-r from-green-400 to-green-500 rounded-full"
+                                style={{ width: `${stat.completionRate}%` }}
+                              />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center text-zinc-500 py-8">No course data available for this ministry</div>
+                    )}
+                  </div>
+                )}
+              </GlassCard>
+
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <GlassCard className="lg:col-span-2 p-8">
                    <div className="flex justify-between items-center mb-6">
                      <h3 className="text-xl font-bold">Ministry Engagement</h3>
-                     <div className="flex gap-2">
-                       <button className="px-3 py-1 text-xs rounded-full bg-white/10 text-white">Weekly</button>
-                       <button className="px-3 py-1 text-xs rounded-full hover:bg-white/5 text-zinc-400">Monthly</button>
-                     </div>
                    </div>
                    <div className="h-64 w-full">
                       <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={adminStats} barSize={40}>
+                        <BarChart data={ministryStats.length > 0 ? ministryStats.map(m => ({ name: m.name?.split(' ').pop() || m.name, value: m.totalLearners })) : adminStats} barSize={40}>
                           <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
                           <XAxis dataKey="name" stroke="#64748b" tick={{fontSize: 10}} axisLine={false} tickLine={false} />
                           <YAxis stroke="#64748b" tick={{fontSize: 10}} axisLine={false} tickLine={false} />
@@ -3072,7 +3443,7 @@ const App: React.FC = () => {
                             itemStyle={{ color: '#fff' }}
                           />
                           <Bar dataKey="value" radius={[8, 8, 8, 8]}>
-                            {adminStats.map((entry, index) => (
+                            {(ministryStats.length > 0 ? ministryStats : adminStats).map((entry, index) => (
                               <Cell key={`cell-${index}`} fill={['#FACC15', '#CA8A04', '#FEF08A', '#713F12'][index % 4]} />
                             ))}
                           </Bar>
@@ -3087,32 +3458,41 @@ const App: React.FC = () => {
                      <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
                           <Pie
-                            data={[
-                              { name: 'Video', value: 45, fill: '#FACC15' },
-                              { name: 'Reading', value: 30, fill: '#FFFFFF' },
-                              { name: 'Quizzes', value: 25, fill: '#A16207' },
+                            data={contentStats.length > 0 ? contentStats : [
+                              { name: 'Video', value: 45 },
+                              { name: 'Pdf', value: 30 },
+                              { name: 'Quiz', value: 25 },
                             ]}
                             innerRadius={60}
                             outerRadius={80}
                             paddingAngle={5}
                             dataKey="value"
                           >
-                             <Cell fill="#FACC15" />
-                             <Cell fill="#FFFFFF" />
-                             <Cell fill="#A16207" />
+                            {(contentStats.length > 0 ? contentStats : [1,2,3]).map((_, index) => (
+                              <Cell key={`cell-${index}`} fill={['#FACC15', '#FFFFFF', '#A16207', '#FEF08A'][index % 4]} />
+                            ))}
                           </Pie>
                           <Tooltip contentStyle={{ backgroundColor: '#0f172a', border: 'none', borderRadius: '8px' }} />
                         </PieChart>
                      </ResponsiveContainer>
                      <div className="absolute inset-0 flex items-center justify-center flex-col pointer-events-none">
-                        <span className="text-3xl font-bold text-white">100%</span>
-                        <span className="text-xs text-zinc-400">Balanced</span>
+                        <span className="text-3xl font-bold text-white">{fullStats?.totalLessons || '—'}</span>
+                        <span className="text-xs text-zinc-400">Total Lessons</span>
                      </div>
                    </div>
-                   <div className="flex justify-center gap-4 text-xs">
-                      <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-yellow-400"></div> Video</div>
-                      <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-white"></div> Docs</div>
-                      <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-yellow-700"></div> Quiz</div>
+                   <div className="flex justify-center gap-4 text-xs flex-wrap">
+                      {contentStats.length > 0 ? contentStats.map((c, idx) => (
+                        <div key={idx} className="flex items-center gap-1">
+                          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: ['#FACC15', '#FFFFFF', '#A16207', '#FEF08A'][idx % 4] }}></div>
+                          {c.name} ({c.count || c.value})
+                        </div>
+                      )) : (
+                        <>
+                          <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-yellow-400"></div> Video</div>
+                          <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-white"></div> Docs</div>
+                          <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-yellow-700"></div> Quiz</div>
+                        </>
+                      )}
                    </div>
                 </GlassCard>
               </div>

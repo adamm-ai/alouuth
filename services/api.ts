@@ -150,6 +150,8 @@ export interface Lesson {
   quiz?: QuizQuestion[];
   isCompleted?: boolean;
   quizScore?: number;
+  passingScore?: number;
+  passed?: boolean;
 }
 
 export interface QuizQuestion {
@@ -171,6 +173,12 @@ export interface Course {
   progress: number;
   status: 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED';
   lessons: Lesson[];
+  deadline?: string;
+  isMandatory?: boolean;
+  isOverdue?: boolean;
+  daysRemaining?: number;
+  prerequisiteCourseId?: string;
+  isLocked?: boolean;
 }
 
 export interface LearningPath {
@@ -301,11 +309,40 @@ export interface DashboardStats {
   }>;
 }
 
+export interface QuizResult {
+  passed: boolean;
+  percentage: number;
+  passingScore: number;
+}
+
+export interface DeadlineInfo {
+  enrollmentId: string;
+  courseId: string;
+  title: string;
+  isMandatory: boolean;
+  deadline: string | null;
+  completedAt: string | null;
+  enrolledAt: string;
+  status: 'completed' | 'no_deadline' | 'overdue' | 'urgent' | 'upcoming' | 'on_track';
+  daysRemaining: number | null;
+}
+
+export interface LessonRequirements {
+  lessonId: string;
+  title: string;
+  type: string;
+  passingScore: number;
+  currentScore: number | null;
+  attempts: number;
+  passed: boolean;
+  status: string;
+}
+
 export const progressAPI = {
   getDashboard: () => fetchAPI<DashboardStats>('/progress/dashboard'),
 
   enrollInCourse: (courseId: string) =>
-    fetchAPI<{ message: string }>(`/progress/enroll/${courseId}`, { method: 'POST' }),
+    fetchAPI<{ message: string } | { error: string; prerequisiteCourseId?: string }>(`/progress/enroll/${courseId}`, { method: 'POST' }),
 
   getCourseProgress: (courseId: string) =>
     fetchAPI<{ courseProgress: number; lessons: any[] }>(`/progress/course/${courseId}`),
@@ -316,11 +353,23 @@ export const progressAPI = {
       body: JSON.stringify(data),
     }),
 
-  completeLesson: (lessonId: string, quizScore?: number) =>
-    fetchAPI<{ message: string; courseProgress: number }>(`/progress/lesson/${lessonId}/complete`, {
+  completeLesson: (lessonId: string, quizScore?: number, totalQuestions?: number) =>
+    fetchAPI<{ message: string; passed: boolean; quizResult?: QuizResult; courseProgress: number }>(`/progress/lesson/${lessonId}/complete`, {
       method: 'POST',
-      body: JSON.stringify({ quizScore }),
+      body: JSON.stringify({ quizScore, totalQuestions }),
     }),
+
+  // Check if user can access a course (prerequisites)
+  checkCourseAccess: (courseId: string) =>
+    fetchAPI<{ canAccess: boolean; reason?: string; prerequisiteCourseId?: string }>(`/progress/access/${courseId}`),
+
+  // Get user's deadlines
+  getDeadlines: () =>
+    fetchAPI<{ deadlines: DeadlineInfo[] }>('/progress/deadlines'),
+
+  // Get lesson requirements (passing score, etc.)
+  getLessonRequirements: (lessonId: string) =>
+    fetchAPI<LessonRequirements>(`/progress/lesson/${lessonId}/requirements`),
 };
 
 // ============================================
@@ -335,6 +384,9 @@ export interface AdminStats {
     totalEnrollments: number;
     completionRate: number;
     totalStudyHours: number;
+    overdueEnrollments: number;
+    averageQuizScore: number;
+    quizPassRate: number;
   };
 }
 
@@ -344,8 +396,36 @@ export interface MinistryStats {
     totalLearners: number;
     activeLearners: number;
     coursesCompleted: number;
+    overdueCount: number;
+    avgQuizScore: number;
     value: number;
   }>;
+}
+
+export interface MinistryCourseStats {
+  ministryCourseStats: Array<{
+    ministry: string;
+    courseId: string;
+    courseTitle: string;
+    enrolledCount: number;
+    completedCount: number;
+    overdueCount: number;
+    avgScore: number;
+    completionRate: number;
+  }>;
+}
+
+export interface OverdueLearner {
+  userId: string;
+  name: string;
+  email: string;
+  ministry: string;
+  courseId: string;
+  courseTitle: string;
+  isMandatory: boolean;
+  deadline: string;
+  enrolledAt: string;
+  daysOverdue: number;
 }
 
 export const adminAPI = {
@@ -353,11 +433,17 @@ export const adminAPI = {
 
   getMinistryStats: () => fetchAPI<MinistryStats>('/admin/ministry-stats'),
 
+  getMinistryCourseStats: (ministry?: string) =>
+    fetchAPI<MinistryCourseStats>(`/admin/ministry-course-stats${ministry ? `?ministry=${encodeURIComponent(ministry)}` : ''}`),
+
   getContentStats: () =>
     fetchAPI<{ contentStats: Array<{ name: string; value: number; count: number }> }>('/admin/content-stats'),
 
   getActivity: (limit = 20) =>
     fetchAPI<{ activity: any[] }>(`/admin/activity?limit=${limit}`),
+
+  getOverdueLearners: () =>
+    fetchAPI<{ overdueLearners: OverdueLearner[] }>('/admin/overdue'),
 
   getUsers: (params?: { page?: number; limit?: number; search?: string; role?: string; ministry?: string }) => {
     const query = new URLSearchParams(params as any).toString();
@@ -372,6 +458,26 @@ export const adminAPI = {
 
   getCoursesWithStats: () =>
     fetchAPI<{ courses: any[] }>('/admin/courses'),
+
+  // Deadline management
+  setCourseDeadline: (courseId: string, data: { deadline?: string | null; isMandatory?: boolean; prerequisiteCourseId?: string | null }) =>
+    fetchAPI<{ message: string; course: any }>(`/admin/courses/${courseId}/deadline`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+
+  setEnrollmentDeadline: (enrollmentId: string, deadline: string) =>
+    fetchAPI<{ message: string; enrollment: any }>(`/admin/enrollments/${enrollmentId}/deadline`, {
+      method: 'PUT',
+      body: JSON.stringify({ deadline }),
+    }),
+
+  // Quiz settings
+  setLessonPassingScore: (lessonId: string, passingScore: number) =>
+    fetchAPI<{ message: string; lesson: any }>(`/admin/lessons/${lessonId}/passing-score`, {
+      method: 'PUT',
+      body: JSON.stringify({ passingScore }),
+    }),
 };
 
 // ============================================
