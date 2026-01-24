@@ -71,7 +71,7 @@ const App: React.FC = () => {
     const loadData = async () => {
       // Only load if not already loaded and we're in a view that needs data
       if (currentView !== 'DASHBOARD' && currentView !== 'ADMIN') return;
-      if (dataLoaded && courses.length > 0) return; // Skip if already loaded
+      if (dataLoaded) return; // Skip if already loaded - removed courses.length check to prevent re-trigger
 
       setIsLoading(true);
       try {
@@ -100,35 +100,41 @@ const App: React.FC = () => {
       }
     };
     loadData();
-  }, [currentView, dataLoaded, courses.length, user]);
+  }, [currentView, dataLoaded]); // Removed courses.length and user from deps to prevent re-triggers
 
-  // Load admin stats separately when admin view is active
+  // Track if stats have been loaded
+  const [adminStatsLoaded, setAdminStatsLoaded] = useState(false);
+  const [dashboardStatsLoaded, setDashboardStatsLoaded] = useState(false);
+
+  // Load admin stats separately when admin view is active (only once)
   useEffect(() => {
-    if (currentView !== 'ADMIN') return;
+    if (currentView !== 'ADMIN' || adminStatsLoaded) return;
     const loadAdminStats = async () => {
       try {
         const stats = await dataService.getAdminStats();
         setAdminStats(stats);
+        setAdminStatsLoaded(true);
       } catch (err) {
         console.error('Failed to load admin stats:', err);
       }
     };
     loadAdminStats();
-  }, [currentView]);
+  }, [currentView, adminStatsLoaded]);
 
-  // Load dashboard stats when dashboard view is active
+  // Load dashboard stats when dashboard view is active (only once)
   useEffect(() => {
-    if (currentView !== 'DASHBOARD') return;
+    if (currentView !== 'DASHBOARD' || dashboardStatsLoaded) return;
     const loadDashboardStats = async () => {
       try {
         const dashboardData = await dataService.getDashboardStats();
         setUserDashboardStats(dashboardData.stats);
+        setDashboardStatsLoaded(true);
       } catch (err) {
         console.error('Failed to load dashboard stats:', err);
       }
     };
     loadDashboardStats();
-  }, [currentView]);
+  }, [currentView, dashboardStatsLoaded]);
 
   const handleStartCourse = async (course: Course) => {
     // Auto-enroll user in course if not already enrolled
@@ -1849,13 +1855,19 @@ const App: React.FC = () => {
     const [userSearchQuery, setUserSearchQuery] = useState('');
     const [userFilterRole, setUserFilterRole] = useState<string>('ALL');
 
-    // Load pending users
+    // Track if data has been loaded (to prevent re-fetching)
+    const [pendingUsersLoaded, setPendingUsersLoaded] = useState(false);
+    const [allUsersLoaded, setAllUsersLoaded] = useState(false);
+
+    // Load pending users only once
     useEffect(() => {
+      if (pendingUsersLoaded) return;
       const loadPendingUsers = async () => {
         setLoadingPending(true);
         try {
           const response = await authAPI.getPendingUsers();
           setPendingUsers(response.pendingUsers);
+          setPendingUsersLoaded(true);
         } catch (err) {
           console.error('Failed to load pending users:', err);
         } finally {
@@ -1863,25 +1875,25 @@ const App: React.FC = () => {
         }
       };
       loadPendingUsers();
-    }, []);
+    }, [pendingUsersLoaded]);
 
-    // Load all users when USERS section is active
+    // Load all users when USERS section is active (only once)
     useEffect(() => {
-      if (adminSection === 'USERS') {
-        const loadAllUsers = async () => {
-          setLoadingUsers(true);
-          try {
-            const response = await api.admin.getUsers({ limit: 100 });
-            setAllUsers(response.users || []);
-          } catch (err) {
-            console.error('Failed to load users:', err);
-          } finally {
-            setLoadingUsers(false);
-          }
-        };
-        loadAllUsers();
-      }
-    }, [adminSection]);
+      if (adminSection !== 'USERS' || allUsersLoaded) return;
+      const loadAllUsers = async () => {
+        setLoadingUsers(true);
+        try {
+          const response = await api.admin.getUsers({ limit: 100 });
+          setAllUsers(response.users || []);
+          setAllUsersLoaded(true);
+        } catch (err) {
+          console.error('Failed to load users:', err);
+        } finally {
+          setLoadingUsers(false);
+        }
+      };
+      loadAllUsers();
+    }, [adminSection, allUsersLoaded]);
 
     const handleApproveUser = async (userId: string) => {
       setProcessingUser(userId);
