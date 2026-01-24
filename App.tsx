@@ -2482,7 +2482,7 @@ const App: React.FC = () => {
       });
 
       return (
-        <div className="space-y-8 animate-fade-in">
+        <div className="space-y-8">
           {/* Header */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
             <div>
@@ -2684,11 +2684,13 @@ const App: React.FC = () => {
       <div className="md:ml-64 min-h-screen relative z-10 pb-20">
         <div className="p-6 md:p-10 max-w-7xl mx-auto space-y-8">
 
-          {/* Render User Management Section */}
-          {adminSection === 'USERS' && <UserManagementSection />}
+          {/* Render User Management Section - use CSS to hide instead of unmounting */}
+          <div className={adminSection === 'USERS' ? '' : 'hidden'}>
+            <UserManagementSection />
+          </div>
 
           {/* Render Overview Section */}
-          {adminSection === 'OVERVIEW' && (
+          <div className={adminSection === 'OVERVIEW' ? '' : 'hidden'}>
             <>
               <div className="flex justify-between items-end">
                 <div>
@@ -2878,12 +2880,10 @@ const App: React.FC = () => {
               ))}
             </div>
           </div>
-            </>
-          )}
+          </div>
 
           {/* Courses Section */}
-          {adminSection === 'COURSES' && (
-            <>
+          <div className={adminSection === 'COURSES' ? '' : 'hidden'}>
               <div className="flex justify-between items-end">
                 <div>
                   <h2 className="text-3xl font-bold">Course Manager</h2>
@@ -2937,12 +2937,10 @@ const App: React.FC = () => {
                   </div>
                 );
               })}
-            </>
-          )}
+          </div>
 
           {/* Analytics Section */}
-          {adminSection === 'ANALYTICS' && (
-            <>
+          <div className={adminSection === 'ANALYTICS' ? '' : 'hidden'}>
               <div>
                 <h2 className="text-3xl font-bold">Analytics Dashboard</h2>
                 <p className="text-zinc-400 mt-1">Detailed insights into platform engagement</p>
@@ -3013,8 +3011,7 @@ const App: React.FC = () => {
                    </div>
                 </GlassCard>
               </div>
-            </>
-          )}
+          </div>
         </div>
       </div>
     );
