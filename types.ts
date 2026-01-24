@@ -32,6 +32,9 @@ export interface Lesson {
   fileName?: string;
   pageCount?: number; // For PDFs or Slides
 
+  // Ordering
+  orderIndex?: number;
+
   quiz?: QuizQuestion[];
   isCompleted?: boolean;
 

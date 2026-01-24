@@ -7,6 +7,8 @@ import {
   CheckCircle,
   LogOut,
   ChevronRight,
+  ChevronUp,
+  ChevronDown,
   Users,
   Menu,
   X,
@@ -1855,6 +1857,9 @@ const App: React.FC = () => {
     const [userSearchQuery, setUserSearchQuery] = useState('');
     const [userFilterRole, setUserFilterRole] = useState<string>('ALL');
 
+    // Track deleted lessons for backend sync
+    const [deletedLessonIds, setDeletedLessonIds] = useState<string[]>([]);
+
     // Track if data has been loaded (to prevent re-fetching)
     const [pendingUsersLoaded, setPendingUsersLoaded] = useState(false);
     const [allUsersLoaded, setAllUsersLoaded] = useState(false);
@@ -1969,9 +1974,29 @@ const App: React.FC = () => {
       if (!confirm('Are you sure you want to delete this lesson?')) return;
       const updatedLessons = editingCourse.lessons.filter(l => l.id !== id);
       setEditingCourse({ ...editingCourse, lessons: updatedLessons });
+      // Track deletion for backend sync (only if it's an existing lesson, not a new one)
+      if (!id.startsWith('l-')) {
+        setDeletedLessonIds(prev => [...prev, id]);
+      }
       if (activeLessonId === id) {
         setActiveLessonId(updatedLessons[0]?.id || null);
       }
+    };
+
+    // Move lesson up in order
+    const moveLessonUp = (index: number) => {
+      if (!editingCourse || !editingCourse.lessons || index === 0) return;
+      const lessons = [...editingCourse.lessons];
+      [lessons[index - 1], lessons[index]] = [lessons[index], lessons[index - 1]];
+      setEditingCourse({ ...editingCourse, lessons });
+    };
+
+    // Move lesson down in order
+    const moveLessonDown = (index: number) => {
+      if (!editingCourse || !editingCourse.lessons || index === editingCourse.lessons.length - 1) return;
+      const lessons = [...editingCourse.lessons];
+      [lessons[index], lessons[index + 1]] = [lessons[index + 1], lessons[index]];
+      setEditingCourse({ ...editingCourse, lessons });
     };
 
     const deleteCourse = async (courseId: string) => {
@@ -2002,13 +2027,24 @@ const App: React.FC = () => {
           await dataService.updateCourse(courseId, editingCourse);
         }
 
-        // 2. Save all lessons
+        // 2. Delete removed lessons from backend
+        for (const deletedId of deletedLessonIds) {
+          try {
+            await dataService.deleteLesson(deletedId);
+          } catch (err) {
+            console.error(`Failed to delete lesson ${deletedId}:`, err);
+          }
+        }
+        setDeletedLessonIds([]); // Clear after sync
+
+        // 3. Save all lessons with order
         const lessons = editingCourse.lessons || [];
-        for (const lesson of lessons) {
+        for (let i = 0; i < lessons.length; i++) {
+          const lesson = lessons[i];
           const isNewLesson = lesson.id.startsWith('l-');
 
           if (isNewLesson) {
-            // Create new lesson
+            // Create new lesson with order
             await dataService.addLesson(courseId, {
               title: lesson.title,
               type: lesson.type,
@@ -2018,10 +2054,11 @@ const App: React.FC = () => {
               fileName: lesson.fileName,
               pageCount: lesson.pageCount,
               content: lesson.content,
-              quiz: lesson.quiz
+              quiz: lesson.quiz,
+              orderIndex: i
             });
           } else {
-            // Update existing lesson
+            // Update existing lesson with order
             await dataService.updateLesson(lesson.id, {
               title: lesson.title,
               type: lesson.type,
@@ -2030,12 +2067,13 @@ const App: React.FC = () => {
               fileUrl: lesson.fileUrl,
               fileName: lesson.fileName,
               pageCount: lesson.pageCount,
-              content: lesson.content
+              content: lesson.content,
+              orderIndex: i
             });
           }
         }
 
-        // 3. Refresh courses list
+        // 4. Refresh courses list
         const freshCourses = await dataService.getCourses();
         setCourses(freshCourses);
         setViewMode('DASHBOARD');
@@ -2104,15 +2142,57 @@ const App: React.FC = () => {
                    <div className="p-6 space-y-6 overflow-y-auto">
                       <div>
                         <label className="text-xs text-zinc-500 font-bold uppercase mb-2 block">Course Thumbnail</label>
-                        <div className="aspect-video rounded-xl bg-zinc-800 overflow-hidden mb-2 relative group border border-white/10">
-                          <img src={editingCourse.thumbnail} className="w-full h-full object-cover" />
+                        {/* Current thumbnail preview */}
+                        {editingCourse.thumbnail && (
+                          <div className="aspect-video rounded-xl bg-zinc-800 overflow-hidden mb-3 relative group border border-white/10">
+                            <img src={editingCourse.thumbnail} className="w-full h-full object-cover" />
+                            <button
+                              onClick={() => setEditingCourse({...editingCourse, thumbnail: ''})}
+                              className="absolute top-2 right-2 p-1.5 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500"
+                            >
+                              <X size={14} />
+                            </button>
+                          </div>
+                        )}
+                        {/* Upload option */}
+                        <div className="mb-3">
+                          <FileDropZone
+                            label="Upload Thumbnail Image"
+                            accept="image/jpeg,image/png,image/webp,image/gif,.jpg,.jpeg,.png,.webp,.gif"
+                            currentFile={undefined}
+                            isUploading={isUploading}
+                            uploadProgress={uploadProgress}
+                            onFileSelect={async (file) => {
+                              try {
+                                setIsUploading(true);
+                                setUploadProgress(0);
+                                const result = await dataService.uploadFile(file, (progress) => {
+                                  setUploadProgress(progress);
+                                });
+                                setEditingCourse({...editingCourse, thumbnail: result.file.fileUrl});
+                              } catch (error) {
+                                console.error('Failed to upload thumbnail:', error);
+                                alert('Failed to upload thumbnail. Please try again.');
+                              } finally {
+                                setIsUploading(false);
+                                setUploadProgress(0);
+                              }
+                            }}
+                          />
+                        </div>
+                        {/* OR use URL */}
+                        <div className="relative mb-3">
+                          <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-white/10"></div></div>
+                          <div className="relative flex justify-center"><span className="px-2 bg-zinc-900 text-xs text-zinc-500">OR use URL</span></div>
                         </div>
                         <input
                           value={editingCourse.thumbnail || ''}
                           onChange={e => setEditingCourse({...editingCourse, thumbnail: e.target.value})}
                           placeholder="Enter image URL..."
-                          className="w-full bg-zinc-900/50 border border-white/10 rounded-xl p-2 text-xs text-white focus:border-yellow-400 outline-none mb-2"
+                          className="w-full bg-zinc-900/50 border border-white/10 rounded-xl p-2 text-xs text-white focus:border-yellow-400 outline-none mb-3"
                         />
+                        {/* Quick select presets */}
+                        <div className="text-xs text-zinc-500 mb-2">Quick select:</div>
                         <div className="grid grid-cols-4 gap-1">
                           {[
                             'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=400',
@@ -2183,15 +2263,32 @@ const App: React.FC = () => {
                    <div className="flex-1 flex flex-col">
                      <div className="p-4 space-y-2 overflow-y-auto flex-1">
                         {editingCourse.lessons?.map((lesson, idx) => (
-                          <div 
+                          <div
                             key={lesson.id}
                             onClick={() => setActiveLessonId(lesson.id)}
-                            className={`group p-3 rounded-xl border transition-all cursor-pointer flex items-center gap-3 ${
-                              activeLessonId === lesson.id 
-                                ? 'bg-yellow-400/10 border-yellow-400/30 shadow-[0_0_15px_rgba(250,204,21,0.1)]' 
+                            className={`group p-3 rounded-xl border transition-all cursor-pointer flex items-center gap-2 ${
+                              activeLessonId === lesson.id
+                                ? 'bg-yellow-400/10 border-yellow-400/30 shadow-[0_0_15px_rgba(250,204,21,0.1)]'
                                 : 'bg-white/5 border-transparent hover:border-white/10'
                             }`}
                           >
+                             {/* Reorder buttons */}
+                             <div className="flex flex-col gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                               <button
+                                 onClick={(e) => { e.stopPropagation(); moveLessonUp(idx); }}
+                                 disabled={idx === 0}
+                                 className={`p-0.5 rounded hover:bg-white/10 ${idx === 0 ? 'text-zinc-700 cursor-not-allowed' : 'text-zinc-400 hover:text-white'}`}
+                               >
+                                 <ChevronUp size={12} />
+                               </button>
+                               <button
+                                 onClick={(e) => { e.stopPropagation(); moveLessonDown(idx); }}
+                                 disabled={idx === (editingCourse.lessons?.length || 0) - 1}
+                                 className={`p-0.5 rounded hover:bg-white/10 ${idx === (editingCourse.lessons?.length || 0) - 1 ? 'text-zinc-700 cursor-not-allowed' : 'text-zinc-400 hover:text-white'}`}
+                               >
+                                 <ChevronDown size={12} />
+                               </button>
+                             </div>
                              <div className="h-6 w-6 rounded flex items-center justify-center bg-zinc-800 text-zinc-400 text-xs font-mono">{idx + 1}</div>
                              <div className="flex-1 min-w-0">
                                <div className="text-sm font-medium truncate text-white">{lesson.title}</div>
