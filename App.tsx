@@ -2690,8 +2690,7 @@ const App: React.FC = () => {
           </div>
 
           {/* Render Overview Section */}
-          <div className={adminSection === 'OVERVIEW' ? '' : 'hidden'}>
-            <>
+          <div className={adminSection === 'OVERVIEW' ? 'space-y-8' : 'hidden'}>
               <div className="flex justify-between items-end">
                 <div>
                   <h2 className="text-3xl font-bold">Admin Command Center</h2>
