@@ -659,7 +659,7 @@ const App: React.FC = () => {
     const avgQuizScore = userDashboardStats?.averageQuizScore || 0;
 
     return (
-      <div className="md:ml-64 min-h-screen relative z-10 pb-20">
+      <div className="md:ml-64 h-screen overflow-y-auto relative z-10">
         {/* Mobile Header */}
         <div className="md:hidden p-4 flex justify-between items-center glass-panel sticky top-0 z-40 backdrop-blur-xl">
           <span className="font-bold">Amini Academy</span>
@@ -1249,7 +1249,7 @@ const App: React.FC = () => {
     );
 
     return (
-      <div className="min-h-screen bg-black flex flex-col relative z-20 overflow-hidden">
+      <div className="h-screen bg-black flex flex-col relative z-20 overflow-hidden">
         {/* Ambient background effects */}
         <div className="fixed inset-0 z-0 pointer-events-none">
           <div className="absolute top-0 left-1/4 w-96 h-96 bg-yellow-500/10 rounded-full blur-[120px] animate-pulse" />
@@ -2095,9 +2095,9 @@ const App: React.FC = () => {
       const activeLesson = editingCourse.lessons?.find(l => l.id === activeLessonId);
 
       return (
-        <div className="md:ml-64 min-h-screen relative z-10 bg-black">
+        <div className="md:ml-64 h-screen overflow-hidden relative z-10 bg-black flex flex-col">
            {/* Editor Header */}
-           <div className="h-16 glass-panel border-b border-white/10 flex items-center justify-between px-6 sticky top-0 z-30 backdrop-blur-xl">
+           <div className="h-16 flex-shrink-0 glass-panel border-b border-white/10 flex items-center justify-between px-6 z-30 backdrop-blur-xl">
              <div className="flex items-center gap-4">
                 <IconButton icon={<ArrowLeft size={20} />} onClick={() => setViewMode('DASHBOARD')} />
                 <h2 className="font-bold text-lg text-white">Course Editor</h2>
@@ -2120,7 +2120,7 @@ const App: React.FC = () => {
              </div>
            </div>
 
-           <div className="flex h-[calc(100vh-64px)]">
+           <div className="flex flex-1 overflow-hidden">
               {/* Left Sidebar: Structure */}
               <div className="w-80 glass-panel border-r border-white/10 flex flex-col">
                  <div className="flex border-b border-white/5">
@@ -2494,7 +2494,16 @@ const App: React.FC = () => {
                          <div className="space-y-4">
                             {activeLesson.quiz?.map((q, qIdx) => (
                               <GlassCard key={q.id} className="relative group">
-                                <button className="absolute top-4 right-4 text-zinc-500 hover:text-red-400"><X size={16}/></button>
+                                <button
+                                  onClick={() => {
+                                    if (!confirm('Delete this question?')) return;
+                                    const newQuiz = activeLesson.quiz?.filter((_, idx) => idx !== qIdx) || [];
+                                    updateLesson(activeLesson.id, { quiz: newQuiz });
+                                  }}
+                                  className="absolute top-4 right-4 text-zinc-500 hover:text-red-400 transition-colors"
+                                >
+                                  <X size={16}/>
+                                </button>
                                 <div className="mb-4">
                                   <label className="text-xs font-bold text-zinc-500 uppercase mb-1 block">Question {qIdx + 1}</label>
                                   <input 
@@ -2778,8 +2787,8 @@ const App: React.FC = () => {
 
     // --- Main Admin Dashboard ---
     return (
-      <div className="md:ml-64 min-h-screen relative z-10 pb-20">
-        <div className="p-6 md:p-10 max-w-7xl mx-auto space-y-8">
+      <div className="md:ml-64 h-screen overflow-y-auto relative z-10">
+        <div className="p-6 md:p-10 max-w-7xl mx-auto space-y-8 pb-20">
 
           {/* Render User Management Section - use CSS to hide instead of unmounting */}
           <div className={adminSection === 'USERS' ? '' : 'hidden'}>
@@ -3114,14 +3123,14 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="font-sans text-slate-50 selection:bg-yellow-400/30">
+    <div className="font-sans text-slate-50 selection:bg-yellow-400/30 h-screen overflow-hidden">
       <LiquidBackground />
-      
+
       {/* Sidebar for authenticated views except player */}
       {(currentView === 'DASHBOARD' || currentView === 'ADMIN') && <Sidebar />}
 
       {/* Main Content Router */}
-      <main className="transition-all duration-500 ease-in-out">
+      <main className="h-screen overflow-hidden">
         {currentView === 'LANDING' && <LandingView />}
         {currentView === 'AUTH' && <AuthView />}
         {currentView === 'DASHBOARD' && <DashboardView />}
