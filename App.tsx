@@ -63,52 +63,71 @@ const App: React.FC = () => {
     averageQuizScore: number;
   } | null>(null);
 
-  // Load initial data
+  // Track if initial data has been loaded
+  const [dataLoaded, setDataLoaded] = useState(false);
+
+  // Load initial data once when entering dashboard or admin views
   useEffect(() => {
     const loadData = async () => {
-      if (currentView === 'DASHBOARD' || currentView === 'ADMIN') {
-        setIsLoading(true);
-        try {
-          // Load courses and paths for all users
-          const [fetchedCourses, fetchedPaths] = await Promise.all([
-            dataService.getCourses(),
-            dataService.getPaths(),
-          ]);
-          setCourses(fetchedCourses);
-          setPaths(fetchedPaths);
+      // Only load if not already loaded and we're in a view that needs data
+      if (currentView !== 'DASHBOARD' && currentView !== 'ADMIN') return;
+      if (dataLoaded && courses.length > 0) return; // Skip if already loaded
 
-          if (!user) {
+      setIsLoading(true);
+      try {
+        // Load courses and paths for all users
+        const [fetchedCourses, fetchedPaths] = await Promise.all([
+          dataService.getCourses(),
+          dataService.getPaths(),
+        ]);
+        setCourses(fetchedCourses);
+        setPaths(fetchedPaths);
+        setDataLoaded(true);
+
+        // Load user profile if not already loaded
+        if (!user) {
+          try {
             const fetchedUser = await dataService.getUser();
             setUser(fetchedUser);
+          } catch (err) {
+            console.error('Failed to load user:', err);
           }
-
-          // Load admin stats only for admin users (non-blocking)
-          if (user?.role === UserRole.ADMIN || currentView === 'ADMIN') {
-            try {
-              const stats = await dataService.getAdminStats();
-              setAdminStats(stats);
-            } catch (err) {
-              console.error('Failed to load admin stats:', err);
-            }
-          }
-
-          // Load user dashboard stats for progress tracking
-          if (currentView === 'DASHBOARD') {
-            try {
-              const dashboardData = await dataService.getDashboardStats();
-              setUserDashboardStats(dashboardData.stats);
-            } catch (err) {
-              console.error('Failed to load dashboard stats:', err);
-            }
-          }
-        } catch (error) {
-          console.error("Failed to load data", error);
-        } finally {
-          setIsLoading(false);
         }
+      } catch (error) {
+        console.error("Failed to load data", error);
+      } finally {
+        setIsLoading(false);
       }
     };
     loadData();
+  }, [currentView, dataLoaded, courses.length, user]);
+
+  // Load admin stats separately when admin view is active
+  useEffect(() => {
+    if (currentView !== 'ADMIN') return;
+    const loadAdminStats = async () => {
+      try {
+        const stats = await dataService.getAdminStats();
+        setAdminStats(stats);
+      } catch (err) {
+        console.error('Failed to load admin stats:', err);
+      }
+    };
+    loadAdminStats();
+  }, [currentView]);
+
+  // Load dashboard stats when dashboard view is active
+  useEffect(() => {
+    if (currentView !== 'DASHBOARD') return;
+    const loadDashboardStats = async () => {
+      try {
+        const dashboardData = await dataService.getDashboardStats();
+        setUserDashboardStats(dashboardData.stats);
+      } catch (err) {
+        console.error('Failed to load dashboard stats:', err);
+      }
+    };
+    loadDashboardStats();
   }, [currentView]);
 
   const handleStartCourse = async (course: Course) => {
@@ -1949,24 +1968,61 @@ const App: React.FC = () => {
       }
     };
 
-    // Save course to backend
+    // Save course to backend with all lessons
     const handleSaveCourse = async () => {
       if (!editingCourse) return;
       setIsSaving(true);
       try {
-        let savedCourse: Course;
-        if (editingCourse.id && !editingCourse.id.startsWith('new-')) {
-          // Update existing course
-          savedCourse = await dataService.updateCourse(editingCourse.id, editingCourse);
+        let courseId = editingCourse.id;
+        const isNewCourse = !courseId || courseId.startsWith('new-');
+
+        // 1. Create or update the course first
+        if (isNewCourse) {
+          const savedCourse = await dataService.createCourse(editingCourse);
+          courseId = savedCourse.id;
         } else {
-          // Create new course
-          savedCourse = await dataService.createCourse(editingCourse);
+          await dataService.updateCourse(courseId, editingCourse);
         }
-        // Refresh courses list to show the new/updated course
+
+        // 2. Save all lessons
+        const lessons = editingCourse.lessons || [];
+        for (const lesson of lessons) {
+          const isNewLesson = lesson.id.startsWith('l-');
+
+          if (isNewLesson) {
+            // Create new lesson
+            await dataService.addLesson(courseId, {
+              title: lesson.title,
+              type: lesson.type,
+              durationMin: lesson.durationMin,
+              videoUrl: lesson.videoUrl,
+              fileUrl: lesson.fileUrl,
+              fileName: lesson.fileName,
+              pageCount: lesson.pageCount,
+              content: lesson.content,
+              quiz: lesson.quiz
+            });
+          } else {
+            // Update existing lesson
+            await dataService.updateLesson(lesson.id, {
+              title: lesson.title,
+              type: lesson.type,
+              durationMin: lesson.durationMin,
+              videoUrl: lesson.videoUrl,
+              fileUrl: lesson.fileUrl,
+              fileName: lesson.fileName,
+              pageCount: lesson.pageCount,
+              content: lesson.content
+            });
+          }
+        }
+
+        // 3. Refresh courses list
         const freshCourses = await dataService.getCourses();
         setCourses(freshCourses);
         setViewMode('DASHBOARD');
         setEditingCourse(null);
+        setActiveLessonId(null);
       } catch (error) {
         console.error('Failed to save course:', error);
         alert('Failed to save course. Please try again.');
