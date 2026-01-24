@@ -1092,10 +1092,16 @@ const App: React.FC = () => {
     };
 
     const downloadResource = () => {
+        if (!activeLesson?.fileUrl) {
+          console.error('No file URL available for download');
+          return;
+        }
         const link = document.createElement('a');
-        link.href = '#';
-        link.download = activeLesson?.fileName || 'resource';
+        link.href = activeLesson.fileUrl;
+        link.download = activeLesson.fileName || 'resource';
+        link.target = '_blank';
         document.body.appendChild(link);
+        link.click();
         document.body.removeChild(link);
         setIsDownloaded(true);
     };

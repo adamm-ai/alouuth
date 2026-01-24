@@ -176,9 +176,23 @@ export const createCourse = async (req, res) => {
       RETURNING *
     `, [title, description, level || 'Beginner', thumbnailUrl, totalDuration, req.user.id]);
 
+    const course = result.rows[0];
+
+    // Return course in the same format as getCourseById
     res.status(201).json({
       message: 'Course created successfully',
-      course: result.rows[0]
+      course: {
+        id: course.id,
+        title: course.title,
+        description: course.description,
+        thumbnail: course.thumbnail_url,
+        level: course.level,
+        totalDuration: course.total_duration,
+        enrolledCount: 0,
+        progress: 0,
+        status: 'NOT_STARTED',
+        lessons: []
+      }
     });
   } catch (error) {
     console.error('Create course error:', error);
@@ -321,9 +335,25 @@ export const addLesson = async (req, res) => {
       content, isExternalLink || false, finalOrderIndex
     ]);
 
+    const lesson = result.rows[0];
+
+    // Return lesson in camelCase format
     res.status(201).json({
       message: 'Lesson added successfully',
-      lesson: result.rows[0]
+      lesson: {
+        id: lesson.id,
+        title: lesson.title,
+        description: lesson.description,
+        type: lesson.type,
+        durationMin: lesson.duration_min,
+        videoUrl: lesson.video_url,
+        videoSource: lesson.video_source,
+        fileUrl: lesson.file_url,
+        fileName: lesson.file_name,
+        pageCount: lesson.page_count,
+        content: lesson.content,
+        quiz: []
+      }
     });
   } catch (error) {
     console.error('Add lesson error:', error);
@@ -374,9 +404,24 @@ export const updateLesson = async (req, res) => {
       return res.status(404).json({ error: 'Lesson not found.' });
     }
 
+    const lesson = result.rows[0];
+
+    // Return lesson in camelCase format
     res.json({
       message: 'Lesson updated successfully',
-      lesson: result.rows[0]
+      lesson: {
+        id: lesson.id,
+        title: lesson.title,
+        description: lesson.description,
+        type: lesson.type,
+        durationMin: lesson.duration_min,
+        videoUrl: lesson.video_url,
+        videoSource: lesson.video_source,
+        fileUrl: lesson.file_url,
+        fileName: lesson.file_name,
+        pageCount: lesson.page_count,
+        content: lesson.content
+      }
     });
   } catch (error) {
     console.error('Update lesson error:', error);

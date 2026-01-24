@@ -182,6 +182,17 @@ export interface LearningPath {
   courses?: Partial<Course>[];
 }
 
+// Helper to transform frontend course data to backend format
+const transformCourseForBackend = (data: Partial<Course>) => {
+  const transformed: Record<string, any> = {};
+  if (data.title !== undefined) transformed.title = data.title;
+  if (data.description !== undefined) transformed.description = data.description;
+  if (data.level !== undefined) transformed.level = data.level;
+  if (data.thumbnail !== undefined) transformed.thumbnailUrl = data.thumbnail;
+  if (data.totalDuration !== undefined) transformed.totalDuration = data.totalDuration;
+  return transformed;
+};
+
 export const coursesAPI = {
   getAll: () => fetchAPI<{ courses: Course[] }>('/courses'),
 
@@ -190,13 +201,13 @@ export const coursesAPI = {
   create: (data: Partial<Course>) =>
     fetchAPI<{ message: string; course: Course }>('/courses', {
       method: 'POST',
-      body: JSON.stringify(data),
+      body: JSON.stringify(transformCourseForBackend(data)),
     }),
 
   update: (id: string, data: Partial<Course>) =>
     fetchAPI<{ message: string; course: Course }>(`/courses/${id}`, {
       method: 'PUT',
-      body: JSON.stringify(data),
+      body: JSON.stringify(transformCourseForBackend(data)),
     }),
 
   delete: (id: string) =>

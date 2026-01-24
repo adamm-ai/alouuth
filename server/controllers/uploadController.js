@@ -1,5 +1,12 @@
 import path from 'path';
 import fs from 'fs';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Use absolute path to ensure consistency
+const getUploadDir = () => process.env.UPLOAD_DIR || path.join(__dirname, '..', 'uploads');
 
 // Upload file
 export const uploadFile = async (req, res) => {
@@ -13,7 +20,10 @@ export const uploadFile = async (req, res) => {
       ? process.env.BASE_URL || ''
       : `http://localhost:${process.env.PORT || 3001}`;
 
-    const fileUrl = `${baseUrl}/uploads/${file.destination.split('/uploads/')[1]}/${file.filename}`;
+    // Extract the subdirectory (videos, documents, images, presentations) from the destination path
+    const uploadDir = getUploadDir();
+    const relativePath = path.relative(uploadDir, file.destination);
+    const fileUrl = `${baseUrl}/uploads/${relativePath}/${file.filename}`;
 
     res.json({
       message: 'File uploaded successfully',
@@ -42,8 +52,10 @@ export const uploadMultiple = async (req, res) => {
       ? process.env.BASE_URL || ''
       : `http://localhost:${process.env.PORT || 3001}`;
 
+    const uploadDir = getUploadDir();
     const files = req.files.map(file => {
-      const fileUrl = `${baseUrl}/uploads/${file.destination.split('/uploads/')[1]}/${file.filename}`;
+      const relativePath = path.relative(uploadDir, file.destination);
+      const fileUrl = `${baseUrl}/uploads/${relativePath}/${file.filename}`;
       return {
         originalName: file.originalname,
         fileName: file.filename,
@@ -88,7 +100,7 @@ export const deleteFile = async (req, res) => {
     const safeFileName = path.basename(fileName);
 
     // Build the file path
-    const uploadDir = path.resolve(process.env.UPLOAD_DIR || './uploads');
+    const uploadDir = path.resolve(getUploadDir());
     const filePath = path.join(uploadDir, folder, safeFileName);
 
     // SECURITY: Verify the resolved path is within the allowed upload directory
@@ -113,7 +125,7 @@ export const deleteFile = async (req, res) => {
 // Get upload stats
 export const getUploadStats = async (req, res) => {
   try {
-    const uploadDir = process.env.UPLOAD_DIR || './uploads';
+    const uploadDir = getUploadDir();
     const folders = ['videos', 'documents', 'images', 'presentations'];
 
     const stats = {};

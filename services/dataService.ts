@@ -340,7 +340,7 @@ export const dataService = {
       title: course.title,
       description: course.description,
       level: course.level,
-      thumbnailUrl: course.thumbnail,
+      thumbnail: course.thumbnail,
       totalDuration: course.totalDuration,
     } as any);
 

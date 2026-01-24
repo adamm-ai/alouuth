@@ -2,8 +2,13 @@ import multer from 'multer';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import fs from 'fs';
+import { fileURLToPath } from 'url';
 
-const uploadDir = process.env.UPLOAD_DIR || './uploads';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Use absolute path to ensure consistency across all files
+const uploadDir = process.env.UPLOAD_DIR || path.join(__dirname, '..', 'uploads');
 
 // Ensure upload directories exist
 const dirs = ['videos', 'documents', 'images', 'presentations'];
