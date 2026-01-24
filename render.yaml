@@ -5,7 +5,7 @@ services:
     runtime: node
     plan: starter
     rootDir: server
-    buildCommand: npm install
+    buildCommand: npm install && node config/migrate-v2.js
     startCommand: npm start
     envVars:
       - key: NODE_ENV
