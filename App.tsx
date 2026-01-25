@@ -96,6 +96,7 @@ const App: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [expandedDescriptions, setExpandedDescriptions] = useState<Set<string>>(new Set());
   const [adminSection, setAdminSection] = useState<AdminSection>('OVERVIEW');
+  const [draggedCourseId, setDraggedCourseId] = useState<string | null>(null);
   const [userDashboardStats, setUserDashboardStats] = useState<{
     enrolledCourses: number;
     completedCourses: number;
@@ -269,6 +270,29 @@ const App: React.FC = () => {
     const firstUncompleted = course.lessons.find(l => !l.isCompleted) || course.lessons[0];
     setActiveLesson(firstUncompleted || null);
     setCurrentView('COURSE_PLAYER');
+  };
+
+  // Handle course reorder via drag-and-drop (shared between Dashboard and Admin)
+  const handleCourseDrop = async (level: 'Beginner' | 'Intermediate' | 'Advanced', fromIndex: number, toIndex: number) => {
+    if (fromIndex === toIndex) return;
+
+    // Get courses for this level and reorder locally
+    const levelCourses = courses.filter(c => c.level === level);
+    const otherCourses = courses.filter(c => c.level !== level);
+    const reordered = [...levelCourses];
+    const [movedCourse] = reordered.splice(fromIndex, 1);
+    reordered.splice(toIndex, 0, movedCourse);
+
+    // Update state immediately for smooth UX
+    setCourses([...otherCourses, ...reordered]);
+
+    // Sync with backend
+    try {
+      const orderedIds = reordered.map(c => c.id);
+      await dataService.reorderCourses(level, orderedIds);
+    } catch (err) {
+      console.error('Failed to reorder courses:', err);
+    }
   };
 
   const handleLessonComplete = async (quizScore?: number, totalQuestions?: number) => {
@@ -1006,78 +1030,239 @@ const App: React.FC = () => {
                      </div>
                    </div>
 
-                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {pathCourses.map(course => {
+                   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+                      {pathCourses.map((course, courseIndex) => {
                         const courseUnlocked = isCourseUnlocked(course);
+                        const lessonCount = course.lessons?.length || 0;
+                        const completedLessons = course.lessons?.filter(l => l.isCompleted).length || 0;
 
                         return (
-                          <GlassCard
+                          <div
                             key={course.id}
-                            className={`flex flex-col h-full ${courseUnlocked ? 'hover:-translate-y-1 cursor-pointer' : 'opacity-60 cursor-not-allowed'} group`}
+                            draggable={courseUnlocked && isPathUnlocked}
+                            onDragStart={(e) => {
+                              if (!courseUnlocked || !isPathUnlocked) {
+                                e.preventDefault();
+                                return;
+                              }
+                              setDraggedCourseId(course.id);
+                              e.dataTransfer.effectAllowed = 'move';
+                              e.dataTransfer.setData('text/plain', JSON.stringify({ level: pathLevel, fromIndex: courseIndex }));
+                            }}
+                            onDragEnd={() => setDraggedCourseId(null)}
+                            onDragOver={(e) => {
+                              if (!courseUnlocked || !isPathUnlocked) return;
+                              e.preventDefault();
+                              e.dataTransfer.dropEffect = 'move';
+                            }}
+                            onDrop={(e) => {
+                              if (!courseUnlocked || !isPathUnlocked) return;
+                              e.preventDefault();
+                              try {
+                                const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+                                if (data.level === pathLevel && data.fromIndex !== courseIndex) {
+                                  handleCourseDrop(pathLevel, data.fromIndex, courseIndex);
+                                }
+                              } catch (err) {
+                                console.error('Drop error:', err);
+                              }
+                              setDraggedCourseId(null);
+                            }}
+                            className={`group relative rounded-3xl overflow-hidden transition-all duration-500 ${
+                              courseUnlocked
+                                ? 'cursor-pointer hover:-translate-y-2 hover:shadow-[0_20px_60px_-15px_rgba(250,204,21,0.3)]'
+                                : 'opacity-60 cursor-not-allowed'
+                            } ${draggedCourseId === course.id ? 'opacity-50 scale-95 rotate-1' : ''}`}
                             onClick={() => courseUnlocked && handleStartCourse(course)}
                           >
-                            <div className="relative h-48 rounded-2xl overflow-hidden mb-5">
-                              <img
-                                src={course.thumbnail}
-                                alt={course.title}
-                                className={`w-full h-full object-cover transition-transform duration-700 ${courseUnlocked ? 'group-hover:scale-110 grayscale group-hover:grayscale-0' : 'grayscale'}`}
-                              />
-                              <div className={`absolute inset-0 ${courseUnlocked ? 'bg-black/40 group-hover:bg-transparent' : 'bg-black/60'} transition-colors`} />
+                            {/* Card Background with Glassmorphism */}
+                            <div className="absolute inset-0 bg-gradient-to-br from-zinc-900/90 via-zinc-900/80 to-black/90 backdrop-blur-xl border border-white/10 rounded-3xl group-hover:border-yellow-400/30 transition-colors duration-500" />
 
-                              {/* Lock overlay for locked courses */}
-                              {!courseUnlocked && (
-                                <div className="absolute inset-0 flex items-center justify-center">
-                                  <div className="w-16 h-16 rounded-full bg-black/80 border border-zinc-700 flex items-center justify-center">
-                                    <Lock size={28} className="text-zinc-500" />
+                            {/* Ambient Glow Effect */}
+                            <div className="absolute -inset-px bg-gradient-to-br from-yellow-400/0 via-transparent to-yellow-400/0 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 blur-xl" />
+
+                            <div className="relative">
+                              {/* Image Container with Aspect Ratio */}
+                              <div className="relative aspect-[16/10] overflow-hidden">
+                                {/* Background Image */}
+                                <img
+                                  src={course.thumbnail}
+                                  alt={course.title}
+                                  className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 ${
+                                    courseUnlocked
+                                      ? 'group-hover:scale-110 saturate-75 group-hover:saturate-100'
+                                      : 'grayscale saturate-0'
+                                  }`}
+                                />
+
+                                {/* Gradient Overlays */}
+                                <div className={`absolute inset-0 bg-gradient-to-t from-zinc-900 via-zinc-900/50 to-transparent transition-opacity duration-500 ${
+                                  courseUnlocked ? 'opacity-80 group-hover:opacity-60' : 'opacity-90'
+                                }`} />
+                                <div className="absolute inset-0 bg-gradient-to-br from-black/20 via-transparent to-yellow-400/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+                                {/* Drag Handle Indicator */}
+                                {courseUnlocked && isPathUnlocked && (
+                                  <div className="absolute top-3 left-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                    <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/10 text-zinc-400 text-xs">
+                                      <GripVertical size={12} />
+                                      <span>Drag to reorder</span>
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* Level Badge */}
+                                <div className="absolute top-3 right-3">
+                                  <div className={`px-3 py-1.5 rounded-full text-xs font-semibold backdrop-blur-md border ${
+                                    course.level === 'Beginner'
+                                      ? 'bg-emerald-500/20 border-emerald-400/30 text-emerald-400'
+                                      : course.level === 'Intermediate'
+                                        ? 'bg-yellow-500/20 border-yellow-400/30 text-yellow-400'
+                                        : 'bg-purple-500/20 border-purple-400/30 text-purple-400'
+                                  }`}>
+                                    {course.level}
                                   </div>
                                 </div>
-                              )}
 
-                              <div className="absolute top-3 right-3">
-                                <Badge type={!courseUnlocked ? 'default' : undefined}>{course.level}</Badge>
+                                {/* Lock Overlay */}
+                                {!courseUnlocked && (
+                                  <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-[2px]">
+                                    <div className="w-16 h-16 rounded-full bg-zinc-900/90 border-2 border-zinc-700 flex items-center justify-center shadow-2xl">
+                                      <Lock size={24} className="text-zinc-500" />
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* Progress Ring - Bottom Right */}
+                                {course.progress > 0 && courseUnlocked && (
+                                  <div className="absolute bottom-3 right-3">
+                                    <div className="relative w-12 h-12">
+                                      <svg className="w-12 h-12 -rotate-90" viewBox="0 0 36 36">
+                                        <circle
+                                          cx="18" cy="18" r="15.5"
+                                          fill="none"
+                                          stroke="rgba(255,255,255,0.1)"
+                                          strokeWidth="3"
+                                        />
+                                        <circle
+                                          cx="18" cy="18" r="15.5"
+                                          fill="none"
+                                          stroke="url(#progressGradient)"
+                                          strokeWidth="3"
+                                          strokeLinecap="round"
+                                          strokeDasharray={`${course.progress * 0.97} 100`}
+                                        />
+                                        <defs>
+                                          <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                            <stop offset="0%" stopColor="#facc15" />
+                                            <stop offset="100%" stopColor="#fef08a" />
+                                          </linearGradient>
+                                        </defs>
+                                      </svg>
+                                      <div className="absolute inset-0 flex items-center justify-center">
+                                        <span className="text-xs font-bold text-white">{Math.round(course.progress)}%</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
                               </div>
-                              {course.progress > 0 && courseUnlocked && (
-                                <div className="absolute bottom-0 left-0 right-0 h-1 bg-zinc-800">
-                                  <div className="h-full bg-yellow-400" style={{width: `${course.progress}%`}} />
+
+                              {/* Content Section */}
+                              <div className="relative p-5">
+                                {/* Title */}
+                                <h4 className={`text-lg font-bold mb-2 leading-tight transition-colors duration-300 ${
+                                  courseUnlocked
+                                    ? 'text-white group-hover:text-yellow-400'
+                                    : 'text-zinc-500'
+                                }`}>
+                                  {course.title}
+                                </h4>
+
+                                {/* Description */}
+                                <p className={`text-sm leading-relaxed mb-4 ${
+                                  courseUnlocked ? 'text-zinc-400' : 'text-zinc-600'
+                                } ${expandedDescriptions.has(course.id) ? '' : 'line-clamp-2'}`}>
+                                  {course.description}
+                                </p>
+                                {course.description && course.description.length > 80 && (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setExpandedDescriptions(prev => {
+                                        const newSet = new Set(prev);
+                                        if (newSet.has(course.id)) {
+                                          newSet.delete(course.id);
+                                        } else {
+                                          newSet.add(course.id);
+                                        }
+                                        return newSet;
+                                      });
+                                    }}
+                                    className={`text-xs font-medium mb-3 ${
+                                      courseUnlocked
+                                        ? 'text-yellow-400/80 hover:text-yellow-400'
+                                        : 'text-zinc-600'
+                                    } transition-colors`}
+                                  >
+                                    {expandedDescriptions.has(course.id) ? '← Show less' : 'Read more →'}
+                                  </button>
+                                )}
+
+                                {/* Stats Row */}
+                                <div className={`flex items-center gap-4 text-xs ${
+                                  courseUnlocked ? 'text-zinc-500' : 'text-zinc-700'
+                                }`}>
+                                  <span className="flex items-center gap-1.5">
+                                    <Clock size={14} className={courseUnlocked ? 'text-zinc-400' : ''} />
+                                    {course.totalDuration}
+                                  </span>
+                                  <span className="flex items-center gap-1.5">
+                                    <BookOpen size={14} className={courseUnlocked ? 'text-zinc-400' : ''} />
+                                    {lessonCount} lessons
+                                  </span>
+                                  {course.progress > 0 && courseUnlocked && (
+                                    <span className="flex items-center gap-1.5 text-yellow-400">
+                                      <CheckCircle size={14} />
+                                      {completedLessons}/{lessonCount}
+                                    </span>
+                                  )}
                                 </div>
-                              )}
+
+                                {/* Action Footer */}
+                                <div className={`mt-4 pt-4 border-t border-white/5 flex justify-between items-center`}>
+                                  {courseUnlocked ? (
+                                    <>
+                                      <div className="flex items-center gap-2">
+                                        {course.progress > 0 ? (
+                                          <div className="w-24 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                                            <div
+                                              className="h-full bg-gradient-to-r from-yellow-400 to-yellow-300 rounded-full transition-all duration-500"
+                                              style={{ width: `${course.progress}%` }}
+                                            />
+                                          </div>
+                                        ) : (
+                                          <span className="text-xs text-zinc-500">Ready to start</span>
+                                        )}
+                                      </div>
+                                      <span className={`flex items-center gap-1 text-sm font-semibold transition-all duration-300 ${
+                                        course.progress > 0
+                                          ? 'text-yellow-400 group-hover:text-yellow-300'
+                                          : 'text-white group-hover:text-yellow-400'
+                                      } group-hover:translate-x-1`}>
+                                        {course.progress > 0 ? 'Continue' : 'Start Course'}
+                                        <ChevronRight size={16} className="transition-transform group-hover:translate-x-0.5" />
+                                      </span>
+                                    </>
+                                  ) : (
+                                    <span className="flex items-center gap-2 text-sm text-zinc-600">
+                                      <Lock size={14} />
+                                      Complete previous level to unlock
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
                             </div>
-                            <h4 className={`text-xl font-bold mb-2 ${courseUnlocked ? 'group-hover:text-yellow-400' : 'text-zinc-500'} transition-colors`}>{course.title}</h4>
-                            <div className="mb-4 flex-1">
-                              <p className={`text-sm ${courseUnlocked ? 'text-zinc-400' : 'text-zinc-600'} ${expandedDescriptions.has(course.id) ? '' : 'line-clamp-2'}`}>{course.description}</p>
-                              {course.description && course.description.length > 100 && (
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setExpandedDescriptions(prev => {
-                                      const newSet = new Set(prev);
-                                      if (newSet.has(course.id)) {
-                                        newSet.delete(course.id);
-                                      } else {
-                                        newSet.add(course.id);
-                                      }
-                                      return newSet;
-                                    });
-                                  }}
-                                  className={`text-xs mt-1 ${courseUnlocked ? 'text-yellow-400 hover:text-yellow-300' : 'text-zinc-500'} transition-colors`}
-                                >
-                                  {expandedDescriptions.has(course.id) ? 'Show less' : 'Read more'}
-                                </button>
-                              )}
-                            </div>
-                            <div className={`mt-auto pt-4 border-t border-white/5 flex justify-between items-center text-sm ${courseUnlocked ? 'text-zinc-500' : 'text-zinc-700'}`}>
-                              <span>{course.totalDuration}</span>
-                              {courseUnlocked ? (
-                                <span className={`${course.progress > 0 ? 'text-yellow-400' : 'text-white'} group-hover:translate-x-1 transition-transform font-medium flex items-center gap-1`}>
-                                  {course.progress > 0 ? 'Continue' : 'Start'} <ChevronRight size={14} />
-                                </span>
-                              ) : (
-                                <span className="flex items-center gap-1 text-zinc-600">
-                                  <Lock size={14} /> Locked
-                                </span>
-                              )}
-                            </div>
-                          </GlassCard>
+                          </div>
                         );
                       })}
                    </div>
@@ -2023,7 +2208,6 @@ const App: React.FC = () => {
     // Inline Editing State for Course Manager
     const [editingCourseId, setEditingCourseId] = useState<string | null>(null);
     const [editingCourseTitle, setEditingCourseTitle] = useState<string>('');
-    const [draggedCourseId, setDraggedCourseId] = useState<string | null>(null);
 
     // Pending Users State
     const [pendingUsers, setPendingUsers] = useState<PendingUser[]>([]);
@@ -2195,32 +2379,6 @@ const App: React.FC = () => {
       } catch (err) {
         console.error('Failed to update course:', err);
         showToast('error', 'Update Failed', 'Failed to update course. Please try again.');
-      }
-    };
-
-    const handleCourseDrop = async (level: 'Beginner' | 'Intermediate' | 'Advanced', fromIndex: number, toIndex: number) => {
-      if (fromIndex === toIndex) return;
-
-      // Get courses for this level and reorder locally
-      const levelCourses = courses.filter(c => c.level === level);
-      const reordered = [...levelCourses];
-      const [movedCourse] = reordered.splice(fromIndex, 1);
-      reordered.splice(toIndex, 0, movedCourse);
-
-      // Update local state immediately for responsive UI
-      const otherCourses = courses.filter(c => c.level !== level);
-      setCourses([...otherCourses, ...reordered]);
-
-      // Persist to backend
-      try {
-        const orderedIds = reordered.map(c => c.id);
-        await dataService.reorderCourses(level, orderedIds);
-      } catch (err) {
-        console.error('Failed to reorder courses:', err);
-        showToast('error', 'Reorder Failed', 'Failed to save course order. Please try again.');
-        // Refetch courses to restore correct order
-        const freshCourses = await dataService.getCourses();
-        setCourses(freshCourses);
       }
     };
 
