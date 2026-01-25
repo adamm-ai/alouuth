@@ -37,7 +37,8 @@ import {
   Calendar,
   AlertTriangle,
   Target,
-  GripVertical
+  GripVertical,
+  Pencil
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from 'recharts';
 import { LiquidBackground } from './components/LiquidBackground';
