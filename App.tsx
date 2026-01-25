@@ -286,9 +286,9 @@ const App: React.FC = () => {
     setCurrentView('COURSE_PLAYER');
   };
 
-  // Handle course reorder via drag-and-drop (shared between Dashboard and Admin)
-  const handleCourseDrop = async (level: 'Beginner' | 'Intermediate' | 'Advanced', fromIndex: number, toIndex: number) => {
-    if (fromIndex === toIndex) return;
+  // Handle course reorder via drag-and-drop (Admin only)
+  const handleCourseDrop = async (level: 'Beginner' | 'Intermediate' | 'Advanced', fromIndex: number, toIndex: number): Promise<boolean> => {
+    if (fromIndex === toIndex) return true;
 
     // Get courses for this level and reorder locally
     const levelCourses = courses.filter(c => c.level === level);
@@ -310,8 +310,10 @@ const App: React.FC = () => {
     try {
       const orderedIds = reorderedWithIndex.map(c => c.id);
       await dataService.reorderCourses(level, orderedIds);
+      return true; // Success
     } catch (err) {
       console.error('Failed to reorder courses:', err);
+      return false; // Failure
     }
   };
 
@@ -1020,24 +1022,34 @@ const App: React.FC = () => {
             </GlassCard>
           )}
 
-          {/* Learning Paths & Courses */}
+          {/* Learning Paths & Courses - Grouped by Level */}
           <div className="space-y-12">
-            {paths.map((path) => {
-               if (path.role === 'SUPERUSER' && user?.role !== UserRole.SUPERUSER) return null;
+            {(['Beginner', 'Intermediate', 'Advanced'] as const).map((level) => {
+               const levelCourses = courses.filter(c => c.level === level);
+               if (levelCourses.length === 0) return null;
 
-               const pathCourses = courses.filter(c => path.courseIds.includes(c.id));
-               const pathLevel = pathCourses[0]?.level || 'Beginner';
-               const isPathUnlocked = isLevelUnlocked(pathLevel);
+               const isPathUnlocked = isLevelUnlocked(level);
+               const levelTitle = level === 'Beginner' ? 'Beginner Track (Week 1-2)'
+                                : level === 'Intermediate' ? 'Intermediate Track (Week 3)'
+                                : 'Advanced Track (Week 4)';
+               const levelDescription = level === 'Beginner' ? 'Foundation modules for all learners.'
+                                      : level === 'Intermediate' ? 'Security and platform integration.'
+                                      : 'Data workflows and certification.';
 
                return (
-                 <div key={path.id} className="animate-fade-in">
+                 <div key={level} className="animate-fade-in">
                    <div className="flex items-center gap-3 mb-4">
                      <div className={`p-2 rounded-lg ${isPathUnlocked ? 'bg-yellow-400/20 text-yellow-400' : 'bg-zinc-800/50 text-zinc-600'}`}>
                        {isPathUnlocked ? <BookOpen size={20}/> : <Lock size={20}/>}
                      </div>
                      <div className="flex-1">
                        <div className="flex items-center gap-3">
-                         <h3 className={`text-2xl font-bold ${!isPathUnlocked && 'text-zinc-600'}`}>{path.title}</h3>
+                         <h3 className={`text-2xl font-bold ${!isPathUnlocked && 'text-zinc-600'}`}>{levelTitle}</h3>
+                         <span className={`text-xs px-2 py-0.5 rounded-full ${
+                           level === 'Beginner' ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
+                           level === 'Intermediate' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' :
+                           'bg-purple-500/20 text-purple-400 border border-purple-500/30'
+                         }`}>{levelCourses.length} course{levelCourses.length !== 1 ? 's' : ''}</span>
                          {!isPathUnlocked && (
                            <span className="text-xs px-3 py-1 rounded-full bg-zinc-800 text-zinc-500 border border-zinc-700">
                              LOCKED
@@ -1045,13 +1057,13 @@ const App: React.FC = () => {
                          )}
                        </div>
                        <p className={`text-sm ${isPathUnlocked ? 'text-zinc-400' : 'text-zinc-600'}`}>
-                         {isPathUnlocked ? path.description : getLockedMessage(pathLevel)}
+                         {isPathUnlocked ? levelDescription : getLockedMessage(level)}
                        </p>
                      </div>
                    </div>
 
                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-                      {pathCourses.map((course, courseIndex) => {
+                      {levelCourses.map((course, courseIndex) => {
                         const courseUnlocked = isCourseUnlocked(course);
                         const lessonCount = course.lessons?.length || 0;
                         const completedLessons = course.lessons?.filter(l => l.isCompleted).length || 0;
@@ -1059,40 +1071,11 @@ const App: React.FC = () => {
                         return (
                           <div
                             key={course.id}
-                            draggable={courseUnlocked && isPathUnlocked}
-                            onDragStart={(e) => {
-                              if (!courseUnlocked || !isPathUnlocked) {
-                                e.preventDefault();
-                                return;
-                              }
-                              setDraggedCourseId(course.id);
-                              e.dataTransfer.effectAllowed = 'move';
-                              e.dataTransfer.setData('text/plain', JSON.stringify({ level: pathLevel, fromIndex: courseIndex }));
-                            }}
-                            onDragEnd={() => setDraggedCourseId(null)}
-                            onDragOver={(e) => {
-                              if (!courseUnlocked || !isPathUnlocked) return;
-                              e.preventDefault();
-                              e.dataTransfer.dropEffect = 'move';
-                            }}
-                            onDrop={(e) => {
-                              if (!courseUnlocked || !isPathUnlocked) return;
-                              e.preventDefault();
-                              try {
-                                const data = JSON.parse(e.dataTransfer.getData('text/plain'));
-                                if (data.level === pathLevel && data.fromIndex !== courseIndex) {
-                                  handleCourseDrop(pathLevel, data.fromIndex, courseIndex);
-                                }
-                              } catch (err) {
-                                console.error('Drop error:', err);
-                              }
-                              setDraggedCourseId(null);
-                            }}
                             className={`group relative rounded-3xl overflow-hidden transition-all duration-500 ${
                               courseUnlocked
                                 ? 'cursor-pointer hover:-translate-y-2 hover:shadow-[0_20px_60px_-15px_rgba(250,204,21,0.3)]'
                                 : 'opacity-60 cursor-not-allowed'
-                            } ${draggedCourseId === course.id ? 'opacity-50 scale-95 rotate-1' : ''}`}
+                            }`}
                             onClick={() => courseUnlocked && handleStartCourse(course)}
                           >
                             {/* Card Background with Glassmorphism */}
@@ -1121,12 +1104,11 @@ const App: React.FC = () => {
                                 }`} />
                                 <div className="absolute inset-0 bg-gradient-to-br from-black/20 via-transparent to-yellow-400/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
-                                {/* Drag Handle Indicator */}
-                                {courseUnlocked && isPathUnlocked && (
-                                  <div className="absolute top-3 left-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                    <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/10 text-zinc-400 text-xs">
-                                      <GripVertical size={12} />
-                                      <span>Drag to reorder</span>
+                                {/* Course Order Badge */}
+                                {courseUnlocked && (
+                                  <div className="absolute top-3 left-3">
+                                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-black/60 backdrop-blur-md border border-white/10 text-white text-sm font-bold">
+                                      {courseIndex + 1}
                                     </div>
                                   </div>
                                 )}
@@ -1287,7 +1269,7 @@ const App: React.FC = () => {
                       })}
                    </div>
                  </div>
-               )
+               );
             })}
           </div>
         </div>
@@ -3697,11 +3679,16 @@ const App: React.FC = () => {
                             e.preventDefault();
                             e.dataTransfer.dropEffect = 'move';
                           }}
-                          onDrop={(e) => {
+                          onDrop={async (e) => {
                             e.preventDefault();
                             const data = JSON.parse(e.dataTransfer.getData('text/plain'));
                             if (data.level === level && data.fromIndex !== index) {
-                              handleCourseDrop(level, data.fromIndex, index);
+                              const success = await handleCourseDrop(level, data.fromIndex, index);
+                              if (success) {
+                                showToast('success', 'Order Saved', 'Course order updated and saved for all users.');
+                              } else {
+                                showToast('error', 'Save Failed', 'Failed to save course order. Please try again.');
+                              }
                             }
                             setDraggedCourseId(null);
                           }}
