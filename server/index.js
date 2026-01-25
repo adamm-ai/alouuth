@@ -7,6 +7,10 @@ import { fileURLToPath } from 'url';
 
 dotenv.config();
 
+console.log('Starting server...');
+console.log('Node version:', process.version);
+console.log('PORT:', process.env.PORT || 3001);
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
