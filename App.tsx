@@ -209,24 +209,39 @@ const App: React.FC = () => {
   }, [currentView, dashboardStatsLoaded]);
 
   // Learning Path Enforcement: Check if user can access a course based on level
-  const canAccessCourse = (course: Course): { allowed: boolean; reason?: string } => {
+  // Updated logic: User must complete ALL ENROLLED courses in previous level to unlock next level
+  const canAccessCourse = (course: Course): { allowed: boolean; reason?: string; progressInfo?: string } => {
     const levelOrder = ['Beginner', 'Intermediate', 'Advanced'];
     const courseLevel = levelOrder.indexOf(course.level);
 
     // Beginner courses are always accessible
     if (courseLevel === 0) return { allowed: true };
 
-    // For higher levels, check if previous level courses are completed
+    // For higher levels, check if ALL ENROLLED previous level courses are completed
     const previousLevel = levelOrder[courseLevel - 1];
     const previousLevelCourses = courses.filter(c => c.level === previousLevel);
 
-    // Check if at least one course from previous level is completed (100% progress)
-    const hasCompletedPrevious = previousLevelCourses.some(c => c.progress >= 100);
+    // Enrolled courses = those with progress > 0 (user has started them)
+    const enrolledPreviousCourses = previousLevelCourses.filter(c => c.progress > 0);
 
-    if (!hasCompletedPrevious && previousLevelCourses.length > 0) {
+    // If user hasn't enrolled in any previous level courses, they need to complete at least one
+    if (enrolledPreviousCourses.length === 0) {
       return {
         allowed: false,
-        reason: `Complete at least one ${previousLevel} course first to unlock ${course.level} courses.`
+        reason: `Enroll in and complete at least one ${previousLevel} course first to unlock ${course.level} courses.`,
+        progressInfo: `0 ${previousLevel} courses enrolled`
+      };
+    }
+
+    // Count completed enrolled courses (100% progress)
+    const completedEnrolledCourses = enrolledPreviousCourses.filter(c => c.progress >= 100);
+
+    // All enrolled courses must be completed to unlock next level
+    if (completedEnrolledCourses.length < enrolledPreviousCourses.length) {
+      return {
+        allowed: false,
+        reason: `Complete all enrolled ${previousLevel} courses to unlock ${course.level} courses.`,
+        progressInfo: `${completedEnrolledCourses.length}/${enrolledPreviousCourses.length} ${previousLevel} courses completed`
       };
     }
 
@@ -715,27 +730,34 @@ const App: React.FC = () => {
 
   const DashboardView = () => {
     // Course-level locking logic
-    // Check if all courses of a given level are completed (100% progress)
+    // Updated: User must complete ALL ENROLLED courses (progress > 0) in previous level
     const isCourseCompleted = (course: Course) => course.progress === 100;
+    const isCourseEnrolled = (course: Course) => course.progress > 0;
 
     const getBeginnerCourses = () => courses.filter(c => c.level === 'Beginner');
     const getIntermediateCourses = () => courses.filter(c => c.level === 'Intermediate');
     const getAdvancedCourses = () => courses.filter(c => c.level === 'Advanced');
 
-    const allBeginnerCompleted = () => {
-      const beginnerCourses = getBeginnerCourses();
-      return beginnerCourses.length > 0 && beginnerCourses.every(isCourseCompleted);
+    // Get enrolled courses for each level
+    const getEnrolledBeginnerCourses = () => getBeginnerCourses().filter(isCourseEnrolled);
+    const getEnrolledIntermediateCourses = () => getIntermediateCourses().filter(isCourseEnrolled);
+
+    // All ENROLLED courses must be completed to unlock next level
+    const allEnrolledBeginnerCompleted = () => {
+      const enrolledBeginner = getEnrolledBeginnerCourses();
+      // Must have at least one enrolled course and all enrolled must be completed
+      return enrolledBeginner.length > 0 && enrolledBeginner.every(isCourseCompleted);
     };
 
-    const allIntermediateCompleted = () => {
-      const intermediateCourses = getIntermediateCourses();
-      return intermediateCourses.length > 0 && intermediateCourses.every(isCourseCompleted);
+    const allEnrolledIntermediateCompleted = () => {
+      const enrolledIntermediate = getEnrolledIntermediateCourses();
+      return enrolledIntermediate.length > 0 && enrolledIntermediate.every(isCourseCompleted);
     };
 
     const isLevelUnlocked = (level: string) => {
       if (level === 'Beginner') return true;
-      if (level === 'Intermediate') return allBeginnerCompleted();
-      if (level === 'Advanced') return allBeginnerCompleted() && allIntermediateCompleted();
+      if (level === 'Intermediate') return allEnrolledBeginnerCompleted();
+      if (level === 'Advanced') return allEnrolledBeginnerCompleted() && allEnrolledIntermediateCompleted();
       return true;
     };
 
@@ -743,16 +765,28 @@ const App: React.FC = () => {
 
     const getLockedMessage = (level: string) => {
       if (level === 'Intermediate') {
-        const remaining = getBeginnerCourses().filter(c => !isCourseCompleted(c)).length;
-        return `Complete ${remaining} Beginner course${remaining > 1 ? 's' : ''} to unlock`;
+        const enrolledBeginner = getEnrolledBeginnerCourses();
+        if (enrolledBeginner.length === 0) {
+          return `Enroll in and complete at least one Beginner course to unlock`;
+        }
+        const completedCount = enrolledBeginner.filter(isCourseCompleted).length;
+        return `Complete all enrolled Beginner courses (${completedCount}/${enrolledBeginner.length} completed)`;
       }
       if (level === 'Advanced') {
-        if (!allBeginnerCompleted()) {
-          const remaining = getBeginnerCourses().filter(c => !isCourseCompleted(c)).length;
-          return `Complete ${remaining} Beginner course${remaining > 1 ? 's' : ''} first`;
+        if (!allEnrolledBeginnerCompleted()) {
+          const enrolledBeginner = getEnrolledBeginnerCourses();
+          if (enrolledBeginner.length === 0) {
+            return `Enroll in and complete Beginner courses first`;
+          }
+          const completedCount = enrolledBeginner.filter(isCourseCompleted).length;
+          return `Complete all enrolled Beginner courses (${completedCount}/${enrolledBeginner.length} completed)`;
         }
-        const remaining = getIntermediateCourses().filter(c => !isCourseCompleted(c)).length;
-        return `Complete ${remaining} Intermediate course${remaining > 1 ? 's' : ''} to unlock`;
+        const enrolledIntermediate = getEnrolledIntermediateCourses();
+        if (enrolledIntermediate.length === 0) {
+          return `Enroll in and complete at least one Intermediate course to unlock`;
+        }
+        const completedCount = enrolledIntermediate.filter(isCourseCompleted).length;
+        return `Complete all enrolled Intermediate courses (${completedCount}/${enrolledIntermediate.length} completed)`;
       }
       return '';
     };
@@ -1986,6 +2020,11 @@ const App: React.FC = () => {
     const [isUploading, setIsUploading] = useState(false);
     const [uploadProgress, setUploadProgress] = useState(0);
 
+    // Inline Editing State for Course Manager
+    const [editingCourseId, setEditingCourseId] = useState<string | null>(null);
+    const [editingCourseTitle, setEditingCourseTitle] = useState<string>('');
+    const [draggedCourseId, setDraggedCourseId] = useState<string | null>(null);
+
     // Pending Users State
     const [pendingUsers, setPendingUsers] = useState<PendingUser[]>([]);
     const [allUsers, setAllUsers] = useState<any[]>([]);
@@ -2118,6 +2157,70 @@ const App: React.FC = () => {
         console.error('Failed to reject user:', err);
       } finally {
         setProcessingUser(null);
+      }
+    };
+
+    // Inline editing handlers for Course Manager
+    const startEditingCourseTitle = (course: Course) => {
+      setEditingCourseId(course.id);
+      setEditingCourseTitle(course.title);
+    };
+
+    const saveEditingCourseTitle = async () => {
+      if (!editingCourseId || !editingCourseTitle.trim()) {
+        cancelEditingCourseTitle();
+        return;
+      }
+      try {
+        const updatedCourse = await dataService.updateCourse(editingCourseId, { title: editingCourseTitle.trim() });
+        setCourses(prev => prev.map(c => c.id === editingCourseId ? { ...c, title: editingCourseTitle.trim() } : c));
+        showToast('Course title updated', 'success');
+      } catch (err) {
+        console.error('Failed to update course title:', err);
+        showToast('Failed to update title', 'error');
+      }
+      cancelEditingCourseTitle();
+    };
+
+    const cancelEditingCourseTitle = () => {
+      setEditingCourseId(null);
+      setEditingCourseTitle('');
+    };
+
+    const handleQuickUpdateCourse = async (courseId: string, updates: { title?: string; level?: 'Beginner' | 'Intermediate' | 'Advanced' }) => {
+      try {
+        await dataService.updateCourse(courseId, updates);
+        setCourses(prev => prev.map(c => c.id === courseId ? { ...c, ...updates } : c));
+        showToast('Course updated', 'success');
+      } catch (err) {
+        console.error('Failed to update course:', err);
+        showToast('Failed to update course', 'error');
+      }
+    };
+
+    const handleCourseDrop = async (level: 'Beginner' | 'Intermediate' | 'Advanced', fromIndex: number, toIndex: number) => {
+      if (fromIndex === toIndex) return;
+
+      // Get courses for this level and reorder locally
+      const levelCourses = courses.filter(c => c.level === level);
+      const reordered = [...levelCourses];
+      const [movedCourse] = reordered.splice(fromIndex, 1);
+      reordered.splice(toIndex, 0, movedCourse);
+
+      // Update local state immediately for responsive UI
+      const otherCourses = courses.filter(c => c.level !== level);
+      setCourses([...otherCourses, ...reordered]);
+
+      // Persist to backend
+      try {
+        const orderedIds = reordered.map(c => c.id);
+        await dataService.reorderCourses(level, orderedIds);
+      } catch (err) {
+        console.error('Failed to reorder courses:', err);
+        showToast('Failed to save order', 'error');
+        // Refetch courses to restore correct order
+        const freshCourses = await dataService.getCourses();
+        setCourses(freshCourses);
       }
     };
 
@@ -3399,18 +3502,77 @@ const App: React.FC = () => {
                       <span className="text-sm text-zinc-500">{levelCourses.length} course{levelCourses.length > 1 ? 's' : ''}</span>
                     </div>
                     <div className="grid gap-4">
-                      {levelCourses.map(course => (
-                  <GlassCard key={course.id} className="group p-0 overflow-hidden flex flex-col md:flex-row items-center hover:border-yellow-400/50 transition-colors">
-                    <div className="h-32 w-full md:w-48 bg-cover bg-center grayscale group-hover:grayscale-0 transition-all duration-500" style={{backgroundImage: `url(${course.thumbnail})`}}>
+                      {levelCourses.map((course, index) => (
+                  <GlassCard
+                    key={course.id}
+                    className={`group p-0 overflow-hidden flex flex-col md:flex-row items-center transition-colors ${
+                      draggedCourseId === course.id ? 'opacity-50 border-yellow-400' : 'hover:border-yellow-400/50'
+                    }`}
+                    draggable
+                    onDragStart={(e) => {
+                      setDraggedCourseId(course.id);
+                      e.dataTransfer.effectAllowed = 'move';
+                      e.dataTransfer.setData('text/plain', JSON.stringify({ level, fromIndex: index }));
+                    }}
+                    onDragEnd={() => setDraggedCourseId(null)}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      e.dataTransfer.dropEffect = 'move';
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+                      if (data.level === level && data.fromIndex !== index) {
+                        handleCourseDrop(level, data.fromIndex, index);
+                      }
+                      setDraggedCourseId(null);
+                    }}
+                  >
+                    {/* Drag Handle */}
+                    <div className="hidden md:flex items-center justify-center w-10 h-full cursor-grab active:cursor-grabbing text-zinc-500 hover:text-zinc-300 transition-colors">
+                      <GripVertical size={18} />
+                    </div>
+                    <div className="h-32 w-full md:w-44 bg-cover bg-center grayscale group-hover:grayscale-0 transition-all duration-500" style={{backgroundImage: `url(${course.thumbnail})`}}>
                        <div className="h-full w-full bg-black/40 group-hover:bg-transparent transition-colors"></div>
                     </div>
                     <div className="p-6 flex-1 min-w-0">
                       <div className="flex justify-between items-start">
-                        <div>
-                          <h4 className="text-xl font-bold text-white mb-1">{course.title}</h4>
+                        <div className="flex-1">
+                          {/* Inline Title Editing */}
+                          {editingCourseId === course.id ? (
+                            <input
+                              type="text"
+                              value={editingCourseTitle}
+                              onChange={(e) => setEditingCourseTitle(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') saveEditingCourseTitle();
+                                if (e.key === 'Escape') cancelEditingCourseTitle();
+                              }}
+                              onBlur={saveEditingCourseTitle}
+                              autoFocus
+                              className="text-xl font-bold text-white mb-1 bg-transparent border-b border-yellow-400 outline-none w-full"
+                            />
+                          ) : (
+                            <h4
+                              className="text-xl font-bold text-white mb-1 cursor-pointer hover:text-yellow-400 transition-colors"
+                              onClick={() => startEditingCourseTitle(course)}
+                              title="Click to edit title"
+                            >
+                              {course.title}
+                            </h4>
+                          )}
                           <p className="text-sm text-zinc-400 mb-3" title={course.description}>{course.description}</p>
-                          <div className="flex gap-3 text-xs">
-                            <Badge>{course.level}</Badge>
+                          <div className="flex gap-3 text-xs items-center">
+                            {/* Level Dropdown */}
+                            <select
+                              value={course.level}
+                              onChange={(e) => handleQuickUpdateCourse(course.id, { level: e.target.value as 'Beginner' | 'Intermediate' | 'Advanced' })}
+                              className="bg-zinc-800 border border-zinc-700 rounded px-2 py-1 text-xs text-white cursor-pointer hover:border-yellow-400/50 transition-colors"
+                            >
+                              <option value="Beginner">Beginner</option>
+                              <option value="Intermediate">Intermediate</option>
+                              <option value="Advanced">Advanced</option>
+                            </select>
                             <span className="flex items-center gap-1 text-zinc-400"><List size={14}/> {course.lessons.length} Modules</span>
                             <span className="flex items-center gap-1 text-zinc-400"><Users size={14}/> {course.enrolledCount || 0} Enrolled</span>
                           </div>
@@ -3421,7 +3583,10 @@ const App: React.FC = () => {
                        <SecondaryButton onClick={() => handleEditCourse(course)} className="h-10 px-4 text-xs flex items-center gap-2">
                          Edit Content
                        </SecondaryButton>
-                       <button className="h-10 w-10 flex items-center justify-center rounded-full border border-red-900/30 text-red-400 hover:bg-red-900/20 transition-colors">
+                       <button
+                         onClick={() => deleteCourse(course.id)}
+                         className="h-10 w-10 flex items-center justify-center rounded-full border border-red-900/30 text-red-400 hover:bg-red-900/20 transition-colors"
+                       >
                          <Trash2 size={16} />
                        </button>
                     </div>

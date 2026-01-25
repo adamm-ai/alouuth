@@ -432,6 +432,16 @@ export const dataService = {
     await api.courses.delete(id);
   },
 
+  reorderCourses: async (level: string, orderedIds: string[]): Promise<void> => {
+    if (USE_MOCK) {
+      await delay(300);
+      console.log(`Reordered courses in ${level} level:`, orderedIds);
+      return;
+    }
+
+    await api.courses.reorderCourses(level, orderedIds);
+  },
+
   addLesson: async (courseId: string, lesson: Partial<Lesson>): Promise<Lesson> => {
     if (USE_MOCK) {
       await delay(500);

@@ -6,6 +6,7 @@ import {
   createCourse,
   updateCourse,
   deleteCourse,
+  reorderCourses,
   addLesson,
   updateLesson,
   deleteLesson,
@@ -24,6 +25,7 @@ router.get('/:id', optionalAuth, getCourseById);
 router.post('/', authenticate, requireRole('ADMIN'), createCourse);
 router.put('/:id', authenticate, requireRole('ADMIN'), updateCourse);
 router.delete('/:id', authenticate, requireRole('ADMIN'), deleteCourse);
+router.post('/reorder', authenticate, requireRole('ADMIN'), reorderCourses);
 
 // Admin routes - Lesson CRUD
 router.post('/:courseId/lessons', authenticate, requireRole('ADMIN'), addLesson);

@@ -221,6 +221,12 @@ export const coursesAPI = {
   delete: (id: string) =>
     fetchAPI<{ message: string }>(`/courses/${id}`, { method: 'DELETE' }),
 
+  reorderCourses: (level: string, orderedIds: string[]) =>
+    fetchAPI<{ message: string }>('/courses/reorder', {
+      method: 'POST',
+      body: JSON.stringify({ level, orderedIds }),
+    }),
+
   // Lessons
   addLesson: (courseId: string, data: Partial<Lesson>) =>
     fetchAPI<{ message: string; lesson: Lesson }>(`/courses/${courseId}/lessons`, {

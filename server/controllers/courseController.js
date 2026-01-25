@@ -292,6 +292,45 @@ export const deleteCourse = async (req, res) => {
   }
 };
 
+// Reorder courses within a level (Admin only)
+export const reorderCourses = async (req, res) => {
+  const client = await pool.connect();
+  try {
+    const { level, orderedIds } = req.body;
+
+    // Validate level
+    const validLevels = ['Beginner', 'Intermediate', 'Advanced'];
+    if (!validLevels.includes(level)) {
+      return res.status(400).json({ error: 'Invalid level. Must be Beginner, Intermediate, or Advanced.' });
+    }
+
+    // Validate orderedIds is an array
+    if (!Array.isArray(orderedIds) || orderedIds.length === 0) {
+      return res.status(400).json({ error: 'orderedIds must be a non-empty array of course IDs.' });
+    }
+
+    await client.query('BEGIN');
+
+    // Update order_index for each course in the provided order
+    for (let i = 0; i < orderedIds.length; i++) {
+      await client.query(
+        'UPDATE courses SET order_index = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 AND level = $3',
+        [i, orderedIds[i], level]
+      );
+    }
+
+    await client.query('COMMIT');
+
+    res.json({ message: 'Courses reordered successfully.' });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('Reorder courses error:', error);
+    res.status(500).json({ error: 'Failed to reorder courses.' });
+  } finally {
+    client.release();
+  }
+};
+
 // Add lesson to course (Admin only)
 export const addLesson = async (req, res) => {
   try {
