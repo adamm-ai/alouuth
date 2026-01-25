@@ -53,6 +53,7 @@ export const getCourses = async (req, res) => {
         thumbnail: course.thumbnail_url,
         level: course.level,
         totalDuration: course.total_duration,
+        orderIndex: course.order_index,
         enrolledCount: parseInt(course.enrolled_count) || 0,
         progress: userProgress || 0,
         status: userProgress === 100 ? 'COMPLETED' : userProgress > 0 ? 'IN_PROGRESS' : 'NOT_STARTED',
@@ -141,6 +142,7 @@ export const getCourseById = async (req, res) => {
         thumbnail: course.thumbnail_url,
         level: course.level,
         totalDuration: course.total_duration,
+        orderIndex: course.order_index,
         enrolledCount: parseInt(course.enrolled_count) || 0,
         lessons: lessonsResult.rows.map(l => ({
           id: l.id,
@@ -169,12 +171,20 @@ export const getCourseById = async (req, res) => {
 export const createCourse = async (req, res) => {
   try {
     const { title, description, level, thumbnailUrl, totalDuration } = req.body;
+    const courseLevel = level || 'Beginner';
+
+    // Calculate next order_index for this level
+    const maxOrderResult = await pool.query(
+      'SELECT COALESCE(MAX(order_index), -1) + 1 as next_order FROM courses WHERE level = $1',
+      [courseLevel]
+    );
+    const orderIndex = maxOrderResult.rows[0].next_order;
 
     const result = await pool.query(`
-      INSERT INTO courses (title, description, level, thumbnail_url, total_duration, created_by, is_published)
-      VALUES ($1, $2, $3, $4, $5, $6, true)
+      INSERT INTO courses (title, description, level, thumbnail_url, total_duration, created_by, is_published, order_index)
+      VALUES ($1, $2, $3, $4, $5, $6, true, $7)
       RETURNING *
-    `, [title, description, level || 'Beginner', thumbnailUrl, totalDuration, req.user.id]);
+    `, [title, description, courseLevel, thumbnailUrl, totalDuration, req.user.id, orderIndex]);
 
     const course = result.rows[0];
 
@@ -188,6 +198,7 @@ export const createCourse = async (req, res) => {
         thumbnail: course.thumbnail_url,
         level: course.level,
         totalDuration: course.total_duration,
+        orderIndex: course.order_index,
         enrolledCount: 0,
         progress: 0,
         status: 'NOT_STARTED',
@@ -251,6 +262,7 @@ export const updateCourse = async (req, res) => {
         thumbnail: course.thumbnail_url,
         level: course.level,
         totalDuration: course.total_duration,
+        orderIndex: course.order_index,
         enrolledCount: 0,
         lessons: lessonsResult.rows.map(l => ({
           id: l.id,

@@ -69,6 +69,9 @@ export interface Course {
   progress: number; // 0-100
   status: CourseStatus;
 
+  // Ordering
+  orderIndex?: number;
+
   // Analytics
   enrolledCount?: number;
   avgCompletionTime?: number; // hours

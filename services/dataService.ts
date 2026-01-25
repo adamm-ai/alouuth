@@ -16,6 +16,7 @@ const transformCourse = (course: Course): LocalCourse => ({
   thumbnail: course.thumbnail,
   level: course.level,
   totalDuration: course.totalDuration,
+  orderIndex: (course as any).orderIndex,
   progress: course.progress,
   status: course.status as any,
   enrolledCount: course.enrolledCount,

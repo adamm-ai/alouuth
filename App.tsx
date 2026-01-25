@@ -85,6 +85,18 @@ const LiquidVideoFrame = ({ children }: { children: React.ReactNode }) => (
   </div>
 );
 
+// Helper to sort courses by level priority and orderIndex
+const LEVEL_PRIORITY: Record<string, number> = { 'Beginner': 0, 'Intermediate': 1, 'Advanced': 2 };
+const sortCourses = (coursesToSort: Course[]): Course[] => {
+  return [...coursesToSort].sort((a, b) => {
+    // First sort by level priority
+    const levelDiff = (LEVEL_PRIORITY[a.level] || 0) - (LEVEL_PRIORITY[b.level] || 0);
+    if (levelDiff !== 0) return levelDiff;
+    // Then sort by orderIndex within the same level
+    return (a.orderIndex ?? 999) - (b.orderIndex ?? 999);
+  });
+};
+
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<View>('LANDING');
   const [user, setUser] = useState<User | null>(null);
@@ -154,7 +166,8 @@ const App: React.FC = () => {
           dataService.getCourses(),
           dataService.getPaths(),
         ]);
-        setCourses(fetchedCourses);
+        // Sort courses by level and orderIndex to ensure consistent display
+        setCourses(sortCourses(fetchedCourses));
         setPaths(fetchedPaths);
         setDataLoaded(true);
 
@@ -284,12 +297,18 @@ const App: React.FC = () => {
     const [movedCourse] = reordered.splice(fromIndex, 1);
     reordered.splice(toIndex, 0, movedCourse);
 
-    // Update state immediately for smooth UX
-    setCourses([...otherCourses, ...reordered]);
+    // Update orderIndex values to match new positions
+    const reorderedWithIndex = reordered.map((course, idx) => ({
+      ...course,
+      orderIndex: idx
+    }));
+
+    // Update state immediately for smooth UX - maintain sorted order
+    setCourses(sortCourses([...otherCourses, ...reorderedWithIndex]));
 
     // Sync with backend
     try {
-      const orderedIds = reordered.map(c => c.id);
+      const orderedIds = reorderedWithIndex.map(c => c.id);
       await dataService.reorderCourses(level, orderedIds);
     } catch (err) {
       console.error('Failed to reorder courses:', err);
@@ -2463,7 +2482,7 @@ const App: React.FC = () => {
       try {
         await dataService.deleteCourse(courseId);
         const freshCourses = await dataService.getCourses();
-        setCourses(freshCourses);
+        setCourses(sortCourses(freshCourses));
         showToast('success', 'Course Deleted', 'The course has been successfully removed.');
       } catch (error) {
         console.error('Failed to delete course:', error);
@@ -2535,9 +2554,9 @@ const App: React.FC = () => {
           }
         }
 
-        // 4. Refresh courses list
+        // 4. Refresh courses list (sorted by level and order)
         const freshCourses = await dataService.getCourses();
-        setCourses(freshCourses);
+        setCourses(sortCourses(freshCourses));
         setViewMode('DASHBOARD');
         setEditingCourse(null);
         setActiveLessonId(null);
