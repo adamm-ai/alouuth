@@ -171,8 +171,8 @@ export const createCourse = async (req, res) => {
     const { title, description, level, thumbnailUrl, totalDuration } = req.body;
 
     const result = await pool.query(`
-      INSERT INTO courses (title, description, level, thumbnail_url, total_duration, created_by)
-      VALUES ($1, $2, $3, $4, $5, $6)
+      INSERT INTO courses (title, description, level, thumbnail_url, total_duration, created_by, is_published)
+      VALUES ($1, $2, $3, $4, $5, $6, true)
       RETURNING *
     `, [title, description, level || 'Beginner', thumbnailUrl, totalDuration, req.user.id]);
 

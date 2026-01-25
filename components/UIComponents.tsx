@@ -1,5 +1,103 @@
-import React, { useRef } from 'react';
-import { Upload, FileText, X, Download, Lock, Check } from 'lucide-react';
+import React, { useRef, useState, useEffect, createContext, useContext, useCallback } from 'react';
+import { Upload, FileText, X, Download, Lock, Check, CheckCircle, AlertCircle, AlertTriangle } from 'lucide-react';
+
+// ============================================
+// TOAST NOTIFICATION SYSTEM
+// ============================================
+type ToastType = 'success' | 'error' | 'warning';
+
+interface Toast {
+  id: string;
+  type: ToastType;
+  title: string;
+  message: string;
+}
+
+interface ToastContextType {
+  showToast: (type: ToastType, title: string, message: string) => void;
+}
+
+const ToastContext = createContext<ToastContextType | undefined>(undefined);
+
+export const useToast = () => {
+  const context = useContext(ToastContext);
+  if (!context) {
+    throw new Error('useToast must be used within a ToastProvider');
+  }
+  return context;
+};
+
+const ToastItem: React.FC<{ toast: Toast; onDismiss: (id: string) => void }> = ({ toast, onDismiss }) => {
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onDismiss(toast.id);
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [toast.id, onDismiss]);
+
+  const styles = {
+    success: {
+      bg: 'bg-green-500/20 border-green-500/50',
+      icon: <CheckCircle size={20} className="text-green-400" />,
+      titleColor: 'text-green-400'
+    },
+    error: {
+      bg: 'bg-red-500/20 border-red-500/50',
+      icon: <AlertCircle size={20} className="text-red-400" />,
+      titleColor: 'text-red-400'
+    },
+    warning: {
+      bg: 'bg-yellow-500/20 border-yellow-500/50',
+      icon: <AlertTriangle size={20} className="text-yellow-400" />,
+      titleColor: 'text-yellow-400'
+    }
+  };
+
+  const style = styles[toast.type];
+
+  return (
+    <div
+      className={`${style.bg} border backdrop-blur-xl rounded-xl p-4 shadow-lg shadow-black/20 animate-slide-in-right flex items-start gap-3 min-w-[320px] max-w-[420px]`}
+    >
+      <div className="flex-shrink-0 mt-0.5">{style.icon}</div>
+      <div className="flex-1 min-w-0">
+        <p className={`font-semibold ${style.titleColor}`}>{toast.title}</p>
+        <p className="text-sm text-zinc-300 mt-0.5">{toast.message}</p>
+      </div>
+      <button
+        onClick={() => onDismiss(toast.id)}
+        className="flex-shrink-0 text-zinc-500 hover:text-white transition-colors"
+      >
+        <X size={16} />
+      </button>
+    </div>
+  );
+};
+
+export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [toasts, setToasts] = useState<Toast[]>([]);
+
+  const showToast = useCallback((type: ToastType, title: string, message: string) => {
+    const id = `toast-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    setToasts(prev => [...prev, { id, type, title, message }]);
+  }, []);
+
+  const dismissToast = useCallback((id: string) => {
+    setToasts(prev => prev.filter(t => t.id !== id));
+  }, []);
+
+  return (
+    <ToastContext.Provider value={{ showToast }}>
+      {children}
+      {/* Toast Container - Fixed position at top right */}
+      <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-3">
+        {toasts.map(toast => (
+          <ToastItem key={toast.id} toast={toast} onDismiss={dismissToast} />
+        ))}
+      </div>
+    </ToastContext.Provider>
+  );
+};
 
 export const GlassCard: React.FC<{ children: React.ReactNode; className?: string; onClick?: () => void; disabled?: boolean }> = ({ children, className = '', onClick, disabled }) => (
   <div 
@@ -98,6 +196,7 @@ export const FileDropZone: React.FC<{
   uploadProgress?: number;
 }> = ({ label, accept, onFileSelect, currentFile, isUploading = false, uploadProgress = 0 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -105,13 +204,78 @@ export const FileDropZone: React.FC<{
     }
   };
 
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isUploading) {
+      setIsDragging(true);
+    }
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // Only set dragging to false if we're leaving the drop zone entirely
+    if (e.currentTarget === e.target) {
+      setIsDragging(false);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isUploading) {
+      setIsDragging(true);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    if (isUploading) return;
+
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      const file = files[0];
+      // Validate file type against accept prop
+      const acceptedTypes = accept.split(',').map(t => t.trim().toLowerCase());
+      const fileType = file.type.toLowerCase();
+      const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
+
+      const isAccepted = acceptedTypes.some(acceptType => {
+        if (acceptType.startsWith('.')) {
+          return fileExtension === acceptType;
+        }
+        if (acceptType.includes('*')) {
+          const [mainType] = acceptType.split('/');
+          return fileType.startsWith(mainType + '/');
+        }
+        return fileType === acceptType;
+      });
+
+      if (isAccepted) {
+        onFileSelect(file);
+      } else {
+        console.warn('File type not accepted:', fileType, fileExtension);
+      }
+    }
+  };
+
   return (
     <div
       onClick={() => !isUploading && inputRef.current?.click()}
+      onDragEnter={handleDragEnter}
+      onDragLeave={handleDragLeave}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
       className={`group relative h-40 w-full border-2 border-dashed rounded-3xl bg-zinc-900/30 transition-all flex flex-col items-center justify-center p-6 overflow-hidden ${
         isUploading
           ? 'border-yellow-400/50 cursor-wait'
-          : 'border-white/10 hover:bg-zinc-800/40 hover:border-yellow-400/50 cursor-pointer'
+          : isDragging
+            ? 'border-yellow-400 bg-yellow-400/10 scale-[1.02]'
+            : 'border-white/10 hover:bg-zinc-800/40 hover:border-yellow-400/50 cursor-pointer'
       }`}
     >
       <input
@@ -124,9 +288,17 @@ export const FileDropZone: React.FC<{
       />
 
       {/* Animated background grid */}
-      <div className="absolute inset-0 opacity-0 group-hover:opacity-10 bg-[linear-gradient(45deg,transparent_25%,rgba(250,204,21,0.2)_50%,transparent_75%,transparent_100%)] bg-[length:20px_20px] transition-opacity" />
+      <div className={`absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(250,204,21,0.2)_50%,transparent_75%,transparent_100%)] bg-[length:20px_20px] transition-opacity ${isDragging ? 'opacity-20' : 'opacity-0 group-hover:opacity-10'}`} />
 
-      {isUploading ? (
+      {isDragging ? (
+        <div className="flex flex-col items-center relative z-10 animate-pulse">
+          <div className="h-16 w-16 rounded-full bg-yellow-400/30 flex items-center justify-center text-yellow-400 mb-3 shadow-[0_0_30px_rgba(250,204,21,0.5)]">
+            <Upload size={32} />
+          </div>
+          <p className="text-lg font-bold text-yellow-400">Drop file here</p>
+          <p className="text-sm text-yellow-400/70 mt-1">Release to upload</p>
+        </div>
+      ) : isUploading ? (
         <div className="flex flex-col items-center relative z-10 w-full px-4">
           <div className="h-12 w-12 rounded-full bg-yellow-400/20 flex items-center justify-center text-yellow-400 mb-3 shadow-[0_0_20px_rgba(250,204,21,0.3)]">
             <Upload size={24} className="animate-bounce" />
@@ -144,8 +316,8 @@ export const FileDropZone: React.FC<{
           <div className="h-12 w-12 rounded-full bg-yellow-400/20 flex items-center justify-center text-yellow-400 mb-2 shadow-[0_0_20px_rgba(250,204,21,0.2)]">
             <Check size={24} />
           </div>
-          <p className="text-sm font-medium text-yellow-400 text-center break-all max-w-full truncate px-2">{currentFile}</p>
-          <p className="text-xs text-zinc-500 mt-1">Click to replace</p>
+          <p className="text-sm font-medium text-yellow-400 text-center break-all max-w-full px-2" title={currentFile}>{currentFile}</p>
+          <p className="text-xs text-zinc-500 mt-1">Click or drag to replace</p>
         </div>
       ) : (
         <div className="flex flex-col items-center relative z-10">

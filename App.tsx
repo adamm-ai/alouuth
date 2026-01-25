@@ -36,11 +36,12 @@ import {
   XCircle,
   Calendar,
   AlertTriangle,
-  Target
+  Target,
+  GripVertical
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from 'recharts';
 import { LiquidBackground } from './components/LiquidBackground';
-import { GlassCard, PrimaryButton, SecondaryButton, ProgressBar, Badge, FileDropZone, IconButton } from './components/UIComponents';
+import { GlassCard, PrimaryButton, SecondaryButton, ProgressBar, Badge, FileDropZone, IconButton, ToastProvider, useToast } from './components/UIComponents';
 import { dataService } from './services/dataService';
 import { authAPI, setAuthToken, getAuthToken, PendingUser, adminAPI } from './services/api';
 import api from './services/api';
@@ -50,6 +51,38 @@ import { Course, User, UserRole, Lesson, AnalyticData, LearningPath, ContentType
 // --- Types for Views ---
 type View = 'LANDING' | 'AUTH' | 'DASHBOARD' | 'COURSE_PLAYER' | 'ADMIN';
 type AdminSection = 'OVERVIEW' | 'USERS' | 'COURSES' | 'ANALYTICS';
+
+// Hyper Liquid Glass Video Frame Component - MUST be outside App to prevent re-renders
+const LiquidVideoFrame = ({ children }: { children: React.ReactNode }) => (
+  <div className="relative group">
+    {/* Outer glow layers */}
+    <div className="absolute -inset-1 bg-gradient-to-r from-yellow-500/20 via-white/10 to-yellow-500/20 rounded-[28px] blur-xl opacity-60 group-hover:opacity-100 transition-all duration-700 animate-pulse" />
+    <div className="absolute -inset-0.5 bg-gradient-to-br from-yellow-400/30 via-transparent to-white/20 rounded-[26px] blur-md" />
+
+    {/* Main glass container */}
+    <div className="relative rounded-3xl overflow-hidden backdrop-blur-xl bg-gradient-to-br from-white/[0.08] to-white/[0.02] border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.1)]">
+      {/* Inner highlight */}
+      <div className="absolute inset-0 bg-gradient-to-b from-white/10 via-transparent to-transparent pointer-events-none" />
+
+      {/* Animated liquid shine */}
+      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-1000">
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1500 ease-in-out" />
+      </div>
+
+      {/* Content */}
+      <div className="relative">
+        {children}
+      </div>
+
+      {/* Bottom reflection */}
+      <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
+    </div>
+
+    {/* Floating particles effect */}
+    <div className="absolute -top-2 -right-2 w-4 h-4 bg-yellow-400/40 rounded-full blur-sm animate-float" style={{animationDelay: '0s'}} />
+    <div className="absolute -bottom-1 -left-1 w-3 h-3 bg-white/30 rounded-full blur-sm animate-float" style={{animationDelay: '1s'}} />
+  </div>
+);
 
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<View>('LANDING');
@@ -61,6 +94,7 @@ const App: React.FC = () => {
   const [adminStats, setAdminStats] = useState<AnalyticData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [expandedDescriptions, setExpandedDescriptions] = useState<Set<string>>(new Set());
   const [adminSection, setAdminSection] = useState<AdminSection>('OVERVIEW');
   const [userDashboardStats, setUserDashboardStats] = useState<{
     enrolledCourses: number;
@@ -68,6 +102,38 @@ const App: React.FC = () => {
     lessonsCompleted: number;
     averageQuizScore: number;
   } | null>(null);
+
+  // Restore session on page load/refresh
+  useEffect(() => {
+    const restoreSession = async () => {
+      // Check if user is already authenticated (token in localStorage)
+      if (!dataService.isAuthenticated()) {
+        return; // No token, stay on landing
+      }
+
+      setIsLoading(true);
+      try {
+        // Validate token by fetching user data
+        const fetchedUser = await dataService.getUser();
+        setUser(fetchedUser);
+        // Redirect to appropriate view based on role
+        if (fetchedUser.role === 'ADMIN' || fetchedUser.role === 'SUPERUSER') {
+          setCurrentView('ADMIN');
+        } else {
+          setCurrentView('DASHBOARD');
+        }
+      } catch (error) {
+        // Token is invalid or expired, clear it
+        console.error('Session restoration failed:', error);
+        setAuthToken(null);
+        setCurrentView('LANDING');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    restoreSession();
+  }, []); // Run once on mount
 
   // Track if initial data has been loaded
   const [dataLoaded, setDataLoaded] = useState(false);
@@ -943,7 +1009,28 @@ const App: React.FC = () => {
                               )}
                             </div>
                             <h4 className={`text-xl font-bold mb-2 ${courseUnlocked ? 'group-hover:text-yellow-400' : 'text-zinc-500'} transition-colors`}>{course.title}</h4>
-                            <p className={`text-sm mb-4 flex-1 line-clamp-2 ${courseUnlocked ? 'text-zinc-400' : 'text-zinc-600'}`}>{course.description}</p>
+                            <div className="mb-4 flex-1">
+                              <p className={`text-sm ${courseUnlocked ? 'text-zinc-400' : 'text-zinc-600'} ${expandedDescriptions.has(course.id) ? '' : 'line-clamp-2'}`}>{course.description}</p>
+                              {course.description && course.description.length > 100 && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setExpandedDescriptions(prev => {
+                                      const newSet = new Set(prev);
+                                      if (newSet.has(course.id)) {
+                                        newSet.delete(course.id);
+                                      } else {
+                                        newSet.add(course.id);
+                                      }
+                                      return newSet;
+                                    });
+                                  }}
+                                  className={`text-xs mt-1 ${courseUnlocked ? 'text-yellow-400 hover:text-yellow-300' : 'text-zinc-500'} transition-colors`}
+                                >
+                                  {expandedDescriptions.has(course.id) ? 'Show less' : 'Read more'}
+                                </button>
+                              )}
+                            </div>
                             <div className={`mt-auto pt-4 border-t border-white/5 flex justify-between items-center text-sm ${courseUnlocked ? 'text-zinc-500' : 'text-zinc-700'}`}>
                               <span>{course.totalDuration}</span>
                               {courseUnlocked ? (
@@ -1165,38 +1252,6 @@ const App: React.FC = () => {
     const completedCount = activeCourse?.lessons.filter(l => l.isCompleted).length || 0;
     const totalCount = activeCourse?.lessons.length || 0;
     const progressPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
-
-    // Hyper Liquid Glass Video Frame Component
-    const LiquidVideoFrame = ({ children }: { children: React.ReactNode }) => (
-      <div className="relative group">
-        {/* Outer glow layers */}
-        <div className="absolute -inset-1 bg-gradient-to-r from-yellow-500/20 via-white/10 to-yellow-500/20 rounded-[28px] blur-xl opacity-60 group-hover:opacity-100 transition-all duration-700 animate-pulse" />
-        <div className="absolute -inset-0.5 bg-gradient-to-br from-yellow-400/30 via-transparent to-white/20 rounded-[26px] blur-md" />
-
-        {/* Main glass container */}
-        <div className="relative rounded-3xl overflow-hidden backdrop-blur-xl bg-gradient-to-br from-white/[0.08] to-white/[0.02] border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.1)]">
-          {/* Inner highlight */}
-          <div className="absolute inset-0 bg-gradient-to-b from-white/10 via-transparent to-transparent pointer-events-none" />
-
-          {/* Animated liquid shine */}
-          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-1000">
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1500 ease-in-out" />
-          </div>
-
-          {/* Content */}
-          <div className="relative">
-            {children}
-          </div>
-
-          {/* Bottom reflection */}
-          <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
-        </div>
-
-        {/* Floating particles effect */}
-        <div className="absolute -top-2 -right-2 w-4 h-4 bg-yellow-400/40 rounded-full blur-sm animate-float" style={{animationDelay: '0s'}} />
-        <div className="absolute -bottom-1 -left-1 w-3 h-3 bg-white/30 rounded-full blur-sm animate-float" style={{animationDelay: '1s'}} />
-      </div>
-    );
 
     // Hyper Glass Card for curriculum items
     const CurriculumItem = ({ lesson, idx, isActive, isLocked, isCompleted, onClick }: any) => (
@@ -1494,33 +1549,38 @@ const App: React.FC = () => {
                               Your browser does not support the video tag.
                             </video>
                           )}
+                        </div>
+                      </LiquidVideoFrame>
 
-                          {/* Video Progress Overlay - Always visible */}
-                          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent p-4 pointer-events-none z-10">
-                            {/* Progress Bar */}
-                            <div className="relative h-2 bg-white/20 rounded-full overflow-hidden mb-3">
+                      {/* Video Progress Panel - OUTSIDE the video player */}
+                      <div className="relative rounded-2xl overflow-hidden">
+                        <div className="absolute inset-0 bg-gradient-to-r from-white/[0.06] to-white/[0.02] backdrop-blur-xl border border-white/10" />
+                        <div className="relative p-4">
+                          {/* Progress Bar - Full width outside video */}
+                          <div className="relative h-3 bg-white/10 rounded-full overflow-hidden mb-4">
+                            <div
+                              className="absolute inset-y-0 left-0 bg-gradient-to-r from-yellow-400 to-yellow-500 rounded-full shadow-[0_0_10px_rgba(250,204,21,0.5)] transition-all duration-300"
+                              style={{ width: `${videoWatchedPercent}%` }}
+                            />
+                            {/* 80% marker */}
+                            <div className="absolute top-0 bottom-0 w-0.5 bg-green-400/70" style={{ left: '80%' }} />
+                            {/* Glowing dot at progress position */}
+                            {videoWatchedPercent > 0 && (
                               <div
-                                className="absolute inset-y-0 left-0 bg-gradient-to-r from-yellow-400 to-yellow-500 rounded-full shadow-[0_0_10px_rgba(250,204,21,0.5)] transition-all duration-300"
-                                style={{ width: `${videoWatchedPercent}%` }}
+                                className="absolute top-1/2 -translate-y-1/2 w-5 h-5 bg-yellow-400 rounded-full shadow-[0_0_15px_rgba(250,204,21,0.8)] transition-all duration-300 border-2 border-white"
+                                style={{ left: `calc(${videoWatchedPercent}% - 10px)` }}
                               />
-                              {/* 80% marker */}
-                              <div className="absolute top-0 bottom-0 w-0.5 bg-green-400/50" style={{ left: '80%' }} />
-                              {/* Glowing dot at progress position */}
-                              {videoWatchedPercent > 0 && (
-                                <div
-                                  className="absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-yellow-400 rounded-full shadow-[0_0_15px_rgba(250,204,21,0.8)] transition-all duration-300 border-2 border-white"
-                                  style={{ left: `calc(${videoWatchedPercent}% - 8px)` }}
-                                />
-                              )}
-                            </div>
+                            )}
+                          </div>
 
-                            {/* Progress Stats */}
-                            <div className="flex items-center justify-between text-sm">
-                              <div className="flex items-center gap-3">
-                                <span className={`font-bold text-xl ${videoWatchedPercent >= 80 ? 'text-green-400' : 'text-yellow-400'}`}>
-                                  {videoWatchedPercent}%
-                                </span>
-                                <span className="text-zinc-400">watched</span>
+                          {/* Progress Stats */}
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                              <div className={`text-3xl font-bold ${videoWatchedPercent >= 80 ? 'text-green-400' : 'text-yellow-400'}`}>
+                                {videoWatchedPercent}%
+                              </div>
+                              <div>
+                                <div className="text-sm text-white font-medium">watched</div>
                                 {isVideoPlaying && (
                                   <span className="flex items-center gap-1 text-green-400 text-xs animate-pulse">
                                     <span className="w-2 h-2 bg-green-400 rounded-full"></span>
@@ -1528,33 +1588,33 @@ const App: React.FC = () => {
                                   </span>
                                 )}
                               </div>
-                              <div className="flex items-center gap-4">
-                                {videoWatchedPercent >= 80 ? (
-                                  <span className="text-green-400 text-xs font-medium flex items-center gap-1">
-                                    <CheckCircle size={14} /> Ready to complete
-                                  </span>
-                                ) : (
-                                  <span className="text-zinc-500 text-xs">
-                                    {80 - videoWatchedPercent}% more to unlock completion
-                                  </span>
-                                )}
-                                <div className="flex items-center gap-2 text-zinc-400">
-                                  <Clock size={14} />
-                                  <span>{activeLesson.durationMin} min</span>
-                                </div>
+                            </div>
+                            <div className="flex items-center gap-4">
+                              {videoWatchedPercent >= 80 ? (
+                                <span className="text-green-400 text-sm font-medium flex items-center gap-2 bg-green-400/10 px-3 py-1.5 rounded-full border border-green-400/30">
+                                  <CheckCircle size={16} /> Ready to complete
+                                </span>
+                              ) : (
+                                <span className="text-zinc-400 text-sm bg-white/5 px-3 py-1.5 rounded-full">
+                                  {80 - videoWatchedPercent}% more to unlock
+                                </span>
+                              )}
+                              <div className="flex items-center gap-2 text-zinc-400">
+                                <Clock size={16} />
+                                <span>{activeLesson.durationMin} min</span>
                               </div>
                             </div>
                           </div>
                         </div>
-                      </LiquidVideoFrame>
+                      </div>
 
-                      {/* Video Status Panel - Liquid Glass */}
+                      {/* Video Status Panel - Additional Info */}
                       <div className="relative rounded-2xl overflow-hidden">
-                        <div className="absolute inset-0 bg-gradient-to-r from-white/[0.05] to-white/[0.02] backdrop-blur-xl border border-white/10" />
+                        <div className="absolute inset-0 bg-gradient-to-r from-white/[0.04] to-white/[0.02] backdrop-blur-xl border border-white/10" />
                         <div className="relative p-4 flex items-center justify-between">
                           <div className="flex items-center gap-4">
                             {/* Status Indicator */}
-                            <div className={`w-14 h-14 rounded-xl flex items-center justify-center transition-all duration-300 ${
+                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 ${
                               isVideoPlaying
                                 ? 'bg-green-500/20 border border-green-500/40 shadow-[0_0_20px_rgba(34,197,94,0.2)]'
                                 : videoWatchedPercent > 0
@@ -1562,15 +1622,15 @@ const App: React.FC = () => {
                                   : 'bg-white/5 border border-white/10'
                             }`}>
                               {isVideoPlaying ? (
-                                <div className="flex gap-1">
-                                  <div className="w-1 h-6 bg-green-400 rounded animate-pulse"></div>
-                                  <div className="w-1 h-6 bg-green-400 rounded animate-pulse" style={{animationDelay: '0.2s'}}></div>
-                                  <div className="w-1 h-6 bg-green-400 rounded animate-pulse" style={{animationDelay: '0.4s'}}></div>
+                                <div className="flex gap-0.5">
+                                  <div className="w-1 h-5 bg-green-400 rounded animate-pulse"></div>
+                                  <div className="w-1 h-5 bg-green-400 rounded animate-pulse" style={{animationDelay: '0.2s'}}></div>
+                                  <div className="w-1 h-5 bg-green-400 rounded animate-pulse" style={{animationDelay: '0.4s'}}></div>
                                 </div>
                               ) : videoWatchedPercent >= 80 ? (
-                                <CheckCircle size={28} className="text-green-400" />
+                                <CheckCircle size={24} className="text-green-400" />
                               ) : (
-                                <PlayCircle size={28} className={videoWatchedPercent > 0 ? 'text-yellow-400' : 'text-zinc-400'} />
+                                <PlayCircle size={24} className={videoWatchedPercent > 0 ? 'text-yellow-400' : 'text-zinc-400'} />
                               )}
                             </div>
 
@@ -1592,8 +1652,8 @@ const App: React.FC = () => {
                             </div>
                           </div>
 
-                          {/* Progress Circle */}
-                          <div className="relative w-16 h-16">
+                          {/* Circular Progress Indicator */}
+                          <div className="relative w-14 h-14">
                             <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
                               <path
                                 d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
@@ -1615,7 +1675,7 @@ const App: React.FC = () => {
                               />
                             </svg>
                             <div className="absolute inset-0 flex items-center justify-center">
-                              <span className={`text-sm font-bold ${videoWatchedPercent >= 80 ? 'text-green-400' : 'text-yellow-400'}`}>
+                              <span className={`text-xs font-bold ${videoWatchedPercent >= 80 ? 'text-green-400' : 'text-yellow-400'}`}>
                                 {videoWatchedPercent}%
                               </span>
                             </div>
@@ -1898,7 +1958,7 @@ const App: React.FC = () => {
                   {(activeCourse?.lessons.findIndex(l => l.id === activeLesson?.id) || 0) + 1}
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-white truncate max-w-[200px]">{activeLesson?.title}</p>
+                  <p className="text-sm font-medium text-white truncate max-w-[300px]" title={activeLesson?.title}>{activeLesson?.title}</p>
                   <p className="text-xs text-zinc-500">{completedCount}/{totalCount} completed</p>
                 </div>
               </div>
@@ -1913,6 +1973,9 @@ const App: React.FC = () => {
   };
 
   const AdminView = () => {
+    // Toast notifications
+    const { showToast } = useToast();
+
     // Admin State
     const [viewMode, setViewMode] = useState<'DASHBOARD' | 'EDITOR'>('DASHBOARD');
     const [editingCourse, setEditingCourse] = useState<Partial<Course> | null>(null);
@@ -2139,9 +2202,10 @@ const App: React.FC = () => {
         await dataService.deleteCourse(courseId);
         const freshCourses = await dataService.getCourses();
         setCourses(freshCourses);
+        showToast('success', 'Course Deleted', 'The course has been successfully removed.');
       } catch (error) {
         console.error('Failed to delete course:', error);
-        alert('Failed to delete course. Please try again.');
+        showToast('error', 'Delete Failed', 'Failed to delete course. Please try again.');
       }
     };
 
@@ -2162,11 +2226,13 @@ const App: React.FC = () => {
         }
 
         // 2. Delete removed lessons from backend
+        let deletionWarning = false;
         for (const deletedId of deletedLessonIds) {
           try {
             await dataService.deleteLesson(deletedId);
           } catch (err) {
             console.error(`Failed to delete lesson ${deletedId}:`, err);
+            deletionWarning = true;
           }
         }
         setDeletedLessonIds([]); // Clear after sync
@@ -2213,9 +2279,16 @@ const App: React.FC = () => {
         setViewMode('DASHBOARD');
         setEditingCourse(null);
         setActiveLessonId(null);
+
+        // Show success toast
+        if (deletionWarning) {
+          showToast('warning', 'Partial Save', 'Course saved but some lessons could not be deleted. Please review and retry.');
+        } else {
+          showToast('success', isNewCourse ? 'Course Created' : 'Course Updated', 'Your changes have been saved and published successfully.');
+        }
       } catch (error) {
         console.error('Failed to save course:', error);
-        alert('Failed to save course. Please try again.');
+        showToast('error', 'Update Failed', 'Something went wrong. Please try again or contact support.');
       } finally {
         setIsSaving(false);
       }
@@ -2304,9 +2377,10 @@ const App: React.FC = () => {
                                   setUploadProgress(progress);
                                 });
                                 setEditingCourse({...editingCourse, thumbnail: result.file.fileUrl});
+                                showToast('success', 'Thumbnail Uploaded', 'Image uploaded successfully.');
                               } catch (error) {
                                 console.error('Failed to upload thumbnail:', error);
-                                alert('Failed to upload thumbnail. Please try again.');
+                                showToast('error', 'Upload Failed', 'Failed to upload thumbnail. Please try again.');
                               } finally {
                                 setIsUploading(false);
                                 setUploadProgress(0);
@@ -2367,7 +2441,7 @@ const App: React.FC = () => {
                             <button
                               key={level}
                               onClick={() => setEditingCourse({...editingCourse, level})}
-                              className={`py-3 px-4 rounded-xl text-sm font-medium transition-all border ${
+                              className={`py-3 px-2 rounded-xl text-sm font-medium transition-all border flex items-center justify-center text-center whitespace-nowrap min-h-[48px] ${
                                 editingCourse.level === level
                                   ? 'bg-yellow-400 text-black border-yellow-400 shadow-lg shadow-yellow-400/20'
                                   : 'bg-zinc-900/50 text-zinc-400 border-white/10 hover:border-yellow-400/50'
@@ -2435,6 +2509,35 @@ const App: React.FC = () => {
                         {editingCourse.lessons?.map((lesson, idx) => (
                           <div
                             key={lesson.id}
+                            draggable
+                            onDragStart={(e) => {
+                              e.dataTransfer.setData('text/plain', idx.toString());
+                              e.dataTransfer.effectAllowed = 'move';
+                              (e.target as HTMLElement).classList.add('dragging');
+                            }}
+                            onDragEnd={(e) => {
+                              (e.target as HTMLElement).classList.remove('dragging');
+                            }}
+                            onDragOver={(e) => {
+                              e.preventDefault();
+                              e.dataTransfer.dropEffect = 'move';
+                              (e.currentTarget as HTMLElement).classList.add('drag-over');
+                            }}
+                            onDragLeave={(e) => {
+                              (e.currentTarget as HTMLElement).classList.remove('drag-over');
+                            }}
+                            onDrop={(e) => {
+                              e.preventDefault();
+                              (e.currentTarget as HTMLElement).classList.remove('drag-over');
+                              const fromIndex = parseInt(e.dataTransfer.getData('text/plain'));
+                              const toIndex = idx;
+                              if (fromIndex !== toIndex && editingCourse?.lessons) {
+                                const lessons = [...editingCourse.lessons];
+                                const [movedLesson] = lessons.splice(fromIndex, 1);
+                                lessons.splice(toIndex, 0, movedLesson);
+                                setEditingCourse({ ...editingCourse, lessons });
+                              }
+                            }}
                             onClick={() => setActiveLessonId(lesson.id)}
                             className={`group p-3 rounded-xl border transition-all cursor-pointer flex items-center gap-2 ${
                               activeLessonId === lesson.id
@@ -2442,7 +2545,14 @@ const App: React.FC = () => {
                                 : 'bg-white/5 border-transparent hover:border-white/10'
                             }`}
                           >
-                             {/* Reorder buttons */}
+                             {/* Drag Handle */}
+                             <div
+                               className="drag-handle p-1 rounded hover:bg-white/10 text-zinc-500 hover:text-zinc-300 transition-colors"
+                               onClick={(e) => e.stopPropagation()}
+                             >
+                               <GripVertical size={14} />
+                             </div>
+                             {/* Reorder buttons (kept as alternative) */}
                              <div className="flex flex-col gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                                <button
                                  onClick={(e) => { e.stopPropagation(); moveLessonUp(idx); }}
@@ -2461,7 +2571,7 @@ const App: React.FC = () => {
                              </div>
                              <div className="h-6 w-6 rounded flex items-center justify-center bg-zinc-800 text-zinc-400 text-xs font-mono">{idx + 1}</div>
                              <div className="flex-1 min-w-0">
-                               <div className="text-sm font-medium truncate text-white">{lesson.title}</div>
+                               <div className="text-sm font-medium truncate text-white" title={lesson.title}>{lesson.title}</div>
                                <div className="text-[10px] text-zinc-500 uppercase flex items-center gap-1">
                                  {lesson.type === 'video' && <Video size={10} />}
                                  {lesson.type === 'quiz' && <HelpCircle size={10} />}
@@ -2552,9 +2662,10 @@ const App: React.FC = () => {
                                          fileName: result.file.originalName,
                                          videoUrl: undefined
                                        });
+                                       showToast('success', 'Video Uploaded', 'Your video has been uploaded successfully.');
                                      } catch (error) {
                                        console.error('Failed to upload video:', error);
-                                       alert('Failed to upload video. Please try again.');
+                                       showToast('error', 'Upload Failed', 'Failed to upload video. Please try again.');
                                      } finally {
                                        setIsUploading(false);
                                        setUploadProgress(0);
@@ -2624,9 +2735,10 @@ const App: React.FC = () => {
                                     fileUrl: result.file.fileUrl,
                                     fileName: result.file.originalName
                                   });
+                                  showToast('success', 'File Uploaded', `${activeLesson.type === 'pdf' ? 'PDF document' : 'Presentation'} uploaded successfully.`);
                                 } catch (error) {
                                   console.error('Failed to upload file:', error);
-                                  alert('Failed to upload file. Please try again.');
+                                  showToast('error', 'Upload Failed', 'Failed to upload file. Please try again.');
                                 } finally {
                                   setIsUploading(false);
                                   setUploadProgress(0);
@@ -3213,7 +3325,12 @@ const App: React.FC = () => {
 
           {/* Manage Courses (Enhanced List) */}
           <div className="space-y-6">
-            <h3 className="text-xl font-bold">Manage Courses</h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-xl font-bold">Manage Courses</h3>
+              <span className="text-sm text-zinc-400">
+                {courses.length} course{courses.length !== 1 ? 's' : ''} total
+              </span>
+            </div>
             <div className="grid gap-4">
               {courses.map(course => (
                 <GlassCard key={course.id} className="group p-0 overflow-hidden flex flex-col md:flex-row items-center hover:border-yellow-400/50 transition-colors">
@@ -3224,7 +3341,7 @@ const App: React.FC = () => {
                     <div className="flex justify-between items-start">
                       <div>
                         <h4 className="text-xl font-bold text-white mb-1">{course.title}</h4>
-                        <p className="text-sm text-zinc-400 truncate mb-3">{course.description}</p>
+                        <p className="text-sm text-zinc-400 mb-3" title={course.description}>{course.description}</p>
                         <div className="flex gap-3 text-xs">
                           <Badge>{course.level}</Badge>
                           <span className="flex items-center gap-1 text-zinc-400"><List size={14}/> {course.lessons.length} Modules</span>
@@ -3255,7 +3372,15 @@ const App: React.FC = () => {
               <div className="flex justify-between items-end">
                 <div>
                   <h2 className="text-3xl font-bold">Course Manager</h2>
-                  <p className="text-zinc-400 mt-1">Create, edit, and manage your course content</p>
+                  <p className="text-zinc-400 mt-1">
+                    {courses.length} course{courses.length !== 1 ? 's' : ''} across all levels
+                    <span className="mx-2">•</span>
+                    <span className="text-green-400">{courses.filter(c => c.level === 'Beginner').length} Beginner</span>
+                    <span className="mx-1">•</span>
+                    <span className="text-yellow-400">{courses.filter(c => c.level === 'Intermediate').length} Intermediate</span>
+                    <span className="mx-1">•</span>
+                    <span className="text-zinc-300">{courses.filter(c => c.level === 'Advanced').length} Advanced</span>
+                  </p>
                 </div>
                 <PrimaryButton onClick={handleCreateCourse} className="text-sm shadow-lg shadow-yellow-400/20">
                   <Plus size={18} /> New Course
@@ -3263,6 +3388,7 @@ const App: React.FC = () => {
               </div>
 
               {/* Courses grouped by level */}
+              <div className="space-y-8 mt-6">
               {(['Beginner', 'Intermediate', 'Advanced'] as const).map(level => {
                 const levelCourses = courses.filter(c => c.level === level);
                 if (levelCourses.length === 0) return null;
@@ -3282,7 +3408,7 @@ const App: React.FC = () => {
                       <div className="flex justify-between items-start">
                         <div>
                           <h4 className="text-xl font-bold text-white mb-1">{course.title}</h4>
-                          <p className="text-sm text-zinc-400 truncate mb-3">{course.description}</p>
+                          <p className="text-sm text-zinc-400 mb-3" title={course.description}>{course.description}</p>
                           <div className="flex gap-3 text-xs">
                             <Badge>{course.level}</Badge>
                             <span className="flex items-center gap-1 text-zinc-400"><List size={14}/> {course.lessons.length} Modules</span>
@@ -3305,6 +3431,7 @@ const App: React.FC = () => {
                   </div>
                 );
               })}
+              </div>
           </div>
 
           {/* Analytics Section */}
@@ -3503,21 +3630,23 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="font-sans text-slate-50 selection:bg-yellow-400/30 h-screen overflow-hidden">
-      <LiquidBackground />
+    <ToastProvider>
+      <div className="font-sans text-slate-50 selection:bg-yellow-400/30 h-screen overflow-hidden">
+        <LiquidBackground />
 
-      {/* Sidebar for authenticated views except player */}
-      {(currentView === 'DASHBOARD' || currentView === 'ADMIN') && <Sidebar />}
+        {/* Sidebar for authenticated views except player */}
+        {(currentView === 'DASHBOARD' || currentView === 'ADMIN') && <Sidebar />}
 
-      {/* Main Content Router */}
-      <main className="h-screen overflow-hidden">
-        {currentView === 'LANDING' && <LandingView />}
-        {currentView === 'AUTH' && <AuthView />}
-        {currentView === 'DASHBOARD' && <DashboardView />}
-        {currentView === 'COURSE_PLAYER' && <PlayerView />}
-        {currentView === 'ADMIN' && <AdminView />}
-      </main>
-    </div>
+        {/* Main Content Router */}
+        <main className="h-screen overflow-hidden">
+          {currentView === 'LANDING' && <LandingView />}
+          {currentView === 'AUTH' && <AuthView />}
+          {currentView === 'DASHBOARD' && <DashboardView />}
+          {currentView === 'COURSE_PLAYER' && <PlayerView />}
+          {currentView === 'ADMIN' && <AdminView />}
+        </main>
+      </div>
+    </ToastProvider>
   );
 };
 
