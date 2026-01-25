@@ -2174,10 +2174,10 @@ const App: React.FC = () => {
       try {
         const updatedCourse = await dataService.updateCourse(editingCourseId, { title: editingCourseTitle.trim() });
         setCourses(prev => prev.map(c => c.id === editingCourseId ? { ...c, title: editingCourseTitle.trim() } : c));
-        showToast('Course title updated', 'success');
+        showToast('success', 'Title Updated', 'Course title has been updated successfully.');
       } catch (err) {
         console.error('Failed to update course title:', err);
-        showToast('Failed to update title', 'error');
+        showToast('error', 'Update Failed', 'Failed to update course title. Please try again.');
       }
       cancelEditingCourseTitle();
     };
@@ -2191,10 +2191,10 @@ const App: React.FC = () => {
       try {
         await dataService.updateCourse(courseId, updates);
         setCourses(prev => prev.map(c => c.id === courseId ? { ...c, ...updates } : c));
-        showToast('Course updated', 'success');
+        showToast('success', 'Course Updated', 'Course has been updated successfully.');
       } catch (err) {
         console.error('Failed to update course:', err);
-        showToast('Failed to update course', 'error');
+        showToast('error', 'Update Failed', 'Failed to update course. Please try again.');
       }
     };
 
@@ -2217,7 +2217,7 @@ const App: React.FC = () => {
         await dataService.reorderCourses(level, orderedIds);
       } catch (err) {
         console.error('Failed to reorder courses:', err);
-        showToast('Failed to save order', 'error');
+        showToast('error', 'Reorder Failed', 'Failed to save course order. Please try again.');
         // Refetch courses to restore correct order
         const freshCourses = await dataService.getCourses();
         setCourses(freshCourses);
