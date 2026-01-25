@@ -3628,19 +3628,16 @@ const App: React.FC = () => {
           </div>
           </div>
 
-          {/* Courses Section */}
+          {/* Courses Section - Liquid Glass Design */}
           <div className={adminSection === 'COURSES' ? '' : 'hidden'}>
-              <div className="flex justify-between items-end">
+              <div className="flex justify-between items-end mb-8">
                 <div>
-                  <h2 className="text-3xl font-bold">Course Manager</h2>
-                  <p className="text-zinc-400 mt-1">
-                    {courses.length} course{courses.length !== 1 ? 's' : ''} across all levels
-                    <span className="mx-2">•</span>
-                    <span className="text-green-400">{courses.filter(c => c.level === 'Beginner').length} Beginner</span>
-                    <span className="mx-1">•</span>
-                    <span className="text-yellow-400">{courses.filter(c => c.level === 'Intermediate').length} Intermediate</span>
-                    <span className="mx-1">•</span>
-                    <span className="text-zinc-300">{courses.filter(c => c.level === 'Advanced').length} Advanced</span>
+                  <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-zinc-400">Course Manager</h2>
+                  <p className="text-zinc-400 mt-2 flex items-center gap-4">
+                    <span>{courses.length} course{courses.length !== 1 ? 's' : ''}</span>
+                    <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-green-400"></span><span className="text-green-400">{courses.filter(c => c.level === 'Beginner').length}</span> Beginner</span>
+                    <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-yellow-400"></span><span className="text-yellow-400">{courses.filter(c => c.level === 'Intermediate').length}</span> Intermediate</span>
+                    <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-purple-400"></span><span className="text-purple-400">{courses.filter(c => c.level === 'Advanced').length}</span> Advanced</span>
                   </p>
                 </div>
                 <PrimaryButton onClick={handleCreateCourse} className="text-sm shadow-lg shadow-yellow-400/20">
@@ -3648,107 +3645,152 @@ const App: React.FC = () => {
                 </PrimaryButton>
               </div>
 
-              {/* Courses grouped by level */}
-              <div className="space-y-8 mt-6">
+              {/* Courses Grid - Liquid Glass Cards */}
+              <div className="space-y-10">
               {(['Beginner', 'Intermediate', 'Advanced'] as const).map(level => {
                 const levelCourses = courses.filter(c => c.level === level);
                 if (levelCourses.length === 0) return null;
+                const levelColor = level === 'Beginner' ? 'green' : level === 'Intermediate' ? 'yellow' : 'purple';
                 return (
-                  <div key={level} className="space-y-4">
-                    <div className="flex items-center gap-3">
-                      <Badge type={level === 'Beginner' ? 'success' : level === 'Intermediate' ? 'warning' : 'default'}>{level}</Badge>
-                      <span className="text-sm text-zinc-500">{levelCourses.length} course{levelCourses.length > 1 ? 's' : ''}</span>
+                  <div key={level} className="space-y-5">
+                    <div className="flex items-center gap-4">
+                      <div className={`px-4 py-1.5 rounded-full text-sm font-bold ${
+                        level === 'Beginner' ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
+                        level === 'Intermediate' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' :
+                        'bg-purple-500/20 text-purple-400 border border-purple-500/30'
+                      }`}>{level}</div>
+                      <div className="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent"></div>
+                      <span className="text-sm text-zinc-500">{levelCourses.length} course{levelCourses.length > 1 ? 's' : ''} • Drag to reorder</span>
                     </div>
-                    <div className="grid gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                       {levelCourses.map((course, index) => (
-                  <GlassCard
-                    key={course.id}
-                    className={`group p-0 overflow-hidden flex flex-col md:flex-row items-center transition-colors ${
-                      draggedCourseId === course.id ? 'opacity-50 border-yellow-400' : 'hover:border-yellow-400/50'
-                    }`}
-                    draggable
-                    onDragStart={(e) => {
-                      setDraggedCourseId(course.id);
-                      e.dataTransfer.effectAllowed = 'move';
-                      e.dataTransfer.setData('text/plain', JSON.stringify({ level, fromIndex: index }));
-                    }}
-                    onDragEnd={() => setDraggedCourseId(null)}
-                    onDragOver={(e) => {
-                      e.preventDefault();
-                      e.dataTransfer.dropEffect = 'move';
-                    }}
-                    onDrop={(e) => {
-                      e.preventDefault();
-                      const data = JSON.parse(e.dataTransfer.getData('text/plain'));
-                      if (data.level === level && data.fromIndex !== index) {
-                        handleCourseDrop(level, data.fromIndex, index);
-                      }
-                      setDraggedCourseId(null);
-                    }}
-                  >
-                    {/* Drag Handle */}
-                    <div className="hidden md:flex items-center justify-center w-10 h-full cursor-grab active:cursor-grabbing text-zinc-500 hover:text-zinc-300 transition-colors">
-                      <GripVertical size={18} />
-                    </div>
-                    <div className="h-32 w-full md:w-44 bg-cover bg-center grayscale group-hover:grayscale-0 transition-all duration-500" style={{backgroundImage: `url(${course.thumbnail})`}}>
-                       <div className="h-full w-full bg-black/40 group-hover:bg-transparent transition-colors"></div>
-                    </div>
-                    <div className="p-6 flex-1 min-w-0">
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          {/* Inline Title Editing */}
-                          {editingCourseId === course.id ? (
-                            <input
-                              type="text"
-                              value={editingCourseTitle}
-                              onChange={(e) => setEditingCourseTitle(e.target.value)}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter') saveEditingCourseTitle();
-                                if (e.key === 'Escape') cancelEditingCourseTitle();
-                              }}
-                              onBlur={saveEditingCourseTitle}
-                              autoFocus
-                              className="text-xl font-bold text-white mb-1 bg-transparent border-b border-yellow-400 outline-none w-full"
-                            />
-                          ) : (
-                            <h4
-                              className="text-xl font-bold text-white mb-1 cursor-pointer hover:text-yellow-400 transition-colors"
-                              onClick={() => startEditingCourseTitle(course)}
-                              title="Click to edit title"
-                            >
-                              {course.title}
-                            </h4>
-                          )}
-                          <p className="text-sm text-zinc-400 mb-3" title={course.description}>{course.description}</p>
-                          <div className="flex gap-3 text-xs items-center">
-                            {/* Level Dropdown */}
-                            <select
-                              value={course.level}
-                              onChange={(e) => handleQuickUpdateCourse(course.id, { level: e.target.value as 'Beginner' | 'Intermediate' | 'Advanced' })}
-                              className="bg-zinc-800 border border-zinc-700 rounded px-2 py-1 text-xs text-white cursor-pointer hover:border-yellow-400/50 transition-colors"
-                            >
-                              <option value="Beginner">Beginner</option>
-                              <option value="Intermediate">Intermediate</option>
-                              <option value="Advanced">Advanced</option>
-                            </select>
-                            <span className="flex items-center gap-1 text-zinc-400"><List size={14}/> {course.lessons.length} Modules</span>
-                            <span className="flex items-center gap-1 text-zinc-400"><Users size={14}/> {course.enrolledCount || 0} Enrolled</span>
+                        <div
+                          key={course.id}
+                          draggable
+                          onDragStart={(e) => {
+                            setDraggedCourseId(course.id);
+                            e.dataTransfer.effectAllowed = 'move';
+                            e.dataTransfer.setData('text/plain', JSON.stringify({ level, fromIndex: index }));
+                          }}
+                          onDragEnd={() => setDraggedCourseId(null)}
+                          onDragOver={(e) => {
+                            e.preventDefault();
+                            e.dataTransfer.dropEffect = 'move';
+                          }}
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+                            if (data.level === level && data.fromIndex !== index) {
+                              handleCourseDrop(level, data.fromIndex, index);
+                            }
+                            setDraggedCourseId(null);
+                          }}
+                          className={`group relative rounded-2xl overflow-hidden transition-all duration-500 cursor-grab active:cursor-grabbing ${
+                            draggedCourseId === course.id
+                              ? 'opacity-50 scale-95 rotate-1 ring-2 ring-yellow-400'
+                              : 'hover:scale-[1.02] hover:-translate-y-1'
+                          }`}
+                        >
+                          {/* Ambient Glow */}
+                          <div className={`absolute -inset-1 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl ${
+                            level === 'Beginner' ? 'bg-green-500/20' :
+                            level === 'Intermediate' ? 'bg-yellow-500/20' :
+                            'bg-purple-500/20'
+                          }`}></div>
+
+                          {/* Card */}
+                          <div className="relative glass-panel rounded-2xl border border-white/10 group-hover:border-white/20 overflow-hidden backdrop-blur-xl bg-zinc-900/80">
+                            {/* Thumbnail with Overlay */}
+                            <div className="relative aspect-video overflow-hidden">
+                              <img
+                                src={course.thumbnail || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=800'}
+                                alt={course.title}
+                                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                              />
+                              {/* Gradient Overlay */}
+                              <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 via-zinc-900/50 to-transparent"></div>
+
+                              {/* Order Badge */}
+                              <div className="absolute top-3 left-3 w-8 h-8 rounded-full bg-black/60 backdrop-blur-sm border border-white/20 flex items-center justify-center text-sm font-bold text-white">
+                                {index + 1}
+                              </div>
+
+                              {/* Level Badge */}
+                              <div className={`absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-bold backdrop-blur-sm ${
+                                level === 'Beginner' ? 'bg-green-500/30 text-green-300 border border-green-500/50' :
+                                level === 'Intermediate' ? 'bg-yellow-500/30 text-yellow-300 border border-yellow-500/50' :
+                                'bg-purple-500/30 text-purple-300 border border-purple-500/50'
+                              }`}>{level}</div>
+
+                              {/* Stats Overlay */}
+                              <div className="absolute bottom-3 left-3 right-3 flex justify-between items-center">
+                                <div className="flex gap-3">
+                                  <span className="flex items-center gap-1.5 text-xs text-white/80 bg-black/40 backdrop-blur-sm px-2 py-1 rounded-full">
+                                    <List size={12}/> {course.lessons.length} modules
+                                  </span>
+                                  <span className="flex items-center gap-1.5 text-xs text-white/80 bg-black/40 backdrop-blur-sm px-2 py-1 rounded-full">
+                                    <Users size={12}/> {course.enrolledCount || 0}
+                                  </span>
+                                </div>
+                              </div>
+
+                              {/* Drag Handle - Appears on Hover */}
+                              <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <div className="p-3 rounded-full bg-white/10 backdrop-blur-sm border border-white/20">
+                                  <GripVertical size={24} className="text-white" />
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Content */}
+                            <div className="p-5">
+                              {/* Title - Editable */}
+                              {editingCourseId === course.id ? (
+                                <input
+                                  type="text"
+                                  value={editingCourseTitle}
+                                  onChange={(e) => setEditingCourseTitle(e.target.value)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') saveEditingCourseTitle();
+                                    if (e.key === 'Escape') cancelEditingCourseTitle();
+                                  }}
+                                  onBlur={saveEditingCourseTitle}
+                                  autoFocus
+                                  className="text-lg font-bold text-white mb-2 bg-transparent border-b-2 border-yellow-400 outline-none w-full pb-1"
+                                  onClick={(e) => e.stopPropagation()}
+                                />
+                              ) : (
+                                <h4
+                                  className="text-lg font-bold text-white mb-2 cursor-text hover:text-yellow-400 transition-colors line-clamp-1"
+                                  onClick={(e) => { e.stopPropagation(); startEditingCourseTitle(course); }}
+                                  title="Click to edit title"
+                                >
+                                  {course.title}
+                                </h4>
+                              )}
+
+                              {/* Description */}
+                              <p className="text-sm text-zinc-400 mb-4 line-clamp-2">{course.description || 'No description'}</p>
+
+                              {/* Actions */}
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); handleEditCourse(course); }}
+                                  className="flex-1 py-2.5 px-4 rounded-xl bg-yellow-400 text-black text-sm font-bold hover:bg-yellow-300 transition-colors flex items-center justify-center gap-2"
+                                >
+                                  <Pencil size={14} /> Edit Course
+                                </button>
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); deleteCourse(course.id); }}
+                                  className="p-2.5 rounded-xl border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-colors"
+                                  title="Delete course"
+                                >
+                                  <Trash2 size={16} />
+                                </button>
+                              </div>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </div>
-                    <div className="p-6 border-l border-white/5 flex gap-3">
-                       <SecondaryButton onClick={() => handleEditCourse(course)} className="h-10 px-4 text-xs flex items-center gap-2">
-                         Edit Content
-                       </SecondaryButton>
-                       <button
-                         onClick={() => deleteCourse(course.id)}
-                         className="h-10 w-10 flex items-center justify-center rounded-full border border-red-900/30 text-red-400 hover:bg-red-900/20 transition-colors"
-                       >
-                         <Trash2 size={16} />
-                       </button>
-                    </div>
-                  </GlassCard>
                       ))}
                     </div>
                   </div>

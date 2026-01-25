@@ -18,6 +18,8 @@ services:
           property: connectionString
       - key: FRONTEND_URL
         value: https://amini-academy.onrender.com
+      - key: BASE_URL
+        value: https://amini-academy-api.onrender.com
       - key: MAX_FILE_SIZE
         value: "52428800"
       - key: UPLOAD_DIR
