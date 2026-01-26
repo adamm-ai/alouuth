@@ -271,6 +271,10 @@ export const LiquidVideoFrame: React.FC<{ children: React.ReactNode; className?:
       {/* Bottom shadow */}
       <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
     </div>
+
+    {/* Subtle floating accents */}
+    <div className="absolute -top-1 -right-1 w-2 h-2 bg-yellow-400/40 rounded-full blur-sm animate-float" style={{ animationDelay: '0s' }} />
+    <div className="absolute -bottom-0.5 -left-0.5 w-1.5 h-1.5 bg-white/30 rounded-full blur-sm animate-float" style={{ animationDelay: '1.5s' }} />
   </div>
 );
 
