@@ -37,18 +37,24 @@ const ToastItem: React.FC<{ toast: Toast; onDismiss: (id: string) => void }> = (
 
   const styles = {
     success: {
-      bg: 'bg-green-500/20 border-green-500/50',
-      icon: <CheckCircle size={20} className="text-green-400" />,
+      bg: 'from-green-500/25 to-green-500/10',
+      border: 'border-green-500/40',
+      glow: 'shadow-[0_0_30px_rgba(34,197,94,0.15)]',
+      icon: <CheckCircle size={20} className="text-green-400 drop-shadow-[0_0_8px_rgba(34,197,94,0.5)]" />,
       titleColor: 'text-green-400'
     },
     error: {
-      bg: 'bg-red-500/20 border-red-500/50',
-      icon: <AlertCircle size={20} className="text-red-400" />,
+      bg: 'from-red-500/25 to-red-500/10',
+      border: 'border-red-500/40',
+      glow: 'shadow-[0_0_30px_rgba(239,68,68,0.15)]',
+      icon: <AlertCircle size={20} className="text-red-400 drop-shadow-[0_0_8px_rgba(239,68,68,0.5)]" />,
       titleColor: 'text-red-400'
     },
     warning: {
-      bg: 'bg-yellow-500/20 border-yellow-500/50',
-      icon: <AlertTriangle size={20} className="text-yellow-400" />,
+      bg: 'from-yellow-500/25 to-yellow-500/10',
+      border: 'border-yellow-500/40',
+      glow: 'shadow-[0_0_30px_rgba(250,204,21,0.15)]',
+      icon: <AlertTriangle size={20} className="text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.5)]" />,
       titleColor: 'text-yellow-400'
     }
   };
@@ -57,16 +63,24 @@ const ToastItem: React.FC<{ toast: Toast; onDismiss: (id: string) => void }> = (
 
   return (
     <div
-      className={`${style.bg} border backdrop-blur-xl rounded-xl p-4 shadow-lg shadow-black/20 animate-slide-in-right flex items-start gap-3 min-w-[320px] max-w-[420px]`}
+      className={`
+        relative overflow-hidden bg-gradient-to-r ${style.bg}
+        ${style.border} border backdrop-blur-2xl rounded-2xl p-4
+        ${style.glow} animate-slide-in-right
+        flex items-start gap-3 min-w-[340px] max-w-[440px]
+      `}
     >
-      <div className="flex-shrink-0 mt-0.5">{style.icon}</div>
-      <div className="flex-1 min-w-0">
-        <p className={`font-semibold ${style.titleColor}`}>{toast.title}</p>
-        <p className="text-sm text-zinc-300 mt-0.5">{toast.message}</p>
+      {/* Subtle shine effect */}
+      <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-transparent pointer-events-none" />
+
+      <div className="flex-shrink-0 mt-0.5 relative z-10">{style.icon}</div>
+      <div className="flex-1 min-w-0 relative z-10">
+        <p className={`font-bold text-sm ${style.titleColor}`}>{toast.title}</p>
+        <p className="text-sm text-zinc-300/90 mt-0.5 leading-relaxed">{toast.message}</p>
       </div>
       <button
         onClick={() => onDismiss(toast.id)}
-        className="flex-shrink-0 text-zinc-500 hover:text-white transition-colors"
+        className="flex-shrink-0 text-zinc-500 hover:text-white transition-colors p-1 rounded-lg hover:bg-white/10 relative z-10"
       >
         <X size={16} />
       </button>
@@ -90,7 +104,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     <ToastContext.Provider value={{ showToast }}>
       {children}
       {/* Toast Container - Fixed position at top right */}
-      <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-3">
+      <div className="fixed top-6 right-6 z-[9999] flex flex-col gap-3">
         {toasts.map(toast => (
           <ToastItem key={toast.id} toast={toast} onDismiss={dismissToast} />
         ))}
@@ -100,17 +114,24 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 };
 
 export const GlassCard: React.FC<{ children: React.ReactNode; className?: string; onClick?: () => void; disabled?: boolean }> = ({ children, className = '', onClick, disabled }) => (
-  <div 
+  <div
     onClick={!disabled ? onClick : undefined}
     className={`
-      glass-panel rounded-3xl p-6 transition-all duration-500 relative overflow-hidden
+      relative rounded-3xl p-6 transition-all duration-500 overflow-hidden
+      bg-gradient-to-br from-white/[0.07] via-white/[0.03] to-transparent
+      backdrop-blur-xl border border-white/[0.08]
+      shadow-[0_8px_32px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.05)]
       ${disabled ? 'opacity-50 cursor-not-allowed grayscale' : ''}
-      ${onClick && !disabled ? 'cursor-pointer hover:-translate-y-1 hover:shadow-[0_0_50px_rgba(250,204,21,0.15)] hover:border-yellow-400/40' : ''} 
+      ${onClick && !disabled ? 'cursor-pointer hover:-translate-y-1.5 hover:shadow-[0_20px_50px_rgba(0,0,0,0.4),0_0_40px_rgba(250,204,21,0.1)] hover:border-yellow-400/30' : ''}
       ${className}
     `}
   >
-    {/* Subtle gradient overlay for depth */}
-    <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
+    {/* Top highlight for glass effect */}
+    <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+
+    {/* Subtle inner glow */}
+    <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none opacity-50" />
+
     <div className="relative z-10">{children}</div>
   </div>
 );
@@ -120,13 +141,26 @@ export const PrimaryButton: React.FC<{ children: React.ReactNode; onClick?: () =
     onClick={onClick}
     disabled={disabled}
     className={`
-      relative group overflow-hidden rounded-full px-8 py-3 font-bold text-black transition-all duration-300 
-      ${disabled ? 'opacity-50 cursor-not-allowed grayscale' : 'hover:shadow-[0_0_30px_rgba(250,204,21,0.5)] active:scale-95'}
+      relative group overflow-hidden rounded-full px-8 py-3 font-bold text-black transition-all duration-300
+      ${disabled
+        ? 'opacity-50 cursor-not-allowed grayscale'
+        : 'hover:shadow-[0_0_40px_rgba(250,204,21,0.5),0_0_80px_rgba(250,204,21,0.2)] active:scale-[0.97]'
+      }
       ${className}
     `}
   >
-    <div className="absolute inset-0 bg-yellow-400 transition-all duration-500 group-hover:scale-110" />
-    <div className="absolute inset-0 opacity-0 group-hover:opacity-30 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] transition-opacity" />
+    {/* Base gold background */}
+    <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-400 transition-all duration-500" />
+
+    {/* Shine sweep effect */}
+    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out" />
+
+    {/* Top highlight */}
+    <div className="absolute inset-x-0 top-0 h-[1px] bg-white/50" />
+
+    {/* Inner glow */}
+    <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+
     <span className="relative z-10 flex items-center gap-2 justify-center drop-shadow-sm">{children}</span>
   </button>
 );
@@ -135,12 +169,17 @@ export const SecondaryButton: React.FC<{ children: React.ReactNode; onClick?: ()
   <button
     onClick={onClick}
     className={`
-      rounded-full px-8 py-3 font-semibold text-zinc-300 border border-white/10 bg-white/5 
-      hover:bg-white/10 hover:text-white hover:border-yellow-400/30 hover:shadow-[0_0_20px_rgba(250,204,21,0.1)]
-      transition-all duration-300 active:scale-95 ${className}
+      relative group overflow-hidden rounded-full px-8 py-3 font-semibold text-zinc-300
+      border border-white/10 bg-white/[0.03] backdrop-blur-sm
+      hover:bg-white/[0.08] hover:text-white hover:border-white/20
+      hover:shadow-[0_0_30px_rgba(255,255,255,0.05),inset_0_1px_0_rgba(255,255,255,0.1)]
+      transition-all duration-300 active:scale-[0.97] ${className}
     `}
   >
-    {children}
+    {/* Subtle hover glow */}
+    <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/0 via-yellow-400/5 to-yellow-400/0 opacity-0 group-hover:opacity-100 transition-opacity" />
+
+    <span className="relative z-10 flex items-center gap-2 justify-center">{children}</span>
   </button>
 );
 
@@ -149,43 +188,85 @@ export const IconButton: React.FC<{ icon: React.ReactNode; onClick?: () => void;
     onClick={onClick}
     title={title}
     className={`
-      p-3 rounded-full border border-white/10 bg-white/5 text-zinc-400
-      hover:text-black hover:bg-yellow-400 hover:border-yellow-400 hover:shadow-[0_0_15px_rgba(250,204,21,0.3)]
+      relative group p-3 rounded-xl
+      border border-white/10 bg-white/[0.03] backdrop-blur-sm text-zinc-400
+      hover:text-black hover:bg-yellow-400 hover:border-yellow-400
+      hover:shadow-[0_0_25px_rgba(250,204,21,0.4),inset_0_1px_0_rgba(255,255,255,0.2)]
       transition-all duration-300 active:scale-90 flex items-center justify-center
       ${className}
     `}
   >
-    {icon}
+    {/* Glow effect on hover */}
+    <div className="absolute inset-0 rounded-xl bg-yellow-400/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
+
+    <span className="relative z-10">{icon}</span>
   </button>
 );
 
 export const ProgressBar: React.FC<{ progress: number; className?: string }> = ({ progress, className = '' }) => (
-  <div className={`h-2 w-full bg-zinc-900/80 backdrop-blur-sm border border-white/10 rounded-full overflow-hidden ${className}`}>
-    <div 
-      className="h-full bg-yellow-400 shadow-[0_0_15px_rgba(250,204,21,0.6)] transition-all duration-1000 ease-out relative"
+  <div className={`relative h-2.5 w-full bg-zinc-900/80 backdrop-blur-sm border border-white/10 rounded-full overflow-hidden ${className}`}>
+    {/* Track highlight */}
+    <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent" />
+
+    <div
+      className="h-full bg-gradient-to-r from-yellow-500 via-yellow-400 to-yellow-300 shadow-[0_0_20px_rgba(250,204,21,0.6)] transition-all duration-700 ease-out relative"
       style={{ width: `${progress}%` }}
     >
-        <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
+      {/* Inner shine */}
+      <div className="absolute inset-0 bg-gradient-to-b from-white/30 to-transparent" />
+
+      {/* Animated glow pulse */}
+      <div className="absolute inset-0 bg-white/20 animate-pulse" />
+
+      {/* Leading glow */}
+      <div className="absolute right-0 top-0 bottom-0 w-4 bg-gradient-to-r from-transparent to-white/50 blur-sm" />
     </div>
   </div>
 );
 
 export const Badge: React.FC<{ children: React.ReactNode; type?: 'default' | 'success' | 'warning' | 'purple' | 'locked' }> = ({ children, type = 'default' }) => {
   const styles = {
-    default: 'bg-zinc-800/80 text-zinc-300 border-zinc-700',
-    success: 'bg-yellow-400/20 text-yellow-400 border-yellow-500/30 shadow-[0_0_15px_rgba(250,204,21,0.1)]',
-    warning: 'bg-white/10 text-white border-white/20 shadow-[0_0_15px_rgba(255,255,255,0.1)]',
-    purple: 'bg-zinc-700/50 text-zinc-200 border-zinc-600', // Muted for black theme
-    locked: 'bg-zinc-900/50 text-zinc-600 border-zinc-800',
+    default: 'bg-zinc-800/80 text-zinc-300 border-zinc-700/80',
+    success: 'bg-gradient-to-r from-yellow-400/20 to-yellow-500/10 text-yellow-400 border-yellow-500/30 shadow-[0_0_20px_rgba(250,204,21,0.1)]',
+    warning: 'bg-gradient-to-r from-white/15 to-white/5 text-white border-white/20 shadow-[0_0_20px_rgba(255,255,255,0.05)]',
+    purple: 'bg-zinc-700/50 text-zinc-200 border-zinc-600/80',
+    locked: 'bg-zinc-900/60 text-zinc-500 border-zinc-800/80',
   };
-  
+
   return (
-    <span className={`px-3 py-1 rounded-full text-xs font-medium border backdrop-blur-md flex items-center gap-1.5 ${styles[type]}`}>
-      {type === 'locked' && <Lock size={10} />}
-      {children}
+    <span className={`relative px-3 py-1.5 rounded-full text-xs font-semibold border backdrop-blur-md flex items-center gap-1.5 ${styles[type]}`}>
+      {/* Inner shine */}
+      <div className="absolute inset-0 rounded-full bg-gradient-to-b from-white/10 to-transparent pointer-events-none" />
+
+      <span className="relative z-10 flex items-center gap-1.5">
+        {type === 'locked' && <Lock size={10} />}
+        {children}
+      </span>
     </span>
   );
 };
+
+// Liquid Video Frame Component - Premium content container
+export const LiquidVideoFrame: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className = '' }) => (
+  <div className={`relative rounded-3xl overflow-hidden ${className}`}>
+    {/* Outer glow ring */}
+    <div className="absolute -inset-[2px] rounded-3xl bg-gradient-to-br from-yellow-400/40 via-transparent to-white/20 blur-sm" />
+
+    {/* Main border gradient */}
+    <div className="absolute -inset-[1px] rounded-3xl bg-gradient-to-br from-yellow-400/50 via-yellow-400/10 to-white/30" />
+
+    {/* Glass background */}
+    <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-zinc-900/95 via-zinc-900/90 to-black/95 backdrop-blur-xl" />
+
+    {/* Top shine */}
+    <div className="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-white/10 to-transparent rounded-t-3xl pointer-events-none" />
+
+    {/* Content */}
+    <div className="relative z-10 rounded-3xl overflow-hidden">
+      {children}
+    </div>
+  </div>
+);
 
 export const FileDropZone: React.FC<{
   label: string;
@@ -215,7 +296,6 @@ export const FileDropZone: React.FC<{
   const handleDragLeave = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    // Only set dragging to false if we're leaving the drop zone entirely
     if (e.currentTarget === e.target) {
       setIsDragging(false);
     }
@@ -239,7 +319,6 @@ export const FileDropZone: React.FC<{
     const files = e.dataTransfer.files;
     if (files && files.length > 0) {
       const file = files[0];
-      // Validate file type against accept prop
       const acceptedTypes = accept.split(',').map(t => t.trim().toLowerCase());
       const fileType = file.type.toLowerCase();
       const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
@@ -270,13 +349,16 @@ export const FileDropZone: React.FC<{
       onDragLeave={handleDragLeave}
       onDragOver={handleDragOver}
       onDrop={handleDrop}
-      className={`group relative h-40 w-full border-2 border-dashed rounded-3xl bg-zinc-900/30 transition-all flex flex-col items-center justify-center p-6 overflow-hidden ${
-        isUploading
+      className={`
+        group relative h-44 w-full border-2 border-dashed rounded-3xl
+        bg-gradient-to-br from-zinc-900/50 to-black/50 backdrop-blur-sm
+        transition-all duration-300 flex flex-col items-center justify-center p-6 overflow-hidden
+        ${isUploading
           ? 'border-yellow-400/50 cursor-wait'
           : isDragging
-            ? 'border-yellow-400 bg-yellow-400/10 scale-[1.02]'
-            : 'border-white/10 hover:bg-zinc-800/40 hover:border-yellow-400/50 cursor-pointer'
-      }`}
+            ? 'border-yellow-400 bg-yellow-400/10 scale-[1.02] shadow-[0_0_40px_rgba(250,204,21,0.15)]'
+            : 'border-white/10 hover:bg-zinc-800/30 hover:border-yellow-400/40 cursor-pointer hover:shadow-[0_0_30px_rgba(250,204,21,0.08)]'
+        }`}
     >
       <input
         type="file"
@@ -287,45 +369,53 @@ export const FileDropZone: React.FC<{
         disabled={isUploading}
       />
 
-      {/* Animated background grid */}
-      <div className={`absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(250,204,21,0.2)_50%,transparent_75%,transparent_100%)] bg-[length:20px_20px] transition-opacity ${isDragging ? 'opacity-20' : 'opacity-0 group-hover:opacity-10'}`} />
+      {/* Animated background pattern */}
+      <div className={`absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(250,204,21,0.15)_50%,transparent_75%)] bg-[length:24px_24px] transition-opacity duration-300 ${isDragging ? 'opacity-30' : 'opacity-0 group-hover:opacity-10'}`} />
+
+      {/* Corner accents */}
+      <div className="absolute top-3 left-3 w-6 h-6 border-l-2 border-t-2 border-yellow-400/30 rounded-tl-lg opacity-0 group-hover:opacity-100 transition-opacity" />
+      <div className="absolute top-3 right-3 w-6 h-6 border-r-2 border-t-2 border-yellow-400/30 rounded-tr-lg opacity-0 group-hover:opacity-100 transition-opacity" />
+      <div className="absolute bottom-3 left-3 w-6 h-6 border-l-2 border-b-2 border-yellow-400/30 rounded-bl-lg opacity-0 group-hover:opacity-100 transition-opacity" />
+      <div className="absolute bottom-3 right-3 w-6 h-6 border-r-2 border-b-2 border-yellow-400/30 rounded-br-lg opacity-0 group-hover:opacity-100 transition-opacity" />
 
       {isDragging ? (
         <div className="flex flex-col items-center relative z-10 animate-pulse">
-          <div className="h-16 w-16 rounded-full bg-yellow-400/30 flex items-center justify-center text-yellow-400 mb-3 shadow-[0_0_30px_rgba(250,204,21,0.5)]">
-            <Upload size={32} />
+          <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-yellow-400/40 to-yellow-500/20 flex items-center justify-center text-yellow-400 mb-3 shadow-[0_0_40px_rgba(250,204,21,0.4)]">
+            <Upload size={32} className="drop-shadow-[0_0_10px_rgba(250,204,21,0.8)]" />
           </div>
           <p className="text-lg font-bold text-yellow-400">Drop file here</p>
           <p className="text-sm text-yellow-400/70 mt-1">Release to upload</p>
         </div>
       ) : isUploading ? (
         <div className="flex flex-col items-center relative z-10 w-full px-4">
-          <div className="h-12 w-12 rounded-full bg-yellow-400/20 flex items-center justify-center text-yellow-400 mb-3 shadow-[0_0_20px_rgba(250,204,21,0.3)]">
-            <Upload size={24} className="animate-bounce" />
+          <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-yellow-400/30 to-yellow-500/10 flex items-center justify-center text-yellow-400 mb-3 shadow-[0_0_30px_rgba(250,204,21,0.3)]">
+            <Upload size={28} className="animate-bounce drop-shadow-[0_0_8px_rgba(250,204,21,0.6)]" />
           </div>
-          <p className="text-sm font-medium text-yellow-400 mb-2">Uploading... {uploadProgress}%</p>
-          <div className="w-full max-w-xs h-2 bg-zinc-800 rounded-full overflow-hidden">
+          <p className="text-sm font-semibold text-yellow-400 mb-3">Uploading... {uploadProgress}%</p>
+          <div className="w-full max-w-xs h-2.5 bg-zinc-800 rounded-full overflow-hidden border border-white/5">
             <div
-              className="h-full bg-yellow-400 shadow-[0_0_10px_rgba(250,204,21,0.6)] transition-all duration-300"
+              className="h-full bg-gradient-to-r from-yellow-500 to-yellow-400 shadow-[0_0_15px_rgba(250,204,21,0.6)] transition-all duration-300 relative"
               style={{ width: `${uploadProgress}%` }}
-            />
+            >
+              <div className="absolute inset-0 bg-gradient-to-b from-white/30 to-transparent" />
+            </div>
           </div>
         </div>
       ) : currentFile ? (
         <div className="flex flex-col items-center animate-fade-in relative z-10">
-          <div className="h-12 w-12 rounded-full bg-yellow-400/20 flex items-center justify-center text-yellow-400 mb-2 shadow-[0_0_20px_rgba(250,204,21,0.2)]">
-            <Check size={24} />
+          <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-yellow-400/30 to-yellow-500/10 flex items-center justify-center text-yellow-400 mb-3 shadow-[0_0_25px_rgba(250,204,21,0.2)]">
+            <Check size={28} className="drop-shadow-[0_0_8px_rgba(250,204,21,0.5)]" />
           </div>
-          <p className="text-sm font-medium text-yellow-400 text-center break-all max-w-full px-2" title={currentFile}>{currentFile}</p>
-          <p className="text-xs text-zinc-500 mt-1">Click or drag to replace</p>
+          <p className="text-sm font-semibold text-yellow-400 text-center break-all max-w-full px-4" title={currentFile}>{currentFile}</p>
+          <p className="text-xs text-zinc-500 mt-2">Click or drag to replace</p>
         </div>
       ) : (
         <div className="flex flex-col items-center relative z-10">
-          <div className="h-12 w-12 rounded-full bg-yellow-400/10 flex items-center justify-center text-yellow-400 mb-2 group-hover:scale-110 group-hover:shadow-[0_0_20px_rgba(250,204,21,0.3)] transition-all">
-            <Upload size={24} />
+          <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-yellow-400/15 to-yellow-500/5 flex items-center justify-center text-yellow-400 mb-3 group-hover:scale-110 group-hover:shadow-[0_0_30px_rgba(250,204,21,0.25)] transition-all duration-300 border border-yellow-400/20">
+            <Upload size={28} className="group-hover:drop-shadow-[0_0_8px_rgba(250,204,21,0.5)] transition-all" />
           </div>
-          <p className="text-sm font-medium text-zinc-300">{label}</p>
-          <p className="text-xs text-zinc-500 mt-1">Drag & drop or click to upload</p>
+          <p className="text-sm font-semibold text-zinc-300">{label}</p>
+          <p className="text-xs text-zinc-500 mt-1.5">Drag & drop or click to upload</p>
         </div>
       )}
     </div>

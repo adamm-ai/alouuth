@@ -56,32 +56,38 @@ type AdminSection = 'OVERVIEW' | 'USERS' | 'COURSES' | 'ANALYTICS';
 // Hyper Liquid Glass Video Frame Component - MUST be outside App to prevent re-renders
 const LiquidVideoFrame = ({ children }: { children: React.ReactNode }) => (
   <div className="relative group">
-    {/* Outer glow layers */}
-    <div className="absolute -inset-1 bg-gradient-to-r from-yellow-500/20 via-white/10 to-yellow-500/20 rounded-[28px] blur-xl opacity-60 group-hover:opacity-100 transition-all duration-700 animate-pulse" />
-    <div className="absolute -inset-0.5 bg-gradient-to-br from-yellow-400/30 via-transparent to-white/20 rounded-[26px] blur-md" />
+    {/* Outer glow ring - subtle ambient light */}
+    <div className="absolute -inset-1 rounded-[28px] bg-gradient-to-br from-yellow-400/25 via-yellow-500/10 to-white/15 blur-xl opacity-50 group-hover:opacity-80 transition-all duration-700" />
+
+    {/* Secondary glow layer for depth */}
+    <div className="absolute -inset-0.5 rounded-[26px] bg-gradient-to-br from-yellow-400/40 via-transparent to-white/25 blur-md opacity-70" />
 
     {/* Main glass container */}
-    <div className="relative rounded-3xl overflow-hidden backdrop-blur-xl bg-gradient-to-br from-white/[0.08] to-white/[0.02] border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.1)]">
-      {/* Inner highlight */}
-      <div className="absolute inset-0 bg-gradient-to-b from-white/10 via-transparent to-transparent pointer-events-none" />
+    <div className="relative rounded-3xl overflow-hidden backdrop-blur-2xl bg-gradient-to-br from-white/[0.1] via-white/[0.04] to-black/20 border border-white/15 shadow-[0_8px_40px_rgba(0,0,0,0.5),0_0_0_1px_rgba(255,255,255,0.05)_inset,0_1px_0_rgba(255,255,255,0.1)_inset]">
+      {/* Top shine highlight */}
+      <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-white/12 via-white/5 to-transparent pointer-events-none" />
 
-      {/* Animated liquid shine */}
-      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-1000">
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1500 ease-in-out" />
+      {/* Edge highlight - left */}
+      <div className="absolute left-0 top-0 bottom-0 w-px bg-gradient-to-b from-white/20 via-white/5 to-transparent pointer-events-none" />
+
+      {/* Animated liquid shine on hover */}
+      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/8 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out" />
       </div>
 
       {/* Content */}
-      <div className="relative">
+      <div className="relative z-10">
         {children}
       </div>
 
-      {/* Bottom reflection */}
-      <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
+      {/* Bottom reflection/shadow */}
+      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black/50 via-black/20 to-transparent pointer-events-none" />
     </div>
 
-    {/* Floating particles effect */}
-    <div className="absolute -top-2 -right-2 w-4 h-4 bg-yellow-400/40 rounded-full blur-sm animate-float" style={{animationDelay: '0s'}} />
-    <div className="absolute -bottom-1 -left-1 w-3 h-3 bg-white/30 rounded-full blur-sm animate-float" style={{animationDelay: '1s'}} />
+    {/* Floating accent particles */}
+    <div className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-yellow-400/50 rounded-full blur-sm animate-float" style={{animationDelay: '0s'}} />
+    <div className="absolute -bottom-1 -left-1 w-2.5 h-2.5 bg-white/40 rounded-full blur-sm animate-float" style={{animationDelay: '1.5s'}} />
+    <div className="absolute top-1/2 -right-1 w-2 h-2 bg-yellow-300/30 rounded-full blur-sm animate-float" style={{animationDelay: '0.7s'}} />
   </div>
 );
 
@@ -364,14 +370,23 @@ const App: React.FC = () => {
 
   const Sidebar = () => (
     <div className={`fixed inset-y-0 left-0 z-50 w-64 transform ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 transition-transform duration-300 ease-in-out`}>
-      <div className="h-full glass-panel border-r border-white/10 flex flex-col backdrop-blur-2xl bg-black/80">
-        <div className="p-8">
-          <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 to-white tracking-wider cursor-pointer" onClick={() => setCurrentView('LANDING')}>
-            AMINI<span className="font-light text-white">ACADEMY</span>
+      {/* Subtle glow behind sidebar */}
+      <div className="absolute inset-y-0 right-0 w-px bg-gradient-to-b from-transparent via-yellow-400/20 to-transparent" />
+
+      <div className="h-full flex flex-col backdrop-blur-2xl bg-gradient-to-b from-zinc-900/95 via-black/95 to-zinc-900/95 border-r border-white/[0.06]">
+        {/* Logo section with premium treatment */}
+        <div className="p-8 relative">
+          <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+          <h1
+            className="text-2xl font-bold tracking-wider cursor-pointer group"
+            onClick={() => setCurrentView('LANDING')}
+          >
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-400 group-hover:from-yellow-300 group-hover:to-yellow-400 transition-all">AMINI</span>
+            <span className="font-light text-white/80 group-hover:text-white transition-colors">ACADEMY</span>
           </h1>
         </div>
 
-        <nav className="flex-1 px-4 space-y-2">
+        <nav className="flex-1 px-4 space-y-1.5 py-2">
           {/* User Navigation */}
           {user?.role !== UserRole.ADMIN && (
             <>
@@ -384,7 +399,7 @@ const App: React.FC = () => {
           {/* Admin Navigation */}
           {user?.role === UserRole.ADMIN && (
             <>
-              <div className="text-[10px] uppercase tracking-widest text-zinc-600 font-bold px-4 pt-2 pb-1">Admin Portal</div>
+              <div className="text-[10px] uppercase tracking-[0.2em] text-zinc-500 font-semibold px-4 pt-4 pb-2">Admin Portal</div>
 
               <SidebarItem
                 icon={<Layout size={20} />}
@@ -398,7 +413,7 @@ const App: React.FC = () => {
                 label="User Approvals"
                 active={currentView === 'ADMIN' && adminSection === 'USERS'}
                 onClick={() => { if (currentView !== 'ADMIN') setCurrentView('ADMIN'); setAdminSection('USERS'); }}
-                badge={<span className="ml-auto px-2 py-0.5 text-[10px] rounded-full bg-red-500/30 text-red-400 font-bold animate-pulse">ACTION</span>}
+                badge={<span className="ml-auto px-2.5 py-0.5 text-[10px] rounded-full bg-red-500/20 text-red-400 font-bold border border-red-500/30 shadow-[0_0_10px_rgba(239,68,68,0.2)]">ACTION</span>}
               />
 
               <SidebarItem
@@ -415,7 +430,7 @@ const App: React.FC = () => {
                 onClick={() => { if (currentView !== 'ADMIN') setCurrentView('ADMIN'); setAdminSection('ANALYTICS'); }}
               />
 
-              <div className="h-px bg-white/5 my-4" />
+              <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent my-4 mx-2" />
 
               <SidebarItem
                 icon={<Layout size={20} />}
@@ -427,13 +442,18 @@ const App: React.FC = () => {
           )}
         </nav>
 
-        <div className="p-6 border-t border-white/5">
+        {/* User profile section */}
+        <div className="p-6 relative">
+          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded-full bg-yellow-400 flex items-center justify-center font-bold text-black shadow-lg shadow-yellow-400/20">
-              {user?.name?.charAt(0) || 'U'}
+            <div className="relative">
+              <div className="w-11 h-11 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-500 flex items-center justify-center font-bold text-black shadow-[0_0_20px_rgba(250,204,21,0.25)]">
+                {user?.name?.charAt(0) || 'U'}
+              </div>
+              <div className="absolute -inset-0.5 rounded-full bg-gradient-to-br from-yellow-400/50 to-transparent blur-sm -z-10" />
             </div>
             <div>
-              <p className="text-sm font-medium text-white">{user?.name || 'User'}</p>
+              <p className="text-sm font-semibold text-white">{user?.name || 'User'}</p>
               <p className="text-xs text-zinc-500 truncate w-32">{user?.ministry || 'Ministry'}</p>
             </div>
           </div>
@@ -443,9 +463,10 @@ const App: React.FC = () => {
               setUser(null);
               setCurrentView('LANDING');
             }}
-            className="flex items-center gap-2 text-sm text-zinc-500 hover:text-white transition-colors w-full group"
+            className="flex items-center gap-2.5 text-sm text-zinc-500 hover:text-red-400 transition-all w-full group py-2 px-3 rounded-xl hover:bg-red-500/10"
           >
-            <LogOut size={16} className="group-hover:-translate-x-1 transition-transform" /> Sign Out
+            <LogOut size={16} className="group-hover:-translate-x-0.5 transition-transform" />
+            <span>Sign Out</span>
           </button>
         </div>
       </div>
@@ -455,15 +476,27 @@ const App: React.FC = () => {
   const SidebarItem = ({ icon, label, active, onClick, badge }: any) => (
     <button
       onClick={onClick}
-      className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 ${
-        active
-          ? 'bg-yellow-400 text-black border border-yellow-500 shadow-[0_0_20px_rgba(250,204,21,0.3)]'
-          : 'text-zinc-400 hover:bg-white/5 hover:text-white hover:pl-5'
-      }`}
+      className={`
+        relative w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 overflow-hidden
+        ${active
+          ? 'text-black'
+          : 'text-zinc-400 hover:text-white hover:bg-white/[0.04]'
+        }
+      `}
     >
-      {icon}
-      <span className="font-medium">{label}</span>
-      {badge}
+      {/* Active background */}
+      {active && (
+        <>
+          <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 via-yellow-400 to-yellow-300" />
+          <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent" />
+          <div className="absolute inset-x-0 top-0 h-px bg-white/40" />
+          <div className="absolute -inset-1 bg-yellow-400/20 blur-xl -z-10" />
+        </>
+      )}
+
+      <span className="relative z-10">{icon}</span>
+      <span className="relative z-10 font-medium">{label}</span>
+      {badge && <span className="relative z-10">{badge}</span>}
     </button>
   );
 
