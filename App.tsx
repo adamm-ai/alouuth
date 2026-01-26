@@ -3644,7 +3644,13 @@ const App: React.FC = () => {
                               }}
                               onDrop={async (e) => {
                                 e.preventDefault();
+                                e.stopPropagation();
                                 e.currentTarget.style.outline = 'none';
+
+                                // Blur any focused element to prevent focus-scroll
+                                if (document.activeElement instanceof HTMLElement) {
+                                  document.activeElement.blur();
+                                }
 
                                 const draggedId = e.dataTransfer.getData('courseId');
                                 const draggedLevel = e.dataTransfer.getData('level');
@@ -3660,6 +3666,7 @@ const App: React.FC = () => {
 
                                 // Preserve scroll position
                                 const scrollY = window.scrollY;
+                                const scrollX = window.scrollX;
 
                                 // Reorder
                                 const reordered = [...currentLevelCourses];
@@ -3671,17 +3678,17 @@ const App: React.FC = () => {
                                 const otherCourses = courses.filter(c => c.level !== level);
                                 setCourses(sortCourses([...otherCourses, ...updated]));
 
-                                // Restore scroll position after React re-render
-                                requestAnimationFrame(() => {
-                                  window.scrollTo(0, scrollY);
-                                });
+                                // Restore scroll position with multiple attempts
+                                const restoreScroll = () => window.scrollTo(scrollX, scrollY);
+                                restoreScroll();
+                                requestAnimationFrame(restoreScroll);
+                                setTimeout(restoreScroll, 0);
+                                setTimeout(restoreScroll, 50);
 
-                                // Sync to backend
-                                try {
-                                  await dataService.reorderCourses(level, updated.map(c => c.id));
-                                } catch (err) {
+                                // Sync to backend (don't await to keep UI responsive)
+                                dataService.reorderCourses(level, updated.map(c => c.id)).catch(err => {
                                   console.error('Reorder failed:', err);
-                                }
+                                });
                               }}
                               className="group relative rounded-2xl cursor-grab active:cursor-grabbing"
                             >
