@@ -2161,12 +2161,6 @@ const App: React.FC = () => {
     const [processingUser, setProcessingUser] = useState<string | null>(null);
     const [userSearchQuery, setUserSearchQuery] = useState('');
     const [userFilterRole, setUserFilterRole] = useState<string>('ALL');
-    // Fix: Use separate refs for each level grid to get correct container bounds
-    const containerRefs = React.useRef<Record<string, HTMLDivElement | null>>({
-      Beginner: null,
-      Intermediate: null,
-      Advanced: null
-    });
 
     // Track deleted lessons for backend sync
     const [deletedLessonIds, setDeletedLessonIds] = useState<string[]>([]);
@@ -2189,18 +2183,13 @@ const App: React.FC = () => {
     const [selectedMinistry, setSelectedMinistry] = useState<string | null>(null);
     const [ministryCourseStats, setMinistryCourseStats] = useState<any[]>([]);
 
-    // --- DRAG REORDER SYSTEM ---
-    // Use ref for synchronous order tracking during drag (React state is async and causes stale closures)
-    const dragOrderRef = React.useRef<Course[]>([]);
+    // Local courses state for drag reordering
     const [localCourses, setLocalCourses] = useState<Course[]>(courses);
 
-    // Sync local courses with global courses when not dragging
+    // Sync local courses with global courses
     useEffect(() => {
-      if (!draggedCourseId) {
-        setLocalCourses([...courses]);
-        dragOrderRef.current = [...courses];
-      }
-    }, [courses, draggedCourseId]);
+      setLocalCourses([...courses]);
+    }, [courses]);
 
 
     // Track if data has been loaded (to prevent re-fetching)
@@ -3631,144 +3620,104 @@ const App: React.FC = () => {
                     const currentCourses = (localCourses && localCourses.length > 0) ? localCourses : courses;
                     const levelCourses = currentCourses.filter(c => c.level === level);
                     if (levelCourses.length === 0) return null;
+
+                    // Handler for when Reorder.Group reorders items
+                    const handleReorder = async (newOrder: Course[]) => {
+                      // Update orderIndex for each course
+                      const updatedOrder = newOrder.map((course, idx) => ({ ...course, orderIndex: idx }));
+
+                      // Update local state immediately for smooth UX
+                      const otherCourses = localCourses.filter(c => c.level !== level);
+                      const newLocalCourses = sortCourses([...otherCourses, ...updatedOrder]);
+                      setLocalCourses(newLocalCourses);
+                      setCourses(newLocalCourses);
+
+                      // Sync to backend
+                      try {
+                        const orderedIds = updatedOrder.map(c => c.id);
+                        await dataService.reorderCourses(level, orderedIds);
+                      } catch (err) {
+                        console.error('Reorder sync failed:', err);
+                      }
+                    };
+
                     return (
                       <div key={level} className="space-y-6">
-                        <div className={`flex items-center gap-4 transition-all duration-700 ${draggedCourseId ? 'opacity-20 blur-sm' : 'opacity-100'}`}>
+                        <div className="flex items-center gap-4">
                           <div className={`px-4 py-1.5 rounded-full text-sm font-helvetica-bold ${level === 'Beginner' ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
                             level === 'Intermediate' ? 'bg-yellow-500/20 text-[#D4AF37] border border-yellow-500/30' :
                               'bg-purple-500/20 text-purple-400 border border-purple-500/30'
                             }`}>{level}</div>
                           <div className="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent"></div>
-                          <span className="text-sm text-zinc-500 font-medium">{levelCourses.length} course{levelCourses.length > 1 ? 's' : ''} • Liquid Grid Reorder</span>
+                          <span className="text-sm text-zinc-500 font-medium">{levelCourses.length} course{levelCourses.length > 1 ? 's' : ''} • Drag to Reorder</span>
                         </div>
 
-                        <LayoutGroup id={`level-${level}`}>
-                          <div
-                            ref={(el) => { containerRefs.current[level] = el; }}
-                            className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 relative p-4 rounded-3xl"
-                          >
-                            {draggedCourseId && (
-                              <motion.div
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                className="absolute -inset-4 bg-black/10 backdrop-blur-[1px] rounded-[2.5rem] z-0 pointer-events-none border border-white/5"
-                              />
-                            )}
-                            {levelCourses.map((course, index) => (
-                              <motion.div
-                                key={course.id}
-                                layout
-                                drag
-                                dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
-                                dragElastic={1}
-                                onDragStart={() => {
-                                  // Initialize ref with current state when drag starts
-                                  dragOrderRef.current = [...localCourses];
-                                  setDraggedCourseId(course.id);
-                                }}
-                                onDragEnd={async () => {
-                                  // Commit ref's final order to both local and global state
-                                  const finalOrder = [...dragOrderRef.current];
-                                  setLocalCourses(finalOrder);
-                                  setCourses(finalOrder);
-                                  setDraggedCourseId(null);
-
-                                  // Sync final state to backend
-                                  try {
-                                    const updatedLevelItems = finalOrder.filter(c => c.level === level);
-                                    const orderedIds = updatedLevelItems.map(c => c.id);
-                                    await dataService.reorderCourses(level, orderedIds);
-                                  } catch (err) {
-                                    console.error('Reorder sync failed', err);
-                                  }
-                                }}
-                                onDrag={(_, info) => {
-                                  const container = containerRefs.current[level];
-                                  if (!container) return;
-
-                                  // Get current order from ref (synchronous, never stale)
-                                  const currentOrder = dragOrderRef.current;
-                                  const currentLevelCourses = currentOrder.filter(c => c.level === level);
-
-                                  // Calculate grid position
-                                  const rect = container.getBoundingClientRect();
-                                  const cols = window.innerWidth >= 1280 ? 3 : window.innerWidth >= 768 ? 2 : 1;
-                                  const x = info.point.x - rect.left;
-                                  const y = info.point.y - rect.top;
-                                  const cellWidth = rect.width / cols;
-                                  const firstChild = container.firstElementChild?.nextElementSibling as HTMLElement | null;
-                                  const cellHeight = firstChild?.offsetHeight ? firstChild.offsetHeight + 24 : 320;
-
-                                  const col = Math.max(0, Math.min(cols - 1, Math.floor(x / cellWidth)));
-                                  const row = Math.max(0, Math.floor(y / cellHeight));
-                                  const targetIndex = Math.max(0, Math.min(currentLevelCourses.length - 1, row * cols + col));
-
-                                  // Find current index of dragged item in the ref's order
-                                  const currentIndex = currentLevelCourses.findIndex(c => c.id === course.id);
-                                  if (currentIndex === -1 || targetIndex === currentIndex) return;
-
-                                  // Reorder in the ref (synchronous update)
-                                  const otherLevelCourses = currentOrder.filter(c => c.level !== level);
-                                  const reordered = [...currentLevelCourses];
-                                  const [movedItem] = reordered.splice(currentIndex, 1);
-                                  reordered.splice(targetIndex, 0, movedItem);
-                                  const updated = reordered.map((item, i) => ({ ...item, orderIndex: i }));
-
-                                  // Update ref synchronously
-                                  dragOrderRef.current = sortCourses([...otherLevelCourses, ...updated]);
-
-                                  // Trigger re-render to show new order
-                                  setLocalCourses([...dragOrderRef.current]);
-                                }}
-                                className={`group relative rounded-2xl transition-shadow duration-300 ${draggedCourseId === course.id ? 'z-[100]' : 'z-10'}`}
-                                whileDrag={{
-                                  scale: 1.05,
-                                  rotate: 0.5,
-                                  zIndex: 100,
-                                  boxShadow: "0 40px 80px rgba(0,0,0,0.6), 0 0 40px rgba(212, 175, 55, 0.15)",
-                                }}
-                                transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                              >
-                                {/* Card Body */}
-                                <div className={`relative glass-panel rounded-2xl border ${draggedCourseId === course.id ? 'border-yellow-400/50' : 'border-white/10'} group-hover:border-white/20 overflow-hidden backdrop-blur-xl bg-zinc-900/80 pointer-events-auto`}>
-                                  <div className="relative aspect-video overflow-hidden">
-                                    <img
-                                      src={course.thumbnail || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=800'}
-                                      alt={course.title}
-                                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 pointer-events-none"
-                                    />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 via-zinc-900/50 to-transparent pointer-events-none"></div>
-                                    <div className="absolute top-3 left-3 w-8 h-8 rounded-full bg-black/60 backdrop-blur-sm border border-white/20 flex items-center justify-center text-sm font-helvetica-bold text-white">
-                                      {index + 1}
-                                    </div>
-                                    <div className={`absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-helvetica-bold backdrop-blur-sm ${level === 'Beginner' ? 'bg-green-500/30 text-green-300 border border-green-500/50' :
-                                      level === 'Intermediate' ? 'bg-yellow-500/30 text-yellow-300 border border-yellow-500/50' :
-                                        'bg-purple-500/30 text-purple-300 border border-purple-500/50'
-                                      }`}>{level}</div>
-                                    <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing">
-                                      <div className="p-4 rounded-full bg-yellow-400 text-black shadow-lg shadow-yellow-400/20 scale-90 group-hover:scale-100 transition-transform">
-                                        <GripVertical size={28} />
-                                      </div>
-                                    </div>
+                        <Reorder.Group
+                          axis="y"
+                          values={levelCourses}
+                          onReorder={handleReorder}
+                          className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 relative p-4 rounded-3xl"
+                        >
+                          {levelCourses.map((course, index) => (
+                            <Reorder.Item
+                              key={course.id}
+                              value={course}
+                              className="group relative rounded-2xl z-10 cursor-grab active:cursor-grabbing"
+                              onDragStart={() => setDraggedCourseId(course.id)}
+                              onDragEnd={() => setDraggedCourseId(null)}
+                              whileDrag={{
+                                scale: 1.03,
+                                zIndex: 100,
+                                boxShadow: "0 25px 50px rgba(0,0,0,0.5), 0 0 30px rgba(212, 175, 55, 0.2)",
+                              }}
+                              transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                            >
+                              {/* Card Body */}
+                              <div className="relative glass-panel rounded-2xl border border-white/10 group-hover:border-[#D4AF37]/50 overflow-hidden backdrop-blur-xl bg-zinc-900/80 transition-colors">
+                                <div className="relative aspect-video overflow-hidden">
+                                  <img
+                                    src={course.thumbnail || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=800'}
+                                    alt={course.title}
+                                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 pointer-events-none"
+                                  />
+                                  <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 via-zinc-900/50 to-transparent pointer-events-none"></div>
+                                  <div className="absolute top-3 left-3 w-8 h-8 rounded-full bg-black/60 backdrop-blur-sm border border-white/20 flex items-center justify-center text-sm font-helvetica-bold text-white">
+                                    {index + 1}
                                   </div>
-                                  <div className="p-5">
-                                    <h4 className="text-lg font-helvetica-bold text-white mb-2 line-clamp-1 truncate">{course.title}</h4>
-                                    <p className="text-sm text-zinc-400 mb-4 line-clamp-2">{course.description || 'No description'}</p>
-                                    <div className="flex gap-2">
-                                      <button onPointerDown={(e) => { e.stopPropagation(); handleEditCourse(course); }} className="flex-1 py-2.5 px-4 rounded-xl bg-yellow-400 text-black text-sm font-helvetica-bold hover:bg-yellow-300 transition-colors flex items-center justify-center gap-2">
-                                        <Pencil size={14} /> Edit Course
-                                      </button>
-                                      <button onPointerDown={(e) => { e.stopPropagation(); deleteCourse(course.id); }} className="p-2.5 rounded-xl border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-colors">
-                                        <Trash2 size={16} />
-                                      </button>
+                                  <div className={`absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-helvetica-bold backdrop-blur-sm ${level === 'Beginner' ? 'bg-green-500/30 text-green-300 border border-green-500/50' :
+                                    level === 'Intermediate' ? 'bg-yellow-500/30 text-yellow-300 border border-yellow-500/50' :
+                                      'bg-purple-500/30 text-purple-300 border border-purple-500/50'
+                                    }`}>{level}</div>
+                                  <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <div className="p-4 rounded-full bg-yellow-400 text-black shadow-lg shadow-yellow-400/20 scale-90 group-hover:scale-100 transition-transform">
+                                      <GripVertical size={28} />
                                     </div>
                                   </div>
                                 </div>
-                              </motion.div>
-                            ))}
-                          </div>
-                        </LayoutGroup>
-
+                                <div className="p-5">
+                                  <h4 className="text-lg font-helvetica-bold text-white mb-2 line-clamp-1 truncate">{course.title}</h4>
+                                  <p className="text-sm text-zinc-400 mb-4 line-clamp-2">{course.description || 'No description'}</p>
+                                  <div className="flex gap-2">
+                                    <button
+                                      onPointerDown={(e) => e.stopPropagation()}
+                                      onClick={() => handleEditCourse(course)}
+                                      className="flex-1 py-2.5 px-4 rounded-xl bg-yellow-400 text-black text-sm font-helvetica-bold hover:bg-yellow-300 transition-colors flex items-center justify-center gap-2"
+                                    >
+                                      <Pencil size={14} /> Edit Course
+                                    </button>
+                                    <button
+                                      onPointerDown={(e) => e.stopPropagation()}
+                                      onClick={() => deleteCourse(course.id)}
+                                      className="p-2.5 rounded-xl border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-colors"
+                                    >
+                                      <Trash2 size={16} />
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            </Reorder.Item>
+                          ))}
+                        </Reorder.Group>
                       </div>
                     );
                   })}
