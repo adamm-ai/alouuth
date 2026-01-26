@@ -1,31 +1,23 @@
 import React, { useEffect, useRef } from 'react';
 
-interface Node {
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-  radius: number;
-  connections: number[];
-  pulsePhase: number;
-  type: 'primary' | 'secondary' | 'accent';
-}
-
-interface Particle {
-  x: number;
-  y: number;
-  targetNode: number;
-  sourceNode: number;
-  progress: number;
+interface Line {
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+  angle: number;
+  length: number;
+  baseAlpha: number;
+  glowIntensity: number;
+  targetGlow: number;
   speed: number;
-  size: number;
+  offset: number;
 }
 
 export const LiquidBackground: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationRef = useRef<number>();
-  const nodesRef = useRef<Node[]>([]);
-  const particlesRef = useRef<Particle[]>([]);
+  const linesRef = useRef<Line[]>([]);
   const timeRef = useRef(0);
   const mouseRef = useRef({ x: -1000, y: -1000 });
 
@@ -36,7 +28,6 @@ export const LiquidBackground: React.FC = () => {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Handle resize
     const resize = () => {
       const dpr = window.devicePixelRatio || 1;
       canvas.width = window.innerWidth * dpr;
@@ -44,271 +35,259 @@ export const LiquidBackground: React.FC = () => {
       canvas.style.width = `${window.innerWidth}px`;
       canvas.style.height = `${window.innerHeight}px`;
       ctx.scale(dpr, dpr);
-      initNodes();
+      initLines();
     };
 
-    // Initialize nodes
-    const initNodes = () => {
+    const initLines = () => {
       const width = window.innerWidth;
       const height = window.innerHeight;
-      const nodeCount = Math.floor((width * height) / 25000); // Density based on screen size
-      const nodes: Node[] = [];
+      const lines: Line[] = [];
 
-      for (let i = 0; i < nodeCount; i++) {
-        const type = i < nodeCount * 0.15 ? 'primary' : i < nodeCount * 0.4 ? 'secondary' : 'accent';
-        nodes.push({
-          x: Math.random() * width,
-          y: Math.random() * height,
-          vx: (Math.random() - 0.5) * 0.3,
-          vy: (Math.random() - 0.5) * 0.3,
-          radius: type === 'primary' ? 3 : type === 'secondary' ? 2 : 1.5,
-          connections: [],
-          pulsePhase: Math.random() * Math.PI * 2,
-          type
-        });
-      }
+      // Create elegant grid of intersecting lines
+      const gridSize = 80;
+      const cols = Math.ceil(width / gridSize) + 2;
+      const rows = Math.ceil(height / gridSize) + 2;
 
-      // Pre-calculate connections (for performance)
-      const connectionDistance = Math.min(width, height) * 0.15;
-      nodes.forEach((node, i) => {
-        nodes.forEach((other, j) => {
-          if (i !== j) {
-            const dx = node.x - other.x;
-            const dy = node.y - other.y;
-            const dist = Math.sqrt(dx * dx + dy * dy);
-            if (dist < connectionDistance && node.connections.length < 4) {
-              node.connections.push(j);
-            }
-          }
-        });
-      });
+      // Horizontal flowing lines
+      for (let i = 0; i < rows; i++) {
+        const y = i * gridSize - gridSize;
+        const segments = Math.floor(Math.random() * 3) + 2;
 
-      nodesRef.current = nodes;
+        for (let s = 0; s < segments; s++) {
+          const segmentWidth = width / segments;
+          const x1 = s * segmentWidth + Math.random() * 40 - 20;
+          const x2 = (s + 1) * segmentWidth + Math.random() * 40 - 20;
 
-      // Initialize particles
-      const particles: Particle[] = [];
-      const particleCount = Math.floor(nodeCount * 0.4);
-      for (let i = 0; i < particleCount; i++) {
-        const sourceIdx = Math.floor(Math.random() * nodes.length);
-        const source = nodes[sourceIdx];
-        if (source.connections.length > 0) {
-          const targetIdx = source.connections[Math.floor(Math.random() * source.connections.length)];
-          particles.push({
-            x: source.x,
-            y: source.y,
-            sourceNode: sourceIdx,
-            targetNode: targetIdx,
-            progress: Math.random(),
-            speed: 0.002 + Math.random() * 0.003,
-            size: 1 + Math.random() * 1.5
+          lines.push({
+            x1,
+            y1: y + Math.random() * 20 - 10,
+            x2,
+            y2: y + Math.random() * 20 - 10,
+            angle: 0,
+            length: Math.abs(x2 - x1),
+            baseAlpha: 0.03 + Math.random() * 0.04,
+            glowIntensity: 0,
+            targetGlow: 0,
+            speed: 0.01 + Math.random() * 0.02,
+            offset: Math.random() * Math.PI * 2
           });
         }
       }
-      particlesRef.current = particles;
+
+      // Vertical flowing lines
+      for (let i = 0; i < cols; i++) {
+        const x = i * gridSize - gridSize;
+        const segments = Math.floor(Math.random() * 3) + 2;
+
+        for (let s = 0; s < segments; s++) {
+          const segmentHeight = height / segments;
+          const y1 = s * segmentHeight + Math.random() * 40 - 20;
+          const y2 = (s + 1) * segmentHeight + Math.random() * 40 - 20;
+
+          lines.push({
+            x1: x + Math.random() * 20 - 10,
+            y1,
+            x2: x + Math.random() * 20 - 10,
+            y2,
+            angle: Math.PI / 2,
+            length: Math.abs(y2 - y1),
+            baseAlpha: 0.03 + Math.random() * 0.04,
+            glowIntensity: 0,
+            targetGlow: 0,
+            speed: 0.01 + Math.random() * 0.02,
+            offset: Math.random() * Math.PI * 2
+          });
+        }
+      }
+
+      // Diagonal accent lines - sparse and elegant
+      for (let i = 0; i < 15; i++) {
+        const startX = Math.random() * width;
+        const startY = Math.random() * height;
+        const angle = (Math.random() * 0.5 + 0.25) * Math.PI; // 45-135 degrees
+        const length = 150 + Math.random() * 300;
+
+        lines.push({
+          x1: startX,
+          y1: startY,
+          x2: startX + Math.cos(angle) * length,
+          y2: startY + Math.sin(angle) * length,
+          angle,
+          length,
+          baseAlpha: 0.02 + Math.random() * 0.03,
+          glowIntensity: 0,
+          targetGlow: 0,
+          speed: 0.008 + Math.random() * 0.015,
+          offset: Math.random() * Math.PI * 2
+        });
+      }
+
+      // Long sweeping curves represented as line segments
+      for (let i = 0; i < 8; i++) {
+        const startX = Math.random() * width;
+        const startY = Math.random() * height;
+        const curveLength = 400 + Math.random() * 600;
+        const segments = 20;
+        const baseAngle = Math.random() * Math.PI * 2;
+        const curvature = (Math.random() - 0.5) * 0.02;
+
+        let currentX = startX;
+        let currentY = startY;
+        let currentAngle = baseAngle;
+
+        for (let s = 0; s < segments; s++) {
+          const segLen = curveLength / segments;
+          const nextX = currentX + Math.cos(currentAngle) * segLen;
+          const nextY = currentY + Math.sin(currentAngle) * segLen;
+
+          lines.push({
+            x1: currentX,
+            y1: currentY,
+            x2: nextX,
+            y2: nextY,
+            angle: currentAngle,
+            length: segLen,
+            baseAlpha: 0.015 + Math.random() * 0.025,
+            glowIntensity: 0,
+            targetGlow: 0,
+            speed: 0.005 + Math.random() * 0.01,
+            offset: Math.random() * Math.PI * 2 + s * 0.1
+          });
+
+          currentX = nextX;
+          currentY = nextY;
+          currentAngle += curvature;
+        }
+      }
+
+      linesRef.current = lines;
     };
 
-    // Mouse tracking for interactive glow
     const handleMouseMove = (e: MouseEvent) => {
       mouseRef.current = { x: e.clientX, y: e.clientY };
     };
 
-    // Animation loop
+    const distanceToLine = (px: number, py: number, x1: number, y1: number, x2: number, y2: number): number => {
+      const A = px - x1;
+      const B = py - y1;
+      const C = x2 - x1;
+      const D = y2 - y1;
+
+      const dot = A * C + B * D;
+      const lenSq = C * C + D * D;
+      let param = -1;
+
+      if (lenSq !== 0) param = dot / lenSq;
+
+      let xx, yy;
+
+      if (param < 0) {
+        xx = x1;
+        yy = y1;
+      } else if (param > 1) {
+        xx = x2;
+        yy = y2;
+      } else {
+        xx = x1 + param * C;
+        yy = y1 + param * D;
+      }
+
+      const dx = px - xx;
+      const dy = py - yy;
+      return Math.sqrt(dx * dx + dy * dy);
+    };
+
     const animate = () => {
       const width = window.innerWidth;
       const height = window.innerHeight;
-      const nodes = nodesRef.current;
-      const particles = particlesRef.current;
+      const lines = linesRef.current;
       const time = timeRef.current;
       const mouse = mouseRef.current;
 
-      // Clear with fade effect for trails
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
+      // Clear canvas
+      ctx.fillStyle = 'rgba(0, 0, 0, 1)';
       ctx.fillRect(0, 0, width, height);
 
-      // Update time
       timeRef.current += 0.016;
 
-      // Update and draw nodes
-      nodes.forEach((node, i) => {
-        // Update position with subtle drift
-        node.x += node.vx;
-        node.y += node.vy;
+      // Update and draw lines
+      lines.forEach(line => {
+        // Calculate distance from mouse to line
+        const dist = distanceToLine(mouse.x, mouse.y, line.x1, line.y1, line.x2, line.y2);
+        const maxDist = 250;
 
-        // Boundary bounce with padding
-        const padding = 50;
-        if (node.x < -padding) node.x = width + padding;
-        if (node.x > width + padding) node.x = -padding;
-        if (node.y < -padding) node.y = height + padding;
-        if (node.y > height + padding) node.y = -padding;
-
-        // Mouse interaction - subtle attraction
-        const dx = mouse.x - node.x;
-        const dy = mouse.y - node.y;
-        const mouseDistance = Math.sqrt(dx * dx + dy * dy);
-        if (mouseDistance < 200 && mouseDistance > 0) {
-          const force = (200 - mouseDistance) / 200 * 0.02;
-          node.vx += (dx / mouseDistance) * force;
-          node.vy += (dy / mouseDistance) * force;
-        }
-
-        // Damping
-        node.vx *= 0.99;
-        node.vy *= 0.99;
-
-        // Draw connections
-        node.connections.forEach(j => {
-          if (j > i) { // Only draw once per pair
-            const other = nodes[j];
-            const connDx = other.x - node.x;
-            const connDy = other.y - node.y;
-            const dist = Math.sqrt(connDx * connDx + connDy * connDy);
-            const maxDist = Math.min(width, height) * 0.18;
-
-            if (dist < maxDist) {
-              const alpha = (1 - dist / maxDist) * 0.4;
-
-              // Animated gradient along line
-              const gradient = ctx.createLinearGradient(node.x, node.y, other.x, other.y);
-              const pulseOffset = (Math.sin(time * 2 + node.pulsePhase) + 1) * 0.5;
-
-              gradient.addColorStop(0, `rgba(250, 204, 21, ${alpha * 0.3})`);
-              gradient.addColorStop(pulseOffset * 0.5, `rgba(250, 204, 21, ${alpha * 0.8})`);
-              gradient.addColorStop(0.5, `rgba(254, 240, 138, ${alpha * 0.6})`);
-              gradient.addColorStop(0.5 + pulseOffset * 0.5, `rgba(250, 204, 21, ${alpha * 0.8})`);
-              gradient.addColorStop(1, `rgba(250, 204, 21, ${alpha * 0.3})`);
-
-              ctx.beginPath();
-              ctx.moveTo(node.x, node.y);
-              ctx.lineTo(other.x, other.y);
-              ctx.strokeStyle = gradient;
-              ctx.lineWidth = node.type === 'primary' ? 1.2 : 0.8;
-              ctx.stroke();
-            }
-          }
-        });
-      });
-
-      // Draw nodes with glow
-      nodes.forEach((node) => {
-        const pulse = Math.sin(time * 3 + node.pulsePhase) * 0.3 + 0.7;
-        const glowRadius = node.radius * (2 + pulse);
-
-        // Outer glow
-        const glowGradient = ctx.createRadialGradient(
-          node.x, node.y, 0,
-          node.x, node.y, glowRadius * 4
-        );
-
-        if (node.type === 'primary') {
-          glowGradient.addColorStop(0, `rgba(250, 204, 21, ${0.6 * pulse})`);
-          glowGradient.addColorStop(0.5, `rgba(250, 204, 21, ${0.2 * pulse})`);
-          glowGradient.addColorStop(1, 'rgba(250, 204, 21, 0)');
-        } else if (node.type === 'secondary') {
-          glowGradient.addColorStop(0, `rgba(254, 240, 138, ${0.4 * pulse})`);
-          glowGradient.addColorStop(0.5, `rgba(250, 204, 21, ${0.1 * pulse})`);
-          glowGradient.addColorStop(1, 'rgba(250, 204, 21, 0)');
+        // Set target glow based on mouse proximity
+        if (dist < maxDist) {
+          line.targetGlow = Math.pow(1 - dist / maxDist, 2) * 0.8;
         } else {
-          glowGradient.addColorStop(0, `rgba(255, 255, 255, ${0.3 * pulse})`);
-          glowGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+          line.targetGlow = 0;
         }
 
-        ctx.beginPath();
-        ctx.arc(node.x, node.y, glowRadius * 4, 0, Math.PI * 2);
-        ctx.fillStyle = glowGradient;
-        ctx.fill();
+        // Smooth interpolation - slow elegant transition
+        const lerpSpeed = 0.03;
+        line.glowIntensity += (line.targetGlow - line.glowIntensity) * lerpSpeed;
 
-        // Core node
-        ctx.beginPath();
-        ctx.arc(node.x, node.y, node.radius * pulse, 0, Math.PI * 2);
+        // Ambient wave animation
+        const wave = Math.sin(time * line.speed * 2 + line.offset) * 0.5 + 0.5;
+        const ambientPulse = wave * 0.15;
 
-        if (node.type === 'primary') {
-          ctx.fillStyle = `rgba(250, 204, 21, ${0.9 * pulse})`;
-          ctx.shadowColor = 'rgba(250, 204, 21, 0.8)';
-          ctx.shadowBlur = 10;
-        } else if (node.type === 'secondary') {
-          ctx.fillStyle = `rgba(254, 240, 138, ${0.7 * pulse})`;
-          ctx.shadowColor = 'rgba(250, 204, 21, 0.5)';
-          ctx.shadowBlur = 6;
+        // Calculate final alpha
+        const finalAlpha = line.baseAlpha + line.glowIntensity * 0.6 + ambientPulse * line.baseAlpha;
+
+        // Draw line with gradient
+        const gradient = ctx.createLinearGradient(line.x1, line.y1, line.x2, line.y2);
+
+        // Animated gradient position
+        const gradientOffset = (Math.sin(time * line.speed + line.offset) + 1) * 0.5;
+
+        if (line.glowIntensity > 0.05) {
+          // Glowing line - gold color
+          const glowAlpha = finalAlpha * 1.5;
+          gradient.addColorStop(0, `rgba(250, 204, 21, ${glowAlpha * 0.3})`);
+          gradient.addColorStop(Math.max(0, gradientOffset - 0.2), `rgba(250, 204, 21, ${glowAlpha * 0.5})`);
+          gradient.addColorStop(gradientOffset, `rgba(254, 240, 138, ${glowAlpha})`);
+          gradient.addColorStop(Math.min(1, gradientOffset + 0.2), `rgba(250, 204, 21, ${glowAlpha * 0.5})`);
+          gradient.addColorStop(1, `rgba(250, 204, 21, ${glowAlpha * 0.3})`);
+
+          // Draw glow layer
+          ctx.beginPath();
+          ctx.moveTo(line.x1, line.y1);
+          ctx.lineTo(line.x2, line.y2);
+          ctx.strokeStyle = `rgba(250, 204, 21, ${line.glowIntensity * 0.15})`;
+          ctx.lineWidth = 8;
+          ctx.lineCap = 'round';
+          ctx.stroke();
+
+          // Second glow layer
+          ctx.beginPath();
+          ctx.moveTo(line.x1, line.y1);
+          ctx.lineTo(line.x2, line.y2);
+          ctx.strokeStyle = `rgba(250, 204, 21, ${line.glowIntensity * 0.25})`;
+          ctx.lineWidth = 4;
+          ctx.stroke();
         } else {
-          ctx.fillStyle = `rgba(255, 255, 255, ${0.5 * pulse})`;
-          ctx.shadowColor = 'rgba(255, 255, 255, 0.3)';
-          ctx.shadowBlur = 4;
-        }
-        ctx.fill();
-        ctx.shadowBlur = 0;
-      });
-
-      // Update and draw particles flowing along connections
-      particles.forEach(particle => {
-        const source = nodes[particle.sourceNode];
-        const target = nodes[particle.targetNode];
-
-        if (!source || !target) return;
-
-        // Update progress
-        particle.progress += particle.speed;
-
-        if (particle.progress >= 1) {
-          // Move to next connection
-          particle.progress = 0;
-          particle.sourceNode = particle.targetNode;
-          const newSource = nodes[particle.sourceNode];
-          if (newSource.connections.length > 0) {
-            particle.targetNode = newSource.connections[Math.floor(Math.random() * newSource.connections.length)];
-          }
+          // Subtle ambient line - white/gray
+          gradient.addColorStop(0, `rgba(255, 255, 255, ${finalAlpha * 0.4})`);
+          gradient.addColorStop(gradientOffset, `rgba(255, 255, 255, ${finalAlpha})`);
+          gradient.addColorStop(1, `rgba(255, 255, 255, ${finalAlpha * 0.4})`);
         }
 
-        // Calculate position along line with easing
-        const easeProgress = particle.progress;
-        particle.x = source.x + (target.x - source.x) * easeProgress;
-        particle.y = source.y + (target.y - source.y) * easeProgress;
-
-        // Draw particle with trail
-        const trailGradient = ctx.createRadialGradient(
-          particle.x, particle.y, 0,
-          particle.x, particle.y, particle.size * 6
-        );
-        trailGradient.addColorStop(0, 'rgba(250, 204, 21, 0.9)');
-        trailGradient.addColorStop(0.3, 'rgba(254, 240, 138, 0.4)');
-        trailGradient.addColorStop(1, 'rgba(250, 204, 21, 0)');
-
+        // Main line
         ctx.beginPath();
-        ctx.arc(particle.x, particle.y, particle.size * 6, 0, Math.PI * 2);
-        ctx.fillStyle = trailGradient;
-        ctx.fill();
-
-        // Bright core
-        ctx.beginPath();
-        ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
-        ctx.fill();
+        ctx.moveTo(line.x1, line.y1);
+        ctx.lineTo(line.x2, line.y2);
+        ctx.strokeStyle = gradient;
+        ctx.lineWidth = line.glowIntensity > 0.05 ? 1.5 : 1;
+        ctx.lineCap = 'round';
+        ctx.stroke();
       });
-
-      // Draw mouse interaction glow
-      if (mouse.x > 0 && mouse.y > 0) {
-        const mouseGlow = ctx.createRadialGradient(
-          mouse.x, mouse.y, 0,
-          mouse.x, mouse.y, 150
-        );
-        mouseGlow.addColorStop(0, 'rgba(250, 204, 21, 0.03)');
-        mouseGlow.addColorStop(0.5, 'rgba(250, 204, 21, 0.01)');
-        mouseGlow.addColorStop(1, 'rgba(250, 204, 21, 0)');
-
-        ctx.beginPath();
-        ctx.arc(mouse.x, mouse.y, 150, 0, Math.PI * 2);
-        ctx.fillStyle = mouseGlow;
-        ctx.fill();
-      }
 
       animationRef.current = requestAnimationFrame(animate);
     };
 
-    // Initialize
     resize();
     window.addEventListener('resize', resize);
     window.addEventListener('mousemove', handleMouseMove);
-
-    // Start animation
     animationRef.current = requestAnimationFrame(animate);
 
     return () => {
@@ -322,24 +301,19 @@ export const LiquidBackground: React.FC = () => {
 
   return (
     <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden bg-black">
-      {/* Main canvas for network */}
       <canvas
         ref={canvasRef}
         className="absolute inset-0 w-full h-full"
       />
 
-      {/* Radial gradient overlay for depth */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(0,0,0,0.3)_50%,rgba(0,0,0,0.7)_100%)]" />
+      {/* Depth gradient overlay */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(0,0,0,0.2)_50%,rgba(0,0,0,0.6)_100%)]" />
 
       {/* Subtle vignette */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,rgba(0,0,0,0.4)_100%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_40%,rgba(0,0,0,0.3)_100%)]" />
 
-      {/* Top ambient light */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-gradient-to-b from-yellow-400/[0.02] to-transparent blur-3xl" />
-
-      {/* Corner accents */}
-      <div className="absolute top-0 left-0 w-[400px] h-[400px] bg-gradient-to-br from-yellow-400/[0.03] to-transparent blur-3xl" />
-      <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-gradient-to-tl from-yellow-400/[0.02] to-transparent blur-3xl" />
+      {/* Top ambient glow */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1200px] h-[400px] bg-gradient-to-b from-yellow-400/[0.015] to-transparent blur-3xl" />
     </div>
   );
 };
