@@ -3658,6 +3658,9 @@ const App: React.FC = () => {
 
                                 if (fromIndex === -1 || toIndex === -1 || fromIndex === toIndex) return;
 
+                                // Preserve scroll position
+                                const scrollY = window.scrollY;
+
                                 // Reorder
                                 const reordered = [...currentLevelCourses];
                                 const [moved] = reordered.splice(fromIndex, 1);
@@ -3667,6 +3670,11 @@ const App: React.FC = () => {
                                 const updated = reordered.map((c, i) => ({ ...c, orderIndex: i }));
                                 const otherCourses = courses.filter(c => c.level !== level);
                                 setCourses(sortCourses([...otherCourses, ...updated]));
+
+                                // Restore scroll position after React re-render
+                                requestAnimationFrame(() => {
+                                  window.scrollTo(0, scrollY);
+                                });
 
                                 // Sync to backend
                                 try {
