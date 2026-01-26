@@ -1570,7 +1570,7 @@ const App: React.FC = () => {
     );
 
     return (
-      <div className="h-screen bg-black flex flex-col relative z-20 overflow-hidden">
+      <div className="h-screen flex flex-col relative z-20 overflow-hidden">
         {/* Ambient background effects */}
         <div className="fixed inset-0 z-0 pointer-events-none">
           <div className="absolute top-0 left-1/4 w-96 h-96 bg-yellow-500/10 rounded-full blur-[120px] animate-pulse" />
@@ -2524,7 +2524,7 @@ const App: React.FC = () => {
       const activeLesson = editingCourse.lessons?.find(l => l.id === activeLessonId);
 
       return (
-        <div className="md:ml-64 h-screen overflow-hidden relative z-10 bg-black flex flex-col">
+        <div className="md:ml-64 h-screen overflow-hidden relative z-10 flex flex-col">
           {/* Editor Header */}
           <div className="h-16 flex-shrink-0 bg-[linear-gradient(180deg,#121214_0%,#0a0a0b_100%)] border-b border-white/[0.05] flex items-center justify-between px-6 z-30">
             <div className="flex items-center gap-4">
