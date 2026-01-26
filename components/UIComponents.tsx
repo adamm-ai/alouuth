@@ -64,10 +64,11 @@ const ToastItem: React.FC<{ toast: Toast; onDismiss: (id: string) => void }> = (
   return (
     <div
       className={`
-        relative overflow-hidden bg-gradient-to-r ${style.bg}
+        relative overflow-hidden
+        ${style.bg}
         ${style.border} border backdrop-blur-2xl rounded-2xl p-4
         ${style.glow} animate-slide-in-right
-        flex items-start gap-3 min-w-[340px] max-w-[440px]
+        flex items-start gap-3 min-w-[340px] max-w-[440px] shadow-2xl
       `}
     >
       {/* Subtle shine effect */}
@@ -117,12 +118,9 @@ export const GlassCard: React.FC<{ children: React.ReactNode; className?: string
   <div
     onClick={!disabled ? onClick : undefined}
     className={`
-      relative rounded-3xl p-6 transition-all duration-500 overflow-hidden
-      bg-[linear-gradient(180deg,rgba(22,22,26,0.97)_0%,rgba(14,14,18,0.98)_50%,rgba(10,10,12,0.99)_100%)]
-      backdrop-blur-xl border border-white/[0.06]
-      shadow-[0_8px_40px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.04)]
+      glass-panel relative rounded-3xl p-6 transition-all duration-500 overflow-hidden
       ${disabled ? 'opacity-50 cursor-not-allowed grayscale' : ''}
-      ${onClick && !disabled ? 'cursor-pointer hover:-translate-y-1.5 hover:shadow-[0_20px_50px_rgba(0,0,0,0.6),0_0_40px_rgba(250,204,21,0.08)] hover:border-yellow-400/20' : ''}
+      ${onClick && !disabled ? 'cursor-pointer hover-lift border-gradient-gold hover:shadow-[0_20px_50px_rgba(0,0,0,0.6),0_0_40px_rgba(250,204,21,0.08)]' : ''}
       ${className}
     `}
   >
@@ -146,6 +144,7 @@ export const PrimaryButton: React.FC<{ children: React.ReactNode; onClick?: () =
         ? 'opacity-50 cursor-not-allowed grayscale'
         : 'hover:shadow-[0_0_40px_rgba(250,204,21,0.5),0_0_80px_rgba(250,204,21,0.2)] active:scale-[0.97]'
       }
+      bg-liquid-gold
       ${className}
     `}
   >
@@ -170,8 +169,7 @@ export const SecondaryButton: React.FC<{ children: React.ReactNode; onClick?: ()
     onClick={onClick}
     className={`
       relative group overflow-hidden rounded-full px-8 py-3 font-semibold text-zinc-300
-      border border-white/10 bg-white/[0.03] backdrop-blur-sm
-      hover:bg-white/[0.08] hover:text-white hover:border-white/20
+      glass-subtle hover:text-white hover:border-white/20
       hover:shadow-[0_0_30px_rgba(255,255,255,0.05),inset_0_1px_0_rgba(255,255,255,0.1)]
       transition-all duration-300 active:scale-[0.97] ${className}
     `}
@@ -248,23 +246,35 @@ export const Badge: React.FC<{ children: React.ReactNode; type?: 'default' | 'su
 
 // Liquid Video Frame Component - Premium content container
 export const LiquidVideoFrame: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className = '' }) => (
-  <div className={`relative rounded-3xl overflow-hidden ${className}`}>
-    {/* Subtle outer glow */}
-    <div className="absolute -inset-[2px] rounded-3xl bg-gradient-to-br from-yellow-400/20 via-transparent to-white/10 blur-md opacity-60" />
+  <div className={`relative group ${className}`}>
+    {/* Outer glow ring - subtle ambient light */}
+    <div className="absolute -inset-1 rounded-[28px] bg-gradient-to-br from-yellow-400/20 via-yellow-500/5 to-white/10 blur-xl opacity-40 group-hover:opacity-70 transition-all duration-700" />
 
-    {/* Solid background */}
-    <div className="absolute inset-0 rounded-3xl bg-[linear-gradient(180deg,#161618_0%,#0e0e10_50%,#0a0a0c_100%)]" />
+    {/* Main solid container using glass-solid class */}
+    <div className="glass-solid relative rounded-3xl overflow-hidden shadow-2xl border-gradient-gold">
+      {/* Top shine highlight */}
+      <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-white/[0.06] to-transparent pointer-events-none" />
 
-    {/* Border */}
-    <div className="absolute inset-0 rounded-3xl border border-white/[0.06]" />
+      {/* Edge highlight - left */}
+      <div className="absolute left-0 top-0 bottom-0 w-px bg-gradient-to-b from-white/10 via-white/[0.03] to-transparent pointer-events-none" />
 
-    {/* Top shine */}
-    <div className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-white/[0.05] to-transparent rounded-t-3xl pointer-events-none" />
+      {/* Animated shine on hover */}
+      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.04] to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out" />
+      </div>
 
-    {/* Content */}
-    <div className="relative z-10 rounded-3xl overflow-hidden">
-      {children}
+      {/* Content */}
+      <div className="relative z-10">
+        {children}
+      </div>
+
+      {/* Bottom shadow */}
+      <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
     </div>
+
+    {/* Subtle floating accents */}
+    <div className="absolute -top-1 -right-1 w-2 h-2 bg-yellow-400/40 rounded-full blur-sm animate-float" style={{ animationDelay: '0s' }} />
+    <div className="absolute -bottom-0.5 -left-0.5 w-1.5 h-1.5 bg-white/30 rounded-full blur-sm animate-float" style={{ animationDelay: '1.5s' }} />
   </div>
 );
 

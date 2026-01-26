@@ -152,6 +152,7 @@ export interface Lesson {
   quizScore?: number;
   passingScore?: number;
   passed?: boolean;
+  orderIndex?: number;
 }
 
 export interface QuizQuestion {

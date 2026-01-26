@@ -42,7 +42,7 @@ import {
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from 'recharts';
 import { LiquidBackground } from './components/LiquidBackground';
-import { GlassCard, PrimaryButton, SecondaryButton, ProgressBar, Badge, FileDropZone, IconButton, ToastProvider, useToast } from './components/UIComponents';
+import { GlassCard, PrimaryButton, SecondaryButton, ProgressBar, Badge, FileDropZone, IconButton, ToastProvider, useToast, LiquidVideoFrame } from './components/UIComponents';
 import { dataService } from './services/dataService';
 import { authAPI, setAuthToken, getAuthToken, PendingUser, adminAPI } from './services/api';
 import api from './services/api';
@@ -53,39 +53,7 @@ import { Course, User, UserRole, Lesson, AnalyticData, LearningPath, ContentType
 type View = 'LANDING' | 'AUTH' | 'DASHBOARD' | 'COURSE_PLAYER' | 'ADMIN';
 type AdminSection = 'OVERVIEW' | 'USERS' | 'COURSES' | 'ANALYTICS';
 
-// Hyper Liquid Glass Video Frame Component - MUST be outside App to prevent re-renders
-const LiquidVideoFrame = ({ children }: { children: React.ReactNode }) => (
-  <div className="relative group">
-    {/* Outer glow ring - subtle ambient light */}
-    <div className="absolute -inset-1 rounded-[28px] bg-gradient-to-br from-yellow-400/20 via-yellow-500/5 to-white/10 blur-xl opacity-40 group-hover:opacity-70 transition-all duration-700" />
-
-    {/* Main solid container */}
-    <div className="relative rounded-3xl overflow-hidden bg-[linear-gradient(180deg,#161618_0%,#0e0e10_50%,#0a0a0c_100%)] border border-white/[0.08] shadow-[0_8px_50px_rgba(0,0,0,0.7),0_0_0_1px_rgba(255,255,255,0.03)_inset,0_1px_0_rgba(255,255,255,0.06)_inset]">
-      {/* Top shine highlight */}
-      <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-white/[0.06] to-transparent pointer-events-none" />
-
-      {/* Edge highlight - left */}
-      <div className="absolute left-0 top-0 bottom-0 w-px bg-gradient-to-b from-white/10 via-white/[0.03] to-transparent pointer-events-none" />
-
-      {/* Animated shine on hover */}
-      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.04] to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out" />
-      </div>
-
-      {/* Content */}
-      <div className="relative z-10">
-        {children}
-      </div>
-
-      {/* Bottom shadow */}
-      <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
-    </div>
-
-    {/* Subtle floating accents */}
-    <div className="absolute -top-1 -right-1 w-2 h-2 bg-yellow-400/40 rounded-full blur-sm animate-float" style={{animationDelay: '0s'}} />
-    <div className="absolute -bottom-0.5 -left-0.5 w-1.5 h-1.5 bg-white/30 rounded-full blur-sm animate-float" style={{animationDelay: '1.5s'}} />
-  </div>
-);
+// VideoFrame moved to components/UIComponents.tsx
 
 // Helper to sort courses by level priority and orderIndex
 const LEVEL_PRIORITY: Record<string, number> = { 'Beginner': 0, 'Intermediate': 1, 'Advanced': 2 };
@@ -99,9 +67,23 @@ const sortCourses = (coursesToSort: Course[]): Course[] => {
   });
 };
 
+// Video Helpers
+const isYouTubeUrl = (url: string) => {
+  return url.includes('youtube.com') || url.includes('youtu.be');
+};
+
+const getYouTubeVideoId = (url: string) => {
+  if (url.includes('youtu.be')) {
+    return url.split('/').pop();
+  }
+  const urlParams = new URLSearchParams(new URL(url).search);
+  return urlParams.get('v');
+};
+
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<View>('LANDING');
   const [user, setUser] = useState<User | null>(null);
+  const [quizPassed, setQuizPassed] = useState(false);
   const [courses, setCourses] = useState<Course[]>([]);
   const [paths, setPaths] = useState<LearningPath[]>([]);
   const [activeCourse, setActiveCourse] = useState<Course | null>(null);
@@ -341,7 +323,7 @@ const App: React.FC = () => {
 
     // 2. Mark current lesson as complete locally
     const updatedLessons = activeCourse.lessons.map(l =>
-        l.id === activeLesson.id ? { ...l, isCompleted: true, passed: true } : l
+      l.id === activeLesson.id ? { ...l, isCompleted: true, passed: true } : l
     );
 
     // 3. Calculate new progress
@@ -358,7 +340,7 @@ const App: React.FC = () => {
     // 6. Navigate to next lesson if available
     const currentIndex = updatedLessons.findIndex(l => l.id === activeLesson.id);
     if (currentIndex < updatedLessons.length - 1) {
-        setActiveLesson(updatedLessons[currentIndex + 1]);
+      setActiveLesson(updatedLessons[currentIndex + 1]);
     }
   };
 
@@ -369,7 +351,7 @@ const App: React.FC = () => {
       {/* Subtle glow accent on edge */}
       <div className="absolute inset-y-0 right-0 w-px bg-gradient-to-b from-transparent via-yellow-400/10 to-transparent" />
 
-      <div className="h-full flex flex-col bg-[linear-gradient(180deg,#141416_0%,#0a0a0b_50%,#080809_100%)] border-r border-white/[0.04]">
+      <div className="h-full flex flex-col bg-[#0a0a0b] border-r border-white/[0.06]">
         {/* Logo section with premium treatment */}
         <div className="p-8 relative">
           <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
@@ -514,7 +496,7 @@ const App: React.FC = () => {
           </span>
         </h1>
         <p className="text-xl text-zinc-400 max-w-2xl mb-10 leading-relaxed">
-          The central hub for public servants to learn <span className="text-white font-medium">Bridge</span>, <span className="text-white font-medium">ChatBB</span>, and <span className="text-white font-medium">Bajan-X</span>. 
+          The central hub for public servants to learn <span className="text-white font-medium">Bridge</span>, <span className="text-white font-medium">ChatBB</span>, and <span className="text-white font-medium">Bajan-X</span>.
         </p>
         <div className="flex gap-4">
           <PrimaryButton onClick={() => setCurrentView('AUTH')}>Start Learning Path</PrimaryButton>
@@ -523,20 +505,20 @@ const App: React.FC = () => {
 
         {/* Floating cards visual */}
         <div className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl w-full px-4">
-           {[
-             { title: "Foundations", desc: "Core digital literacy & security", time: "2h" },
-             { title: "Bridge Platform", desc: "Connecting gov datasets", time: "4h" },
-             { title: "ChatBB Support", desc: "AI customer service tools", time: "1h" },
-           ].map((card, idx) => (
-             <GlassCard key={idx} className="bg-white/5 backdrop-blur-sm border-white/5">
-                <div className="h-10 w-10 rounded-full bg-yellow-400/20 flex items-center justify-center mb-4 text-yellow-400">
-                  <BookOpen size={20} />
-                </div>
-                <h3 className="text-lg font-semibold mb-2">{card.title}</h3>
-                <p className="text-zinc-400 text-sm mb-4">{card.desc}</p>
-                <div className="text-xs text-zinc-500 font-mono">{card.time} estimate</div>
-             </GlassCard>
-           ))}
+          {[
+            { title: "Foundations", desc: "Core digital literacy & security", time: "2h" },
+            { title: "Bridge Platform", desc: "Connecting gov datasets", time: "4h" },
+            { title: "ChatBB Support", desc: "AI customer service tools", time: "1h" },
+          ].map((card, idx) => (
+            <GlassCard key={idx} className="bg-white/5 backdrop-blur-sm border-white/5">
+              <div className="h-10 w-10 rounded-full bg-yellow-400/20 flex items-center justify-center mb-4 text-yellow-400">
+                <BookOpen size={20} />
+              </div>
+              <h3 className="text-lg font-semibold mb-2">{card.title}</h3>
+              <p className="text-zinc-400 text-sm mb-4">{card.desc}</p>
+              <div className="text-xs text-zinc-500 font-mono">{card.time} estimate</div>
+            </GlassCard>
+          ))}
         </div>
       </main>
     </div>
@@ -642,7 +624,7 @@ const App: React.FC = () => {
         <GlassCard className="max-w-md w-full p-8 md:p-10 relative overflow-hidden transition-all duration-500 border-t border-white/20">
           <div className="flex justify-between items-center mb-6">
             <button onClick={() => setCurrentView('LANDING')} className="text-zinc-500 hover:text-white flex items-center gap-2 text-sm transition-colors">
-              <ArrowLeft size={16}/> Back
+              <ArrowLeft size={16} /> Back
             </button>
           </div>
 
@@ -650,21 +632,19 @@ const App: React.FC = () => {
           <div className="flex mb-8 bg-zinc-900/50 rounded-xl p-1">
             <button
               onClick={() => { setAuthMode('login'); setError(''); }}
-              className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${
-                authMode === 'login'
-                  ? 'bg-yellow-400 text-black'
-                  : 'text-zinc-400 hover:text-white'
-              }`}
+              className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${authMode === 'login'
+                ? 'bg-yellow-400 text-black'
+                : 'text-zinc-400 hover:text-white'
+                }`}
             >
               Sign In
             </button>
             <button
               onClick={() => { setAuthMode('register'); setError(''); }}
-              className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${
-                authMode === 'register'
-                  ? 'bg-yellow-400 text-black'
-                  : 'text-zinc-400 hover:text-white'
-              }`}
+              className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${authMode === 'register'
+                ? 'bg-yellow-400 text-black'
+                : 'text-zinc-400 hover:text-white'
+                }`}
             >
               Register
             </button>
@@ -688,7 +668,7 @@ const App: React.FC = () => {
                   className="w-full bg-zinc-900/50 border border-white/10 rounded-xl p-3 text-white focus:ring-2 focus:ring-yellow-400 outline-none transition-all placeholder-zinc-600"
                   placeholder="Jane Doe"
                   value={formData.name}
-                  onChange={e => setFormData({...formData, name: e.target.value})}
+                  onChange={e => setFormData({ ...formData, name: e.target.value })}
                 />
               </div>
             )}
@@ -703,7 +683,7 @@ const App: React.FC = () => {
                 placeholder="jane.doe@gov.bb"
                 value={formData.email}
                 onChange={e => {
-                  setFormData({...formData, email: e.target.value});
+                  setFormData({ ...formData, email: e.target.value });
                   setError('');
                 }}
               />
@@ -719,7 +699,7 @@ const App: React.FC = () => {
                   className="w-full bg-zinc-900/50 border border-white/10 rounded-xl p-3 pr-12 text-white focus:ring-2 focus:ring-yellow-400 outline-none transition-all placeholder-zinc-600"
                   placeholder={authMode === 'register' ? 'Min 8 chars, uppercase, number' : 'Your password'}
                   value={formData.password}
-                  onChange={e => setFormData({...formData, password: e.target.value})}
+                  onChange={e => setFormData({ ...formData, password: e.target.value })}
                   minLength={authMode === 'register' ? 8 : undefined}
                 />
                 <button
@@ -743,7 +723,7 @@ const App: React.FC = () => {
                   <select
                     className="w-full bg-zinc-900/50 border border-white/10 rounded-xl p-3 text-white focus:ring-2 focus:ring-yellow-400 outline-none"
                     value={formData.ministry}
-                    onChange={e => setFormData({...formData, ministry: e.target.value})}
+                    onChange={e => setFormData({ ...formData, ministry: e.target.value })}
                   >
                     {MINISTRIES.map(m => <option key={m} value={m} className="bg-zinc-900 text-white">{m}</option>)}
                   </select>
@@ -754,14 +734,14 @@ const App: React.FC = () => {
                   <div className="grid grid-cols-2 gap-3">
                     <button
                       type="button"
-                      onClick={() => setFormData({...formData, role: UserRole.LEARNER})}
+                      onClick={() => setFormData({ ...formData, role: UserRole.LEARNER })}
                       className={`p-3 rounded-xl border text-sm transition-all duration-300 ${formData.role === UserRole.LEARNER ? 'bg-yellow-400/20 border-yellow-400 text-yellow-400 shadow-[0_0_15px_rgba(250,204,21,0.2)]' : 'border-white/10 hover:bg-white/5 text-zinc-400'}`}
                     >
                       Learner
                     </button>
                     <button
                       type="button"
-                      onClick={() => setFormData({...formData, role: UserRole.SUPERUSER})}
+                      onClick={() => setFormData({ ...formData, role: UserRole.SUPERUSER })}
                       className={`p-3 rounded-xl border text-sm transition-all duration-300 ${formData.role === UserRole.SUPERUSER ? 'bg-white/20 border-white text-white shadow-[0_0_15px_rgba(255,255,255,0.2)]' : 'border-white/10 hover:bg-white/5 text-zinc-400'}`}
                     >
                       Superuser
@@ -894,8 +874,8 @@ const App: React.FC = () => {
             <div>
               <h2 className="text-4xl font-bold mb-2">Welcome, {user?.name?.split(' ')[0]}</h2>
               <div className="flex gap-2">
-                 {user?.role === UserRole.SUPERUSER && <Badge type="warning">Ministry Champion</Badge>}
-                 <span className="text-zinc-400">Ready to upskill?</span>
+                {user?.role === UserRole.SUPERUSER && <Badge type="warning">Ministry Champion</Badge>}
+                <span className="text-zinc-400">Ready to upskill?</span>
               </div>
             </div>
 
@@ -1009,12 +989,11 @@ const App: React.FC = () => {
                   const isCompleted = totalProgress >= moduleProgress;
                   return (
                     <div key={module} className="flex flex-col items-center">
-                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold transition-all duration-300 ${
-                        isCompleted
-                          ? 'bg-yellow-400 text-black shadow-[0_0_10px_rgba(250,204,21,0.4)]'
-                          : 'bg-white/10 text-zinc-500'
-                      }`}>
-                        {isCompleted ? <CheckCircle size={12}/> : idx + 1}
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold transition-all duration-300 ${isCompleted
+                        ? 'bg-yellow-400 text-black shadow-[0_0_10px_rgba(250,204,21,0.4)]'
+                        : 'bg-white/10 text-zinc-500'
+                        }`}>
+                        {isCompleted ? <CheckCircle size={12} /> : idx + 1}
                       </div>
                       <span className={`text-[10px] mt-1 ${isCompleted ? 'text-yellow-400' : 'text-zinc-600'}`}>{module}</span>
                     </div>
@@ -1029,7 +1008,7 @@ const App: React.FC = () => {
             <GlassCard className="bg-gradient-to-br from-zinc-800/30 to-black border-yellow-500/30">
               <div className="flex justify-between items-start mb-4">
                 <div>
-                  <h3 className="text-lg font-bold text-white flex items-center gap-2"><Users size={18} className="text-yellow-400"/> Ministry Insights</h3>
+                  <h3 className="text-lg font-bold text-white flex items-center gap-2"><Users size={18} className="text-yellow-400" /> Ministry Insights</h3>
                   <p className="text-sm text-zinc-400">Track your team's progress in {user.ministry}</p>
                 </div>
                 <PrimaryButton className="py-1 px-4 text-xs h-8">Invite Colleagues</PrimaryButton>
@@ -1044,8 +1023,8 @@ const App: React.FC = () => {
                   <div className="text-xl font-bold text-yellow-400">8</div>
                 </div>
                 <div className="bg-zinc-900/50 p-3 rounded-xl border border-white/5">
-                   <div className="text-xs text-zinc-500">Completion Rate</div>
-                   <div className="text-xl font-bold text-white">33%</div>
+                  <div className="text-xs text-zinc-500">Completion Rate</div>
+                  <div className="text-xl font-bold text-white">33%</div>
                 </div>
               </div>
             </GlassCard>
@@ -1054,251 +1033,241 @@ const App: React.FC = () => {
           {/* Learning Paths & Courses - Grouped by Level */}
           <div className="space-y-12">
             {(['Beginner', 'Intermediate', 'Advanced'] as const).map((level) => {
-               const levelCourses = courses.filter(c => c.level === level);
-               if (levelCourses.length === 0) return null;
+              const levelCourses = courses.filter(c => c.level === level);
+              if (levelCourses.length === 0) return null;
 
-               const isPathUnlocked = isLevelUnlocked(level);
-               const levelTitle = level === 'Beginner' ? 'Beginner Track (Week 1-2)'
-                                : level === 'Intermediate' ? 'Intermediate Track (Week 3)'
-                                : 'Advanced Track (Week 4)';
-               const levelDescription = level === 'Beginner' ? 'Foundation modules for all learners.'
-                                      : level === 'Intermediate' ? 'Security and platform integration.'
-                                      : 'Data workflows and certification.';
+              const isPathUnlocked = isLevelUnlocked(level);
+              const levelTitle = level === 'Beginner' ? 'Beginner Track (Week 1-2)'
+                : level === 'Intermediate' ? 'Intermediate Track (Week 3)'
+                  : 'Advanced Track (Week 4)';
+              const levelDescription = level === 'Beginner' ? 'Foundation modules for all learners.'
+                : level === 'Intermediate' ? 'Security and platform integration.'
+                  : 'Data workflows and certification.';
 
-               return (
-                 <div key={level} className="animate-fade-in">
-                   <div className="flex items-center gap-3 mb-4">
-                     <div className={`p-2 rounded-lg ${isPathUnlocked ? 'bg-yellow-400/20 text-yellow-400' : 'bg-zinc-800/50 text-zinc-600'}`}>
-                       {isPathUnlocked ? <BookOpen size={20}/> : <Lock size={20}/>}
-                     </div>
-                     <div className="flex-1">
-                       <div className="flex items-center gap-3">
-                         <h3 className={`text-2xl font-bold ${!isPathUnlocked && 'text-zinc-600'}`}>{levelTitle}</h3>
-                         <span className={`text-xs px-2 py-0.5 rounded-full ${
-                           level === 'Beginner' ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
-                           level === 'Intermediate' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' :
-                           'bg-purple-500/20 text-purple-400 border border-purple-500/30'
-                         }`}>{levelCourses.length} course{levelCourses.length !== 1 ? 's' : ''}</span>
-                         {!isPathUnlocked && (
-                           <span className="text-xs px-3 py-1 rounded-full bg-zinc-800 text-zinc-500 border border-zinc-700">
-                             LOCKED
-                           </span>
-                         )}
-                       </div>
-                       <p className={`text-sm ${isPathUnlocked ? 'text-zinc-400' : 'text-zinc-600'}`}>
-                         {isPathUnlocked ? levelDescription : getLockedMessage(level)}
-                       </p>
-                     </div>
-                   </div>
+              return (
+                <div key={level} className="animate-fade-in">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className={`p-2 rounded-lg ${isPathUnlocked ? 'bg-yellow-400/20 text-yellow-400' : 'bg-zinc-800/50 text-zinc-600'}`}>
+                      {isPathUnlocked ? <BookOpen size={20} /> : <Lock size={20} />}
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3">
+                        <h3 className={`text-2xl font-bold ${!isPathUnlocked && 'text-zinc-600'}`}>{levelTitle}</h3>
+                        <span className={`text-xs px-2 py-0.5 rounded-full ${level === 'Beginner' ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
+                          level === 'Intermediate' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' :
+                            'bg-purple-500/20 text-purple-400 border border-purple-500/30'
+                          }`}>{levelCourses.length} course{levelCourses.length !== 1 ? 's' : ''}</span>
+                        {!isPathUnlocked && (
+                          <span className="text-xs px-3 py-1 rounded-full bg-zinc-800 text-zinc-500 border border-zinc-700">
+                            LOCKED
+                          </span>
+                        )}
+                      </div>
+                      <p className={`text-sm ${isPathUnlocked ? 'text-zinc-400' : 'text-zinc-600'}`}>
+                        {isPathUnlocked ? levelDescription : getLockedMessage(level)}
+                      </p>
+                    </div>
+                  </div>
 
-                   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-                      {levelCourses.map((course, courseIndex) => {
-                        const courseUnlocked = isCourseUnlocked(course);
-                        const lessonCount = course.lessons?.length || 0;
-                        const completedLessons = course.lessons?.filter(l => l.isCompleted).length || 0;
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+                    {levelCourses.map((course, courseIndex) => {
+                      const courseUnlocked = isCourseUnlocked(course);
+                      const lessonCount = course.lessons?.length || 0;
+                      const completedLessons = course.lessons?.filter(l => l.isCompleted).length || 0;
 
-                        return (
-                          <div
-                            key={course.id}
-                            className={`group relative rounded-3xl overflow-hidden transition-all duration-500 ${
-                              courseUnlocked
-                                ? 'cursor-pointer hover:-translate-y-2 hover:shadow-[0_20px_60px_-15px_rgba(250,204,21,0.3)]'
-                                : 'opacity-60 cursor-not-allowed'
+                      return (
+                        <div
+                          key={course.id}
+                          className={`group relative rounded-3xl overflow-hidden transition-all duration-500 ${courseUnlocked
+                            ? 'cursor-pointer hover:-translate-y-2 hover:shadow-[0_20px_60px_-15px_rgba(250,204,21,0.3)]'
+                            : 'opacity-60 cursor-not-allowed'
                             }`}
-                            onClick={() => courseUnlocked && handleStartCourse(course)}
-                          >
-                            {/* Card Background with Glassmorphism */}
-                            <div className="absolute inset-0 bg-gradient-to-br from-zinc-900/90 via-zinc-900/80 to-black/90 backdrop-blur-xl border border-white/10 rounded-3xl group-hover:border-yellow-400/30 transition-colors duration-500" />
+                          onClick={() => courseUnlocked && handleStartCourse(course)}
+                        >
+                          {/* Card Background with Glassmorphism */}
+                          <div className="absolute inset-0 bg-gradient-to-br from-zinc-900/90 via-zinc-900/80 to-black/90 backdrop-blur-xl border border-white/10 rounded-3xl group-hover:border-yellow-400/30 transition-colors duration-500" />
 
-                            {/* Ambient Glow Effect */}
-                            <div className="absolute -inset-px bg-gradient-to-br from-yellow-400/0 via-transparent to-yellow-400/0 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 blur-xl" />
+                          {/* Ambient Glow Effect */}
+                          <div className="absolute -inset-px bg-gradient-to-br from-yellow-400/0 via-transparent to-yellow-400/0 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 blur-xl" />
 
-                            <div className="relative">
-                              {/* Image Container with Aspect Ratio */}
-                              <div className="relative aspect-[16/10] overflow-hidden">
-                                {/* Background Image */}
-                                <img
-                                  src={course.thumbnail}
-                                  alt={course.title}
-                                  className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 ${
-                                    courseUnlocked
-                                      ? 'group-hover:scale-110 saturate-75 group-hover:saturate-100'
-                                      : 'grayscale saturate-0'
+                          <div className="relative">
+                            {/* Image Container with Aspect Ratio */}
+                            <div className="relative aspect-[16/10] overflow-hidden">
+                              {/* Background Image */}
+                              <img
+                                src={course.thumbnail}
+                                alt={course.title}
+                                className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 ${courseUnlocked
+                                  ? 'group-hover:scale-110 saturate-75 group-hover:saturate-100'
+                                  : 'grayscale saturate-0'
                                   }`}
-                                />
+                              />
 
-                                {/* Gradient Overlays */}
-                                <div className={`absolute inset-0 bg-gradient-to-t from-zinc-900 via-zinc-900/50 to-transparent transition-opacity duration-500 ${
-                                  courseUnlocked ? 'opacity-80 group-hover:opacity-60' : 'opacity-90'
+                              {/* Gradient Overlays */}
+                              <div className={`absolute inset-0 bg-gradient-to-t from-zinc-900 via-zinc-900/50 to-transparent transition-opacity duration-500 ${courseUnlocked ? 'opacity-80 group-hover:opacity-60' : 'opacity-90'
                                 }`} />
-                                <div className="absolute inset-0 bg-gradient-to-br from-black/20 via-transparent to-yellow-400/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                              <div className="absolute inset-0 bg-gradient-to-br from-black/20 via-transparent to-yellow-400/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
-                                {/* Course Order Badge */}
-                                {courseUnlocked && (
-                                  <div className="absolute top-3 left-3">
-                                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-black/60 backdrop-blur-md border border-white/10 text-white text-sm font-bold">
-                                      {courseIndex + 1}
-                                    </div>
-                                  </div>
-                                )}
-
-                                {/* Level Badge */}
-                                <div className="absolute top-3 right-3">
-                                  <div className={`px-3 py-1.5 rounded-full text-xs font-semibold backdrop-blur-md border ${
-                                    course.level === 'Beginner'
-                                      ? 'bg-emerald-500/20 border-emerald-400/30 text-emerald-400'
-                                      : course.level === 'Intermediate'
-                                        ? 'bg-yellow-500/20 border-yellow-400/30 text-yellow-400'
-                                        : 'bg-purple-500/20 border-purple-400/30 text-purple-400'
-                                  }`}>
-                                    {course.level}
+                              {/* Course Order Badge */}
+                              {courseUnlocked && (
+                                <div className="absolute top-3 left-3">
+                                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-black/60 backdrop-blur-md border border-white/10 text-white text-sm font-bold">
+                                    {courseIndex + 1}
                                   </div>
                                 </div>
+                              )}
 
-                                {/* Lock Overlay */}
-                                {!courseUnlocked && (
-                                  <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-[2px]">
-                                    <div className="w-16 h-16 rounded-full bg-zinc-900/90 border-2 border-zinc-700 flex items-center justify-center shadow-2xl">
-                                      <Lock size={24} className="text-zinc-500" />
+                              {/* Level Badge */}
+                              <div className="absolute top-3 right-3">
+                                <div className={`px-3 py-1.5 rounded-full text-xs font-semibold backdrop-blur-md border ${course.level === 'Beginner'
+                                  ? 'bg-emerald-500/20 border-emerald-400/30 text-emerald-400'
+                                  : course.level === 'Intermediate'
+                                    ? 'bg-yellow-500/20 border-yellow-400/30 text-yellow-400'
+                                    : 'bg-purple-500/20 border-purple-400/30 text-purple-400'
+                                  }`}>
+                                  {course.level}
+                                </div>
+                              </div>
+
+                              {/* Lock Overlay */}
+                              {!courseUnlocked && (
+                                <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-[2px]">
+                                  <div className="w-16 h-16 rounded-full bg-zinc-900/90 border-2 border-zinc-700 flex items-center justify-center shadow-2xl">
+                                    <Lock size={24} className="text-zinc-500" />
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Progress Ring - Bottom Right */}
+                              {course.progress > 0 && courseUnlocked && (
+                                <div className="absolute bottom-3 right-3">
+                                  <div className="relative w-12 h-12">
+                                    <svg className="w-12 h-12 -rotate-90" viewBox="0 0 36 36">
+                                      <circle
+                                        cx="18" cy="18" r="15.5"
+                                        fill="none"
+                                        stroke="rgba(255,255,255,0.1)"
+                                        strokeWidth="3"
+                                      />
+                                      <circle
+                                        cx="18" cy="18" r="15.5"
+                                        fill="none"
+                                        stroke="url(#progressGradient)"
+                                        strokeWidth="3"
+                                        strokeLinecap="round"
+                                        strokeDasharray={`${course.progress * 0.97} 100`}
+                                      />
+                                      <defs>
+                                        <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                          <stop offset="0%" stopColor="#facc15" />
+                                          <stop offset="100%" stopColor="#fef08a" />
+                                        </linearGradient>
+                                      </defs>
+                                    </svg>
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                      <span className="text-xs font-bold text-white">{Math.round(course.progress)}%</span>
                                     </div>
                                   </div>
-                                )}
+                                </div>
+                              )}
+                            </div>
 
-                                {/* Progress Ring - Bottom Right */}
+                            {/* Content Section */}
+                            <div className="relative p-5">
+                              {/* Title */}
+                              <h4 className={`text-lg font-bold mb-2 leading-tight transition-colors duration-300 ${courseUnlocked
+                                ? 'text-white group-hover:text-yellow-400'
+                                : 'text-zinc-500'
+                                }`}>
+                                {course.title}
+                              </h4>
+
+                              {/* Description */}
+                              <p className={`text-sm leading-relaxed mb-4 ${courseUnlocked ? 'text-zinc-400' : 'text-zinc-600'
+                                } ${expandedDescriptions.has(course.id) ? '' : 'line-clamp-2'}`}>
+                                {course.description}
+                              </p>
+                              {course.description && course.description.length > 80 && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setExpandedDescriptions(prev => {
+                                      const newSet = new Set(prev);
+                                      if (newSet.has(course.id)) {
+                                        newSet.delete(course.id);
+                                      } else {
+                                        newSet.add(course.id);
+                                      }
+                                      return newSet;
+                                    });
+                                  }}
+                                  className={`text-xs font-medium mb-3 ${courseUnlocked
+                                    ? 'text-yellow-400/80 hover:text-yellow-400'
+                                    : 'text-zinc-600'
+                                    } transition-colors`}
+                                >
+                                  {expandedDescriptions.has(course.id) ? '← Show less' : 'Read more →'}
+                                </button>
+                              )}
+
+                              {/* Stats Row */}
+                              <div className={`flex items-center gap-4 text-xs ${courseUnlocked ? 'text-zinc-500' : 'text-zinc-700'
+                                }`}>
+                                <span className="flex items-center gap-1.5">
+                                  <Clock size={14} className={courseUnlocked ? 'text-zinc-400' : ''} />
+                                  {course.totalDuration}
+                                </span>
+                                <span className="flex items-center gap-1.5">
+                                  <BookOpen size={14} className={courseUnlocked ? 'text-zinc-400' : ''} />
+                                  {lessonCount} lessons
+                                </span>
                                 {course.progress > 0 && courseUnlocked && (
-                                  <div className="absolute bottom-3 right-3">
-                                    <div className="relative w-12 h-12">
-                                      <svg className="w-12 h-12 -rotate-90" viewBox="0 0 36 36">
-                                        <circle
-                                          cx="18" cy="18" r="15.5"
-                                          fill="none"
-                                          stroke="rgba(255,255,255,0.1)"
-                                          strokeWidth="3"
-                                        />
-                                        <circle
-                                          cx="18" cy="18" r="15.5"
-                                          fill="none"
-                                          stroke="url(#progressGradient)"
-                                          strokeWidth="3"
-                                          strokeLinecap="round"
-                                          strokeDasharray={`${course.progress * 0.97} 100`}
-                                        />
-                                        <defs>
-                                          <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                                            <stop offset="0%" stopColor="#facc15" />
-                                            <stop offset="100%" stopColor="#fef08a" />
-                                          </linearGradient>
-                                        </defs>
-                                      </svg>
-                                      <div className="absolute inset-0 flex items-center justify-center">
-                                        <span className="text-xs font-bold text-white">{Math.round(course.progress)}%</span>
-                                      </div>
-                                    </div>
-                                  </div>
+                                  <span className="flex items-center gap-1.5 text-yellow-400">
+                                    <CheckCircle size={14} />
+                                    {completedLessons}/{lessonCount}
+                                  </span>
                                 )}
                               </div>
 
-                              {/* Content Section */}
-                              <div className="relative p-5">
-                                {/* Title */}
-                                <h4 className={`text-lg font-bold mb-2 leading-tight transition-colors duration-300 ${
-                                  courseUnlocked
-                                    ? 'text-white group-hover:text-yellow-400'
-                                    : 'text-zinc-500'
-                                }`}>
-                                  {course.title}
-                                </h4>
-
-                                {/* Description */}
-                                <p className={`text-sm leading-relaxed mb-4 ${
-                                  courseUnlocked ? 'text-zinc-400' : 'text-zinc-600'
-                                } ${expandedDescriptions.has(course.id) ? '' : 'line-clamp-2'}`}>
-                                  {course.description}
-                                </p>
-                                {course.description && course.description.length > 80 && (
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      setExpandedDescriptions(prev => {
-                                        const newSet = new Set(prev);
-                                        if (newSet.has(course.id)) {
-                                          newSet.delete(course.id);
-                                        } else {
-                                          newSet.add(course.id);
-                                        }
-                                        return newSet;
-                                      });
-                                    }}
-                                    className={`text-xs font-medium mb-3 ${
-                                      courseUnlocked
-                                        ? 'text-yellow-400/80 hover:text-yellow-400'
-                                        : 'text-zinc-600'
-                                    } transition-colors`}
-                                  >
-                                    {expandedDescriptions.has(course.id) ? '← Show less' : 'Read more →'}
-                                  </button>
-                                )}
-
-                                {/* Stats Row */}
-                                <div className={`flex items-center gap-4 text-xs ${
-                                  courseUnlocked ? 'text-zinc-500' : 'text-zinc-700'
-                                }`}>
-                                  <span className="flex items-center gap-1.5">
-                                    <Clock size={14} className={courseUnlocked ? 'text-zinc-400' : ''} />
-                                    {course.totalDuration}
-                                  </span>
-                                  <span className="flex items-center gap-1.5">
-                                    <BookOpen size={14} className={courseUnlocked ? 'text-zinc-400' : ''} />
-                                    {lessonCount} lessons
-                                  </span>
-                                  {course.progress > 0 && courseUnlocked && (
-                                    <span className="flex items-center gap-1.5 text-yellow-400">
-                                      <CheckCircle size={14} />
-                                      {completedLessons}/{lessonCount}
-                                    </span>
-                                  )}
-                                </div>
-
-                                {/* Action Footer */}
-                                <div className={`mt-4 pt-4 border-t border-white/5 flex justify-between items-center`}>
-                                  {courseUnlocked ? (
-                                    <>
-                                      <div className="flex items-center gap-2">
-                                        {course.progress > 0 ? (
-                                          <div className="w-24 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
-                                            <div
-                                              className="h-full bg-gradient-to-r from-yellow-400 to-yellow-300 rounded-full transition-all duration-500"
-                                              style={{ width: `${course.progress}%` }}
-                                            />
-                                          </div>
-                                        ) : (
-                                          <span className="text-xs text-zinc-500">Ready to start</span>
-                                        )}
-                                      </div>
-                                      <span className={`flex items-center gap-1 text-sm font-semibold transition-all duration-300 ${
-                                        course.progress > 0
-                                          ? 'text-yellow-400 group-hover:text-yellow-300'
-                                          : 'text-white group-hover:text-yellow-400'
+                              {/* Action Footer */}
+                              <div className={`mt-4 pt-4 border-t border-white/5 flex justify-between items-center`}>
+                                {courseUnlocked ? (
+                                  <>
+                                    <div className="flex items-center gap-2">
+                                      {course.progress > 0 ? (
+                                        <div className="w-24 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                                          <div
+                                            className="h-full bg-gradient-to-r from-yellow-400 to-yellow-300 rounded-full transition-all duration-500"
+                                            style={{ width: `${course.progress}%` }}
+                                          />
+                                        </div>
+                                      ) : (
+                                        <span className="text-xs text-zinc-500">Ready to start</span>
+                                      )}
+                                    </div>
+                                    <span className={`flex items-center gap-1 text-sm font-semibold transition-all duration-300 ${course.progress > 0
+                                      ? 'text-yellow-400 group-hover:text-yellow-300'
+                                      : 'text-white group-hover:text-yellow-400'
                                       } group-hover:translate-x-1`}>
-                                        {course.progress > 0 ? 'Continue' : 'Start Course'}
-                                        <ChevronRight size={16} className="transition-transform group-hover:translate-x-0.5" />
-                                      </span>
-                                    </>
-                                  ) : (
-                                    <span className="flex items-center gap-2 text-sm text-zinc-600">
-                                      <Lock size={14} />
-                                      Complete previous level to unlock
+                                      {course.progress > 0 ? 'Continue' : 'Start Course'}
+                                      <ChevronRight size={16} className="transition-transform group-hover:translate-x-0.5" />
                                     </span>
-                                  )}
-                                </div>
+                                  </>
+                                ) : (
+                                  <span className="flex items-center gap-2 text-sm text-zinc-600">
+                                    <Lock size={14} />
+                                    Complete previous level to unlock
+                                  </span>
+                                )}
                               </div>
                             </div>
                           </div>
-                        );
-                      })}
-                   </div>
-                 </div>
-               );
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
             })}
           </div>
         </div>
@@ -1343,17 +1312,17 @@ const App: React.FC = () => {
 
     // Reset local state when active lesson changes
     useEffect(() => {
-        setQuizState('INTRO');
-        setCurrentQIdx(0);
-        setQuizAnswers([]);
-        setQuizScore(0);
-        setIsDownloaded(false);
-        setVideoWatchedPercent(0);
-        setIsVideoPlaying(false);
-        if (ytPlayer) {
-          ytPlayer.destroy();
-          setYtPlayer(null);
-        }
+      setQuizState('INTRO');
+      setCurrentQIdx(0);
+      setQuizAnswers([]);
+      setQuizScore(0);
+      setIsDownloaded(false);
+      setVideoWatchedPercent(0);
+      setIsVideoPlaying(false);
+      if (ytPlayer) {
+        ytPlayer.destroy();
+        setYtPlayer(null);
+      }
     }, [activeLesson?.id]);
 
     // Load YouTube IFrame API
@@ -1464,38 +1433,38 @@ const App: React.FC = () => {
     }, [activeLesson?.id, activeLesson?.type, videoWatchedPercent]);
 
     const handleQuizAnswer = (optionIndex: number) => {
-        const newAnswers = [...quizAnswers];
-        newAnswers[currentQIdx] = optionIndex;
-        setQuizAnswers(newAnswers);
+      const newAnswers = [...quizAnswers];
+      newAnswers[currentQIdx] = optionIndex;
+      setQuizAnswers(newAnswers);
     };
 
     const handleNextQuestion = () => {
-        if (!activeLesson?.quiz) return;
-        if (currentQIdx < activeLesson.quiz.length - 1) {
-            setCurrentQIdx(currentQIdx + 1);
-        } else {
-            let score = 0;
-            activeLesson.quiz.forEach((q, idx) => {
-                if (quizAnswers[idx] === q.correctAnswer) score++;
-            });
-            setQuizScore(score);
-            setQuizState('RESULT');
-        }
+      if (!activeLesson?.quiz) return;
+      if (currentQIdx < activeLesson.quiz.length - 1) {
+        setCurrentQIdx(currentQIdx + 1);
+      } else {
+        let score = 0;
+        activeLesson.quiz.forEach((q, idx) => {
+          if (quizAnswers[idx] === q.correctAnswer) score++;
+        });
+        setQuizScore(score);
+        setQuizState('RESULT');
+      }
     };
 
     const downloadResource = () => {
-        if (!activeLesson?.fileUrl) {
-          console.error('No file URL available for download');
-          return;
-        }
-        const link = document.createElement('a');
-        link.href = activeLesson.fileUrl;
-        link.download = activeLesson.fileName || 'resource';
-        link.target = '_blank';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        setIsDownloaded(true);
+      if (!activeLesson?.fileUrl) {
+        console.error('No file URL available for download');
+        return;
+      }
+      const link = document.createElement('a');
+      link.href = activeLesson.fileUrl;
+      link.download = activeLesson.fileName || 'resource';
+      link.target = '_blank';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setIsDownloaded(true);
     };
 
     // Calculate completion stats
@@ -1574,9 +1543,8 @@ const App: React.FC = () => {
               </span>
             </div>
 
-            <h4 className={`font-semibold text-sm leading-tight mb-1 transition-colors ${
-              isActive ? 'text-white' : isCompleted ? 'text-zinc-300' : 'text-zinc-400'
-            } ${!isLocked && 'group-hover/item:text-white'}`}>
+            <h4 className={`font-semibold text-sm leading-tight mb-1 transition-colors ${isActive ? 'text-white' : isCompleted ? 'text-zinc-300' : 'text-zinc-400'
+              } ${!isLocked && 'group-hover/item:text-white'}`}>
               {lesson.title}
             </h4>
 
@@ -1592,9 +1560,8 @@ const App: React.FC = () => {
 
           {/* Arrow indicator */}
           {!isLocked && !isCompleted && (
-            <ChevronRight size={16} className={`flex-shrink-0 transition-all duration-300 ${
-              isActive ? 'text-yellow-400 translate-x-0 opacity-100' : 'text-zinc-600 -translate-x-2 opacity-0 group-hover/item:translate-x-0 group-hover/item:opacity-100'
-            }`} />
+            <ChevronRight size={16} className={`flex-shrink-0 transition-all duration-300 ${isActive ? 'text-yellow-400 translate-x-0 opacity-100' : 'text-zinc-600 -translate-x-2 opacity-0 group-hover/item:translate-x-0 group-hover/item:opacity-100'
+              }`} />
           )}
         </div>
       </button>
@@ -1611,7 +1578,7 @@ const App: React.FC = () => {
         {/* Top Nav - Hyper Glass */}
         <div className="relative z-30 sticky top-0">
           <div className="absolute inset-0 bg-gradient-to-b from-black via-black/80 to-transparent" />
-          <div className="relative h-20 flex items-center justify-between px-6 border-b border-white/[0.06] bg-[linear-gradient(180deg,#101012_0%,#0a0a0b_100%)]">
+          <div className="relative h-20 flex items-center justify-between px-6 border-b border-white/[0.06] bg-[#0a0a0b]">
             <div className="flex items-center gap-5">
               <button
                 onClick={() => setCurrentView('DASHBOARD')}
@@ -1864,18 +1831,17 @@ const App: React.FC = () => {
                         <div className="relative p-4 flex items-center justify-between">
                           <div className="flex items-center gap-4">
                             {/* Status Indicator */}
-                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 ${
-                              isVideoPlaying
-                                ? 'bg-green-500/20 border border-green-500/40 shadow-[0_0_20px_rgba(34,197,94,0.2)]'
-                                : videoWatchedPercent > 0
-                                  ? 'bg-yellow-400/20 border border-yellow-400/40'
-                                  : 'bg-white/5 border border-white/10'
-                            }`}>
+                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 ${isVideoPlaying
+                              ? 'bg-green-500/20 border border-green-500/40 shadow-[0_0_20px_rgba(34,197,94,0.2)]'
+                              : videoWatchedPercent > 0
+                                ? 'bg-yellow-400/20 border border-yellow-400/40'
+                                : 'bg-white/5 border border-white/10'
+                              }`}>
                               {isVideoPlaying ? (
                                 <div className="flex gap-0.5">
                                   <div className="w-1 h-5 bg-green-400 rounded animate-pulse"></div>
-                                  <div className="w-1 h-5 bg-green-400 rounded animate-pulse" style={{animationDelay: '0.2s'}}></div>
-                                  <div className="w-1 h-5 bg-green-400 rounded animate-pulse" style={{animationDelay: '0.4s'}}></div>
+                                  <div className="w-1 h-5 bg-green-400 rounded animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+                                  <div className="w-1 h-5 bg-green-400 rounded animate-pulse" style={{ animationDelay: '0.4s' }}></div>
                                 </div>
                               ) : videoWatchedPercent >= 80 ? (
                                 <CheckCircle size={24} className="text-green-400" />
@@ -1957,7 +1923,7 @@ const App: React.FC = () => {
                             }
                           </p>
                           <PrimaryButton onClick={downloadResource} className="flex items-center gap-2">
-                            {isDownloaded ? <CheckCircle size={18}/> : <Download size={18} />}
+                            {isDownloaded ? <CheckCircle size={18} /> : <Download size={18} />}
                             {isDownloaded ? 'Downloaded - Ready to Continue' : 'Download Resource'}
                           </PrimaryButton>
                         </div>
@@ -1992,11 +1958,10 @@ const App: React.FC = () => {
                               </span>
                               <div className="flex items-center gap-2">
                                 {activeLesson.quiz.map((_, i) => (
-                                  <div key={i} className={`w-2 h-2 rounded-full transition-all ${
-                                    i < currentQIdx ? 'bg-yellow-400'
+                                  <div key={i} className={`w-2 h-2 rounded-full transition-all ${i < currentQIdx ? 'bg-yellow-400'
                                     : i === currentQIdx ? 'bg-yellow-400 w-4'
-                                    : 'bg-white/20'
-                                  }`} />
+                                      : 'bg-white/20'
+                                    }`} />
                                 ))}
                               </div>
                             </div>
@@ -2053,55 +2018,53 @@ const App: React.FC = () => {
                           const scorePercent = Math.round((quizScore / activeLesson.quiz.length) * 100);
                           const passed = scorePercent >= PASSING_SCORE;
                           return (
-                          <div className="text-center space-y-8 animate-fade-in">
-                            <div className={`w-32 h-32 rounded-3xl mx-auto flex items-center justify-center shadow-[0_0_60px_${passed ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}] ${
-                              passed
+                            <div className="text-center space-y-8 animate-fade-in">
+                              <div className={`w-32 h-32 rounded-3xl mx-auto flex items-center justify-center shadow-[0_0_60px_${passed ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}] ${passed
                                 ? 'bg-gradient-to-br from-green-400/30 to-green-500/10 border border-green-400/40'
                                 : 'bg-gradient-to-br from-red-400/30 to-red-500/10 border border-red-400/40'
-                            }`}>
-                              {passed ? (
-                                <Trophy size={64} className="text-green-400 drop-shadow-[0_0_25px_rgba(34,197,94,0.6)]" />
-                              ) : (
-                                <XCircle size={64} className="text-red-400 drop-shadow-[0_0_25px_rgba(239,68,68,0.6)]" />
-                              )}
-                            </div>
-                            <div>
-                              <h2 className={`text-3xl font-bold mb-4 ${passed ? 'text-green-400' : 'text-red-400'}`}>
-                                {passed ? 'Quiz Passed!' : 'Quiz Not Passed'}
-                              </h2>
-                              <div className={`text-7xl font-black bg-clip-text text-transparent bg-gradient-to-r mb-3 ${
-                                passed
+                                }`}>
+                                {passed ? (
+                                  <Trophy size={64} className="text-green-400 drop-shadow-[0_0_25px_rgba(34,197,94,0.6)]" />
+                                ) : (
+                                  <XCircle size={64} className="text-red-400 drop-shadow-[0_0_25px_rgba(239,68,68,0.6)]" />
+                                )}
+                              </div>
+                              <div>
+                                <h2 className={`text-3xl font-bold mb-4 ${passed ? 'text-green-400' : 'text-red-400'}`}>
+                                  {passed ? 'Quiz Passed!' : 'Quiz Not Passed'}
+                                </h2>
+                                <div className={`text-7xl font-black bg-clip-text text-transparent bg-gradient-to-r mb-3 ${passed
                                   ? 'from-green-400 via-green-300 to-white'
                                   : 'from-red-400 via-red-300 to-white'
-                              }`}>
-                                {scorePercent}%
-                              </div>
-                              <p className="text-zinc-400 text-lg">
-                                You answered <span className={passed ? 'text-green-400' : 'text-red-400'} style={{fontWeight: 'bold'}}>{quizScore}</span> out of <span className="text-white font-bold">{activeLesson.quiz.length}</span> correctly
-                              </p>
-                              <p className="text-zinc-500 text-sm mt-2">
-                                Passing score: {PASSING_SCORE}%
-                              </p>
-                              {!passed && (
-                                <p className="text-yellow-400/80 text-sm mt-4 px-4 py-2 rounded-lg bg-yellow-400/10 border border-yellow-400/20 inline-block">
-                                  You need to score at least {PASSING_SCORE}% to complete this lesson
+                                  }`}>
+                                  {scorePercent}%
+                                </div>
+                                <p className="text-zinc-400 text-lg">
+                                  You answered <span className={passed ? 'text-green-400' : 'text-red-400'} style={{ fontWeight: 'bold' }}>{quizScore}</span> out of <span className="text-white font-bold">{activeLesson.quiz.length}</span> correctly
                                 </p>
-                              )}
+                                <p className="text-zinc-500 text-sm mt-2">
+                                  Passing score: {PASSING_SCORE}%
+                                </p>
+                                {!passed && (
+                                  <p className="text-yellow-400/80 text-sm mt-4 px-4 py-2 rounded-lg bg-yellow-400/10 border border-yellow-400/20 inline-block">
+                                    You need to score at least {PASSING_SCORE}% to complete this lesson
+                                  </p>
+                                )}
+                              </div>
+                              <div className="flex gap-4 justify-center pt-4">
+                                <SecondaryButton
+                                  onClick={() => { setQuizState('INTRO'); setCurrentQIdx(0); setQuizAnswers([]); setQuizPassed(null); }}
+                                  className="px-8"
+                                >
+                                  <RefreshCw size={16} className="mr-2" /> {passed ? 'Retry' : 'Try Again'}
+                                </SecondaryButton>
+                                {passed && (
+                                  <PrimaryButton onClick={() => handleLessonComplete(quizScore, activeLesson?.quiz?.length)} className="px-8">
+                                    <Award size={16} className="mr-2" /> Complete & Continue
+                                  </PrimaryButton>
+                                )}
+                              </div>
                             </div>
-                            <div className="flex gap-4 justify-center pt-4">
-                              <SecondaryButton
-                                onClick={() => { setQuizState('INTRO'); setCurrentQIdx(0); setQuizAnswers([]); setQuizPassed(null); }}
-                                className="px-8"
-                              >
-                                <RefreshCw size={16} className="mr-2" /> {passed ? 'Retry' : 'Try Again'}
-                              </SecondaryButton>
-                              {passed && (
-                                <PrimaryButton onClick={() => handleLessonComplete(quizScore, activeLesson?.quiz?.length)} className="px-8">
-                                  <Award size={16} className="mr-2" /> Complete & Continue
-                                </PrimaryButton>
-                              )}
-                            </div>
-                          </div>
                           );
                         })()}
                       </div>
@@ -2114,29 +2077,28 @@ const App: React.FC = () => {
                       <div className="absolute inset-0 bg-gradient-to-r from-white/[0.05] to-white/[0.02] backdrop-blur-xl border border-white/10" />
                       <div className="relative p-6 flex flex-col md:flex-row justify-between items-center gap-6">
                         <div className="flex items-center gap-4">
-                          <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 ${
-                            activeLesson.isCompleted || (activeLesson.type === 'video' && videoWatchedPercent >= 80)
-                              ? 'bg-green-500/20 border border-green-500/30'
-                              : 'bg-white/5 border border-white/10'
-                          }`}>
+                          <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 ${activeLesson.isCompleted || (activeLesson.type === 'video' && videoWatchedPercent >= 80)
+                            ? 'bg-green-500/20 border border-green-500/30'
+                            : 'bg-white/5 border border-white/10'
+                            }`}>
                             {activeLesson.isCompleted ? (
-                              <CheckCircle size={28} className="text-green-400"/>
+                              <CheckCircle size={28} className="text-green-400" />
                             ) : activeLesson.type === 'video' ? (
                               <div className="relative">
-                                <PlayCircle size={28} className={videoWatchedPercent >= 80 ? 'text-green-400' : 'text-yellow-400'}/>
+                                <PlayCircle size={28} className={videoWatchedPercent >= 80 ? 'text-green-400' : 'text-yellow-400'} />
                                 {videoWatchedPercent > 0 && videoWatchedPercent < 80 && (
                                   <span className="absolute -top-1 -right-1 text-[10px] bg-yellow-400 text-black px-1 rounded font-bold">{videoWatchedPercent}%</span>
                                 )}
                               </div>
                             ) : (
-                              <FileText size={28} className="text-yellow-400"/>
+                              <FileText size={28} className="text-yellow-400" />
                             )}
                           </div>
                           <div>
                             <h4 className="font-bold text-white text-lg">{activeLesson.title}</h4>
                             <p className="text-sm text-zinc-400">
                               {activeLesson.durationMin} min • {activeLesson.isCompleted ? (
-                                <span className="text-green-400 flex items-center gap-1"><CheckCircle size={12}/> Completed</span>
+                                <span className="text-green-400 flex items-center gap-1"><CheckCircle size={12} /> Completed</span>
                               ) : activeLesson.type === 'video' ? (
                                 <span className={videoWatchedPercent >= 80 ? 'text-green-400' : 'text-yellow-400'}>
                                   {videoWatchedPercent >= 80 ? 'Ready to complete' : `${videoWatchedPercent}% watched (80% required)`}
@@ -2168,11 +2130,10 @@ const App: React.FC = () => {
                               ((activeLesson.type === 'pdf' || activeLesson.type === 'presentation') && !isDownloaded) ||
                               (activeLesson.type === 'video' && videoWatchedPercent < 80)
                             }
-                            className={`px-8 ${
-                              activeLesson.type === 'video' && videoWatchedPercent >= 80 && !activeLesson.isCompleted
-                                ? 'bg-green-500 hover:bg-green-400 border-green-400 shadow-[0_0_20px_rgba(34,197,94,0.3)]'
-                                : ''
-                            }`}
+                            className={`px-8 ${activeLesson.type === 'video' && videoWatchedPercent >= 80 && !activeLesson.isCompleted
+                              ? 'bg-green-500 hover:bg-green-400 border-green-400 shadow-[0_0_20px_rgba(34,197,94,0.3)]'
+                              : ''
+                              }`}
                           >
                             {activeLesson.isCompleted ? (
                               <><CheckCircle size={18} className="mr-2" /> Completed</>
@@ -2189,7 +2150,7 @@ const App: React.FC = () => {
               ) : (
                 <div className="flex flex-col items-center justify-center h-full text-center py-20">
                   <div className="w-32 h-32 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center mb-8">
-                    <BookOpen size={64} className="text-zinc-600"/>
+                    <BookOpen size={64} className="text-zinc-600" />
                   </div>
                   <h3 className="text-2xl font-bold text-zinc-300 mb-3">Select a Lesson</h3>
                   <p className="text-zinc-500 max-w-sm">Choose a lesson from the curriculum to begin your learning journey.</p>
@@ -2430,7 +2391,7 @@ const App: React.FC = () => {
     };
 
     const handleEditCourse = (course: Course) => {
-      setEditingCourse({...course});
+      setEditingCourse({ ...course });
       setViewMode('EDITOR');
       setEditorTab('CURRICULUM');
     };
@@ -2595,424 +2556,346 @@ const App: React.FC = () => {
 
       return (
         <div className="md:ml-64 h-screen overflow-hidden relative z-10 bg-black flex flex-col">
-           {/* Editor Header */}
-           <div className="h-16 flex-shrink-0 bg-[linear-gradient(180deg,#121214_0%,#0a0a0b_100%)] border-b border-white/[0.05] flex items-center justify-between px-6 z-30">
-             <div className="flex items-center gap-4">
-                <IconButton icon={<ArrowLeft size={20} />} onClick={() => setViewMode('DASHBOARD')} />
-                <h2 className="font-bold text-lg text-white">Course Editor</h2>
-                <div className="h-4 w-px bg-white/10"></div>
-                <span className="text-zinc-400 text-sm">{editingCourse.title}</span>
-             </div>
-             <div className="flex gap-3">
-                <SecondaryButton className="px-4 py-2 text-sm h-9 flex items-center" onClick={() => setViewMode('DASHBOARD')}>Cancel</SecondaryButton>
-                <PrimaryButton
-                  className="px-4 py-2 text-sm h-9 flex items-center gap-2"
-                  onClick={handleSaveCourse}
-                  disabled={isSaving}
+          {/* Editor Header */}
+          <div className="h-16 flex-shrink-0 bg-[linear-gradient(180deg,#121214_0%,#0a0a0b_100%)] border-b border-white/[0.05] flex items-center justify-between px-6 z-30">
+            <div className="flex items-center gap-4">
+              <IconButton icon={<ArrowLeft size={20} />} onClick={() => setViewMode('DASHBOARD')} />
+              <h2 className="font-bold text-lg text-white">Course Editor</h2>
+              <div className="h-4 w-px bg-white/10"></div>
+              <span className="text-zinc-400 text-sm">{editingCourse.title}</span>
+            </div>
+            <div className="flex gap-3">
+              <SecondaryButton className="px-4 py-2 text-sm h-9 flex items-center" onClick={() => setViewMode('DASHBOARD')}>Cancel</SecondaryButton>
+              <PrimaryButton
+                className="px-4 py-2 text-sm h-9 flex items-center gap-2"
+                onClick={handleSaveCourse}
+                disabled={isSaving}
+              >
+                {isSaving ? (
+                  <><div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" /> Saving...</>
+                ) : (
+                  <><Save size={16} /> Publish Changes</>
+                )}
+              </PrimaryButton>
+            </div>
+          </div>
+
+          <div className="flex flex-1 overflow-hidden">
+            {/* Left Sidebar: Structure */}
+            <div className="w-80 bg-[linear-gradient(180deg,#131315_0%,#0a0a0b_100%)] border-r border-white/[0.05] flex flex-col">
+              <div className="flex border-b border-white/5">
+                <button
+                  onClick={() => setEditorTab('DETAILS')}
+                  className={`flex-1 py-4 text-sm font-medium transition-colors ${editorTab === 'DETAILS' ? 'text-yellow-400 border-b-2 border-yellow-400 bg-yellow-400/5' : 'text-zinc-400 hover:text-white'}`}
                 >
-                  {isSaving ? (
-                    <><div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" /> Saving...</>
-                  ) : (
-                    <><Save size={16} /> Publish Changes</>
-                  )}
-                </PrimaryButton>
-             </div>
-           </div>
-
-           <div className="flex flex-1 overflow-hidden">
-              {/* Left Sidebar: Structure */}
-              <div className="w-80 bg-[linear-gradient(180deg,#131315_0%,#0a0a0b_100%)] border-r border-white/[0.05] flex flex-col">
-                 <div className="flex border-b border-white/5">
-                   <button 
-                    onClick={() => setEditorTab('DETAILS')}
-                    className={`flex-1 py-4 text-sm font-medium transition-colors ${editorTab === 'DETAILS' ? 'text-yellow-400 border-b-2 border-yellow-400 bg-yellow-400/5' : 'text-zinc-400 hover:text-white'}`}
-                   >
-                     Details
-                   </button>
-                   <button 
-                    onClick={() => setEditorTab('CURRICULUM')}
-                    className={`flex-1 py-4 text-sm font-medium transition-colors ${editorTab === 'CURRICULUM' ? 'text-yellow-400 border-b-2 border-yellow-400 bg-yellow-400/5' : 'text-zinc-400 hover:text-white'}`}
-                   >
-                     Curriculum
-                   </button>
-                 </div>
-
-                 {editorTab === 'DETAILS' ? (
-                   <div className="p-6 space-y-6 overflow-y-auto">
-                      <div>
-                        <label className="text-xs text-zinc-500 font-bold uppercase mb-2 block">Course Thumbnail</label>
-                        {/* Current thumbnail preview */}
-                        {editingCourse.thumbnail && (
-                          <div className="aspect-video rounded-xl bg-zinc-800 overflow-hidden mb-3 relative group border border-white/10">
-                            <img src={editingCourse.thumbnail} className="w-full h-full object-cover" />
-                            <button
-                              onClick={() => setEditingCourse({...editingCourse, thumbnail: ''})}
-                              className="absolute top-2 right-2 p-1.5 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500"
-                            >
-                              <X size={14} />
-                            </button>
-                          </div>
-                        )}
-                        {/* Upload option */}
-                        <div className="mb-3">
-                          <FileDropZone
-                            label="Upload Thumbnail Image"
-                            accept="image/jpeg,image/png,image/webp,image/gif,.jpg,.jpeg,.png,.webp,.gif"
-                            currentFile={undefined}
-                            isUploading={isUploading}
-                            uploadProgress={uploadProgress}
-                            onFileSelect={async (file) => {
-                              try {
-                                setIsUploading(true);
-                                setUploadProgress(0);
-                                const result = await dataService.uploadFile(file, (progress) => {
-                                  setUploadProgress(progress);
-                                });
-                                setEditingCourse({...editingCourse, thumbnail: result.file.fileUrl});
-                                showToast('success', 'Thumbnail Uploaded', 'Image uploaded successfully.');
-                              } catch (error) {
-                                console.error('Failed to upload thumbnail:', error);
-                                showToast('error', 'Upload Failed', 'Failed to upload thumbnail. Please try again.');
-                              } finally {
-                                setIsUploading(false);
-                                setUploadProgress(0);
-                              }
-                            }}
-                          />
-                        </div>
-                        {/* OR use URL */}
-                        <div className="relative mb-3">
-                          <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-white/10"></div></div>
-                          <div className="relative flex justify-center"><span className="px-2 bg-zinc-900 text-xs text-zinc-500">OR use URL</span></div>
-                        </div>
-                        <input
-                          value={editingCourse.thumbnail || ''}
-                          onChange={e => setEditingCourse({...editingCourse, thumbnail: e.target.value})}
-                          placeholder="Enter image URL..."
-                          className="w-full bg-zinc-900/50 border border-white/10 rounded-xl p-2 text-xs text-white focus:border-yellow-400 outline-none mb-3"
-                        />
-                        {/* Quick select presets */}
-                        <div className="text-xs text-zinc-500 mb-2">Quick select:</div>
-                        <div className="grid grid-cols-4 gap-1">
-                          {[
-                            'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=400',
-                            'https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=400',
-                            'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=400',
-                            'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?q=80&w=400',
-                          ].map((url, idx) => (
-                            <button
-                              key={idx}
-                              onClick={() => setEditingCourse({...editingCourse, thumbnail: url.replace('w=400', 'w=2070')})}
-                              className={`aspect-video rounded-lg overflow-hidden border-2 transition-all ${editingCourse.thumbnail?.includes(url.split('?')[0].split('/').pop() || '') ? 'border-yellow-400' : 'border-transparent hover:border-white/30'}`}
-                            >
-                              <img src={url} className="w-full h-full object-cover" />
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                      <div>
-                        <label className="text-xs text-zinc-500 font-bold uppercase mb-2 block">Title</label>
-                        <input 
-                          value={editingCourse.title}
-                          onChange={e => setEditingCourse({...editingCourse, title: e.target.value})}
-                          className="w-full bg-zinc-900/50 border border-white/10 rounded-xl p-3 text-white focus:border-yellow-400 outline-none"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-xs text-zinc-500 font-bold uppercase mb-2 block">Description</label>
-                        <textarea
-                          value={editingCourse.description}
-                          onChange={e => setEditingCourse({...editingCourse, description: e.target.value})}
-                          className="w-full h-32 bg-zinc-900/50 border border-white/10 rounded-xl p-3 text-white focus:border-yellow-400 outline-none"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-xs text-zinc-500 font-bold uppercase mb-2 block">Course Level</label>
-                        <div className="grid grid-cols-3 gap-2">
-                          {(['Beginner', 'Intermediate', 'Advanced'] as const).map(level => (
-                            <button
-                              key={level}
-                              onClick={() => setEditingCourse({...editingCourse, level})}
-                              className={`py-3 px-2 rounded-xl text-sm font-medium transition-all border flex items-center justify-center text-center whitespace-nowrap min-h-[48px] ${
-                                editingCourse.level === level
-                                  ? 'bg-yellow-400 text-black border-yellow-400 shadow-lg shadow-yellow-400/20'
-                                  : 'bg-zinc-900/50 text-zinc-400 border-white/10 hover:border-yellow-400/50'
-                              }`}
-                            >
-                              {level}
-                            </button>
-                          ))}
-                        </div>
-                        <p className="text-[10px] text-zinc-500 mt-2">
-                          {editingCourse.level === 'Beginner' && 'Available to all learners from the start'}
-                          {editingCourse.level === 'Intermediate' && 'Unlocked after completing all Beginner courses'}
-                          {editingCourse.level === 'Advanced' && 'Unlocked after completing Beginner & Intermediate courses'}
-                        </p>
-                      </div>
-                      <div>
-                        <label className="text-xs text-zinc-500 font-bold uppercase mb-2 block">Estimated Duration</label>
-                        <input
-                          value={editingCourse.totalDuration || ''}
-                          onChange={e => setEditingCourse({...editingCourse, totalDuration: e.target.value})}
-                          placeholder="e.g., 60 min or 1h 30min"
-                          className="w-full bg-zinc-900/50 border border-white/10 rounded-xl p-3 text-white focus:border-yellow-400 outline-none"
-                        />
-                      </div>
-
-                      {/* Deadline and Mandatory Settings */}
-                      <div className="pt-4 border-t border-white/10">
-                        <h4 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
-                          <Calendar size={16} className="text-yellow-400" />
-                          Deadline & Requirements
-                        </h4>
-                        <div className="space-y-3">
-                          <div>
-                            <label className="text-xs text-zinc-500 font-bold uppercase mb-2 block">Completion Deadline</label>
-                            <input
-                              type="datetime-local"
-                              value={editingCourse.deadline ? new Date(editingCourse.deadline).toISOString().slice(0, 16) : ''}
-                              onChange={e => setEditingCourse({...editingCourse, deadline: e.target.value ? new Date(e.target.value).toISOString() : undefined})}
-                              className="w-full bg-zinc-900/50 border border-white/10 rounded-xl p-3 text-white focus:border-yellow-400 outline-none"
-                            />
-                            <p className="text-[10px] text-zinc-500 mt-1">Leave empty for no deadline</p>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <button
-                              onClick={() => setEditingCourse({...editingCourse, isMandatory: !editingCourse.isMandatory})}
-                              className={`w-12 h-6 rounded-full transition-colors relative ${
-                                editingCourse.isMandatory ? 'bg-yellow-400' : 'bg-zinc-700'
-                              }`}
-                            >
-                              <div className={`w-5 h-5 rounded-full bg-white absolute top-0.5 transition-transform ${
-                                editingCourse.isMandatory ? 'translate-x-6' : 'translate-x-0.5'
-                              }`} />
-                            </button>
-                            <div>
-                              <span className="text-sm text-white">Mandatory Training</span>
-                              <p className="text-[10px] text-zinc-500">Mark as required for all learners</p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                   </div>
-                 ) : (
-                   <div className="flex-1 flex flex-col">
-                     <div className="p-4 space-y-2 overflow-y-auto flex-1">
-                        {editingCourse.lessons?.map((lesson, idx) => (
-                          <div
-                            key={lesson.id}
-                            draggable
-                            onDragStart={(e) => {
-                              e.dataTransfer.setData('text/plain', idx.toString());
-                              e.dataTransfer.effectAllowed = 'move';
-                              (e.target as HTMLElement).classList.add('dragging');
-                            }}
-                            onDragEnd={(e) => {
-                              (e.target as HTMLElement).classList.remove('dragging');
-                            }}
-                            onDragOver={(e) => {
-                              e.preventDefault();
-                              e.dataTransfer.dropEffect = 'move';
-                              (e.currentTarget as HTMLElement).classList.add('drag-over');
-                            }}
-                            onDragLeave={(e) => {
-                              (e.currentTarget as HTMLElement).classList.remove('drag-over');
-                            }}
-                            onDrop={(e) => {
-                              e.preventDefault();
-                              (e.currentTarget as HTMLElement).classList.remove('drag-over');
-                              const fromIndex = parseInt(e.dataTransfer.getData('text/plain'));
-                              const toIndex = idx;
-                              if (fromIndex !== toIndex && editingCourse?.lessons) {
-                                const lessons = [...editingCourse.lessons];
-                                const [movedLesson] = lessons.splice(fromIndex, 1);
-                                lessons.splice(toIndex, 0, movedLesson);
-                                setEditingCourse({ ...editingCourse, lessons });
-                              }
-                            }}
-                            onClick={() => setActiveLessonId(lesson.id)}
-                            className={`group p-3 rounded-xl border transition-all cursor-pointer flex items-center gap-2 ${
-                              activeLessonId === lesson.id
-                                ? 'bg-yellow-400/10 border-yellow-400/30 shadow-[0_0_15px_rgba(250,204,21,0.1)]'
-                                : 'bg-white/5 border-transparent hover:border-white/10'
-                            }`}
-                          >
-                             {/* Drag Handle */}
-                             <div
-                               className="drag-handle p-1 rounded hover:bg-white/10 text-zinc-500 hover:text-zinc-300 transition-colors"
-                               onClick={(e) => e.stopPropagation()}
-                             >
-                               <GripVertical size={14} />
-                             </div>
-                             {/* Reorder buttons (kept as alternative) */}
-                             <div className="flex flex-col gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                               <button
-                                 onClick={(e) => { e.stopPropagation(); moveLessonUp(idx); }}
-                                 disabled={idx === 0}
-                                 className={`p-0.5 rounded hover:bg-white/10 ${idx === 0 ? 'text-zinc-700 cursor-not-allowed' : 'text-zinc-400 hover:text-white'}`}
-                               >
-                                 <ChevronUp size={12} />
-                               </button>
-                               <button
-                                 onClick={(e) => { e.stopPropagation(); moveLessonDown(idx); }}
-                                 disabled={idx === (editingCourse.lessons?.length || 0) - 1}
-                                 className={`p-0.5 rounded hover:bg-white/10 ${idx === (editingCourse.lessons?.length || 0) - 1 ? 'text-zinc-700 cursor-not-allowed' : 'text-zinc-400 hover:text-white'}`}
-                               >
-                                 <ChevronDown size={12} />
-                               </button>
-                             </div>
-                             <div className="h-6 w-6 rounded flex items-center justify-center bg-zinc-800 text-zinc-400 text-xs font-mono">{idx + 1}</div>
-                             <div className="flex-1 min-w-0">
-                               <div className="text-sm font-medium truncate text-white" title={lesson.title}>{lesson.title}</div>
-                               <div className="text-[10px] text-zinc-500 uppercase flex items-center gap-1">
-                                 {lesson.type === 'video' && <Video size={10} />}
-                                 {lesson.type === 'quiz' && <HelpCircle size={10} />}
-                                 {(lesson.type === 'pdf' || lesson.type === 'presentation') && <FileText size={10} />}
-                                 {lesson.type}
-                               </div>
-                             </div>
-                             <button
-                              onClick={(e) => { e.stopPropagation(); deleteLesson(lesson.id); }}
-                              className="opacity-0 group-hover:opacity-100 p-1 hover:text-red-400 transition-opacity"
-                            >
-                               <Trash2 size={14} />
-                             </button>
-                          </div>
-                        ))}
-                     </div>
-                     <div className="p-4 border-t border-white/10 bg-zinc-900/50">
-                        <div className="flex gap-2 mb-2">
-                           {(['video', 'pdf', 'presentation', 'quiz'] as ContentType[]).map(type => (
-                             <button 
-                                key={type}
-                                onClick={() => setNewLessonType(type)}
-                                className={`flex-1 py-1 rounded text-[10px] uppercase font-bold transition-all ${newLessonType === type ? 'bg-yellow-400 text-black' : 'bg-zinc-800 text-zinc-500 hover:bg-zinc-700'}`}
-                             >
-                               {type === 'presentation' ? 'PPT' : type}
-                             </button>
-                           ))}
-                        </div>
-                        <PrimaryButton onClick={addLesson} className="w-full py-2 text-sm">Add Lesson</PrimaryButton>
-                     </div>
-                   </div>
-                 )}
+                  Details
+                </button>
+                <button
+                  onClick={() => setEditorTab('CURRICULUM')}
+                  className={`flex-1 py-4 text-sm font-medium transition-colors ${editorTab === 'CURRICULUM' ? 'text-yellow-400 border-b-2 border-yellow-400 bg-yellow-400/5' : 'text-zinc-400 hover:text-white'}`}
+                >
+                  Curriculum
+                </button>
               </div>
 
-              {/* Main Editing Area */}
-              <div className="flex-1 bg-gradient-to-br from-zinc-950 to-zinc-900 p-8 overflow-y-auto">
-                 {editorTab === 'CURRICULUM' && activeLesson ? (
-                    <div className="max-w-3xl mx-auto space-y-8 animate-fade-in">
-                       <div className="flex items-center justify-between mb-2">
-                         <Badge type="default">{activeLesson.type.toUpperCase()}</Badge>
-                         <div className="text-xs text-zinc-500 font-mono">ID: {activeLesson.id}</div>
-                       </div>
-                       
-                       <input 
-                         className="text-3xl font-bold bg-transparent border-none outline-none text-white placeholder-zinc-600 w-full"
-                         placeholder="Lesson Title"
-                         value={activeLesson.title}
-                         onChange={(e) => updateLesson(activeLesson.id, { title: e.target.value })}
-                       />
+              {editorTab === 'DETAILS' ? (
+                <div className="p-6 space-y-6 overflow-y-auto">
+                  <div>
+                    <label className="text-xs text-zinc-500 font-bold uppercase mb-2 block">Course Thumbnail</label>
+                    {/* Current thumbnail preview */}
+                    {editingCourse.thumbnail && (
+                      <div className="aspect-video rounded-xl bg-zinc-800 overflow-hidden mb-3 relative group border border-white/10">
+                        <img src={editingCourse.thumbnail} className="w-full h-full object-cover" />
+                        <button
+                          onClick={() => setEditingCourse({ ...editingCourse, thumbnail: '' })}
+                          className="absolute top-2 right-2 p-1.5 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500"
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                    )}
+                    {/* Upload option */}
+                    <div className="mb-3">
+                      <FileDropZone
+                        label="Upload Thumbnail Image"
+                        accept="image/jpeg,image/png,image/webp,image/gif,.jpg,.jpeg,.png,.webp,.gif"
+                        currentFile={undefined}
+                        isUploading={isUploading}
+                        uploadProgress={uploadProgress}
+                        onFileSelect={async (file) => {
+                          try {
+                            setIsUploading(true);
+                            setUploadProgress(0);
+                            const result = await dataService.uploadFile(file, (progress) => {
+                              setUploadProgress(progress);
+                            });
+                            setEditingCourse({ ...editingCourse, thumbnail: result.file.fileUrl });
+                            showToast('success', 'Thumbnail Uploaded', 'Image uploaded successfully.');
+                          } catch (error) {
+                            console.error('Failed to upload thumbnail:', error);
+                            showToast('error', 'Upload Failed', 'Failed to upload thumbnail. Please try again.');
+                          } finally {
+                            setIsUploading(false);
+                            setUploadProgress(0);
+                          }
+                        }}
+                      />
+                    </div>
+                    {/* OR use URL */}
+                    <div className="relative mb-3">
+                      <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-white/10"></div></div>
+                      <div className="relative flex justify-center"><span className="px-2 bg-zinc-900 text-xs text-zinc-500">OR use URL</span></div>
+                    </div>
+                    <input
+                      value={editingCourse.thumbnail || ''}
+                      onChange={e => setEditingCourse({ ...editingCourse, thumbnail: e.target.value })}
+                      placeholder="Enter image URL..."
+                      className="w-full bg-zinc-900/50 border border-white/10 rounded-xl p-2 text-xs text-white focus:border-yellow-400 outline-none mb-3"
+                    />
+                    {/* Quick select presets */}
+                    <div className="text-xs text-zinc-500 mb-2">Quick select:</div>
+                    <div className="grid grid-cols-4 gap-1">
+                      {[
+                        'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=400',
+                        'https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=400',
+                        'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=400',
+                        'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?q=80&w=400',
+                      ].map((url, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => setEditingCourse({ ...editingCourse, thumbnail: url.replace('w=400', 'w=2070') })}
+                          className={`aspect-video rounded-lg overflow-hidden border-2 transition-all ${editingCourse.thumbnail?.includes(url.split('?')[0].split('/').pop() || '') ? 'border-yellow-400' : 'border-transparent hover:border-white/30'}`}
+                        >
+                          <img src={url} className="w-full h-full object-cover" />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-xs text-zinc-500 font-bold uppercase mb-2 block">Title</label>
+                    <input
+                      value={editingCourse.title}
+                      onChange={e => setEditingCourse({ ...editingCourse, title: e.target.value })}
+                      className="w-full bg-zinc-900/50 border border-white/10 rounded-xl p-3 text-white focus:border-yellow-400 outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-zinc-500 font-bold uppercase mb-2 block">Description</label>
+                    <textarea
+                      value={editingCourse.description}
+                      onChange={e => setEditingCourse({ ...editingCourse, description: e.target.value })}
+                      className="w-full h-32 bg-zinc-900/50 border border-white/10 rounded-xl p-3 text-white focus:border-yellow-400 outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-zinc-500 font-bold uppercase mb-2 block">Course Level</label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {(['Beginner', 'Intermediate', 'Advanced'] as const).map(level => (
+                        <button
+                          key={level}
+                          onClick={() => setEditingCourse({ ...editingCourse, level })}
+                          className={`py-3 px-2 rounded-xl text-sm font-medium transition-all border flex items-center justify-center text-center whitespace-nowrap min-h-[48px] ${editingCourse.level === level
+                            ? 'bg-yellow-400 text-black border-yellow-400 shadow-lg shadow-yellow-400/20'
+                            : 'bg-zinc-900/50 text-zinc-400 border-white/10 hover:border-yellow-400/50'
+                            }`}
+                        >
+                          {level}
+                        </button>
+                      ))}
+                    </div>
+                    <p className="text-[10px] text-zinc-500 mt-2">
+                      {editingCourse.level === 'Beginner' && 'Available to all learners from the start'}
+                      {editingCourse.level === 'Intermediate' && 'Unlocked after completing all Beginner courses'}
+                      {editingCourse.level === 'Advanced' && 'Unlocked after completing Beginner & Intermediate courses'}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-xs text-zinc-500 font-bold uppercase mb-2 block">Estimated Duration</label>
+                    <input
+                      value={editingCourse.totalDuration || ''}
+                      onChange={e => setEditingCourse({ ...editingCourse, totalDuration: e.target.value })}
+                      placeholder="e.g., 60 min or 1h 30min"
+                      className="w-full bg-zinc-900/50 border border-white/10 rounded-xl p-3 text-white focus:border-yellow-400 outline-none"
+                    />
+                  </div>
 
-                       {/* Content Type Specific Editors */}
-                       
-                       {/* 1. Video Editor */}
-                       {activeLesson.type === 'video' && (
-                         <GlassCard className="space-y-6">
-                           {/* Video Source Options */}
-                           <div className="space-y-4">
-                             <label className="block text-sm text-zinc-400 mb-2">Video Source</label>
-                             <div className="grid grid-cols-2 gap-4">
-                               {/* Option 1: URL */}
-                               <div className="space-y-2">
-                                 <div className="text-xs text-zinc-500 uppercase font-bold">From URL (YouTube/Vimeo)</div>
-                                 <input
-                                   className="w-full bg-zinc-900/50 border border-white/10 rounded-xl p-3 outline-none focus:border-yellow-400 text-sm"
-                                   placeholder="https://youtube.com/watch?v=..."
-                                   value={activeLesson.videoUrl || ''}
-                                   onChange={(e) => updateLesson(activeLesson.id, { videoUrl: e.target.value, fileUrl: undefined })}
-                                 />
-                               </div>
-                               {/* Option 2: Upload */}
-                               <div className="space-y-2">
-                                 <div className="text-xs text-zinc-500 uppercase font-bold">Upload from Computer</div>
-                                 <FileDropZone
-                                   label="Upload Video"
-                                   accept="video/mp4,video/webm,video/ogg,.mp4,.webm,.ogg"
-                                   currentFile={activeLesson.fileName}
-                                   isUploading={isUploading}
-                                   uploadProgress={uploadProgress}
-                                   onFileSelect={async (file) => {
-                                     try {
-                                       setIsUploading(true);
-                                       setUploadProgress(0);
-                                       const result = await dataService.uploadFile(file, (progress) => {
-                                         setUploadProgress(progress);
-                                       });
-                                       updateLesson(activeLesson.id, {
-                                         fileUrl: result.file.fileUrl,
-                                         fileName: result.file.originalName,
-                                         videoUrl: undefined
-                                       });
-                                       showToast('success', 'Video Uploaded', 'Your video has been uploaded successfully.');
-                                     } catch (error) {
-                                       console.error('Failed to upload video:', error);
-                                       showToast('error', 'Upload Failed', 'Failed to upload video. Please try again.');
-                                     } finally {
-                                       setIsUploading(false);
-                                       setUploadProgress(0);
-                                     }
-                                   }}
-                                 />
-                               </div>
-                             </div>
-                           </div>
+                  {/* Deadline and Mandatory Settings */}
+                  <div className="pt-4 border-t border-white/10">
+                    <h4 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
+                      <Calendar size={16} className="text-yellow-400" />
+                      Deadline & Requirements
+                    </h4>
+                    <div className="space-y-3">
+                      <div>
+                        <label className="text-xs text-zinc-500 font-bold uppercase mb-2 block">Completion Deadline</label>
+                        <input
+                          type="datetime-local"
+                          value={editingCourse.deadline ? new Date(editingCourse.deadline).toISOString().slice(0, 16) : ''}
+                          onChange={e => setEditingCourse({ ...editingCourse, deadline: e.target.value ? new Date(e.target.value).toISOString() : undefined })}
+                          className="w-full bg-zinc-900/50 border border-white/10 rounded-xl p-3 text-white focus:border-yellow-400 outline-none"
+                        />
+                        <p className="text-[10px] text-zinc-500 mt-1">Leave empty for no deadline</p>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={() => setEditingCourse({ ...editingCourse, isMandatory: !editingCourse.isMandatory })}
+                          className={`w-12 h-6 rounded-full transition-colors relative ${editingCourse.isMandatory ? 'bg-yellow-400' : 'bg-zinc-700'
+                            }`}
+                        >
+                          <div className={`w-5 h-5 rounded-full bg-white absolute top-0.5 transition-transform ${editingCourse.isMandatory ? 'translate-x-6' : 'translate-x-0.5'
+                            }`} />
+                        </button>
+                        <div>
+                          <span className="text-sm text-white">Mandatory Training</span>
+                          <p className="text-[10px] text-zinc-500">Mark as required for all learners</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex-1 flex flex-col">
+                  <div className="p-4 space-y-2 overflow-y-auto flex-1">
+                    {editingCourse.lessons?.map((lesson, idx) => (
+                      <div
+                        key={lesson.id}
+                        draggable
+                        onDragStart={(e) => {
+                          e.dataTransfer.setData('text/plain', idx.toString());
+                          e.dataTransfer.effectAllowed = 'move';
+                          (e.target as HTMLElement).classList.add('dragging');
+                        }}
+                        onDragEnd={(e) => {
+                          (e.target as HTMLElement).classList.remove('dragging');
+                        }}
+                        onDragOver={(e) => {
+                          e.preventDefault();
+                          e.dataTransfer.dropEffect = 'move';
+                          (e.currentTarget as HTMLElement).classList.add('drag-over');
+                        }}
+                        onDragLeave={(e) => {
+                          (e.currentTarget as HTMLElement).classList.remove('drag-over');
+                        }}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          (e.currentTarget as HTMLElement).classList.remove('drag-over');
+                          const fromIndex = parseInt(e.dataTransfer.getData('text/plain'));
+                          const toIndex = idx;
+                          if (fromIndex !== toIndex && editingCourse?.lessons) {
+                            const lessons = [...editingCourse.lessons];
+                            const [movedLesson] = lessons.splice(fromIndex, 1);
+                            lessons.splice(toIndex, 0, movedLesson);
+                            setEditingCourse({ ...editingCourse, lessons });
+                          }
+                        }}
+                        onClick={() => setActiveLessonId(lesson.id)}
+                        className={`group p-3 rounded-xl border transition-all cursor-pointer flex items-center gap-2 ${activeLessonId === lesson.id
+                          ? 'bg-yellow-400/10 border-yellow-400/30 shadow-[0_0_15px_rgba(250,204,21,0.1)]'
+                          : 'bg-white/5 border-transparent hover:border-white/10'
+                          }`}
+                      >
+                        {/* Drag Handle */}
+                        <div
+                          className="drag-handle p-1 rounded hover:bg-white/10 text-zinc-500 hover:text-zinc-300 transition-colors"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <GripVertical size={14} />
+                        </div>
+                        {/* Reorder buttons (kept as alternative) */}
+                        <div className="flex flex-col gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            onClick={(e) => { e.stopPropagation(); moveLessonUp(idx); }}
+                            disabled={idx === 0}
+                            className={`p-0.5 rounded hover:bg-white/10 ${idx === 0 ? 'text-zinc-700 cursor-not-allowed' : 'text-zinc-400 hover:text-white'}`}
+                          >
+                            <ChevronUp size={12} />
+                          </button>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); moveLessonDown(idx); }}
+                            disabled={idx === (editingCourse.lessons?.length || 0) - 1}
+                            className={`p-0.5 rounded hover:bg-white/10 ${idx === (editingCourse.lessons?.length || 0) - 1 ? 'text-zinc-700 cursor-not-allowed' : 'text-zinc-400 hover:text-white'}`}
+                          >
+                            <ChevronDown size={12} />
+                          </button>
+                        </div>
+                        <div className="h-6 w-6 rounded flex items-center justify-center bg-zinc-800 text-zinc-400 text-xs font-mono">{idx + 1}</div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-medium truncate text-white" title={lesson.title}>{lesson.title}</div>
+                          <div className="text-[10px] text-zinc-500 uppercase flex items-center gap-1">
+                            {lesson.type === 'video' && <Video size={10} />}
+                            {lesson.type === 'quiz' && <HelpCircle size={10} />}
+                            {(lesson.type === 'pdf' || lesson.type === 'presentation') && <FileText size={10} />}
+                            {lesson.type}
+                          </div>
+                        </div>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); deleteLesson(lesson.id); }}
+                          className="opacity-0 group-hover:opacity-100 p-1 hover:text-red-400 transition-opacity"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="p-4 border-t border-white/10 bg-zinc-900/50">
+                    <div className="flex gap-2 mb-2">
+                      {(['video', 'pdf', 'presentation', 'quiz'] as ContentType[]).map(type => (
+                        <button
+                          key={type}
+                          onClick={() => setNewLessonType(type)}
+                          className={`flex-1 py-1 rounded text-[10px] uppercase font-bold transition-all ${newLessonType === type ? 'bg-yellow-400 text-black' : 'bg-zinc-800 text-zinc-500 hover:bg-zinc-700'}`}
+                        >
+                          {type === 'presentation' ? 'PPT' : type}
+                        </button>
+                      ))}
+                    </div>
+                    <PrimaryButton onClick={addLesson} className="w-full py-2 text-sm">Add Lesson</PrimaryButton>
+                  </div>
+                </div>
+              )}
+            </div>
 
-                           {/* Duration */}
-                           <div className="w-48">
-                             <label className="block text-sm text-zinc-400 mb-1">Duration (min)</label>
-                             <input
-                               type="number"
-                               className="w-full bg-zinc-900/50 border border-white/10 rounded-xl p-3 outline-none focus:border-yellow-400"
-                               value={activeLesson.durationMin}
-                               onChange={(e) => updateLesson(activeLesson.id, { durationMin: parseInt(e.target.value) })}
-                             />
-                           </div>
+            {/* Main Editing Area */}
+            <div className="flex-1 bg-gradient-to-br from-zinc-950 to-zinc-900 p-8 overflow-y-auto">
+              {editorTab === 'CURRICULUM' && activeLesson ? (
+                <div className="max-w-3xl mx-auto space-y-8 animate-fade-in">
+                  <div className="flex items-center justify-between mb-2">
+                    <Badge type="default">{activeLesson.type.toUpperCase()}</Badge>
+                    <div className="text-xs text-zinc-500 font-mono">ID: {activeLesson.id}</div>
+                  </div>
 
-                           {/* Preview */}
-                           <div className="aspect-video bg-black rounded-xl border border-white/10 flex items-center justify-center text-zinc-500 overflow-hidden">
-                              {activeLesson.videoUrl ? (
-                                isYouTubeUrl(activeLesson.videoUrl) ? (
-                                  <iframe
-                                    src={`https://www.youtube.com/embed/${getYouTubeVideoId(activeLesson.videoUrl)}`}
-                                    className="w-full h-full"
-                                    allowFullScreen
-                                  />
-                                ) : (
-                                  <iframe src={activeLesson.videoUrl} className="w-full h-full" allowFullScreen />
-                                )
-                              ) : activeLesson.fileUrl ? (
-                                <video
-                                  src={activeLesson.fileUrl}
-                                  controls
-                                  className="w-full h-full"
-                                />
-                              ) : (
-                                <div className="text-center">
-                                  <MonitorPlay size={48} className="mx-auto mb-2 opacity-50"/>
-                                  <p>Enter a URL or upload a video to preview</p>
-                                </div>
-                              )}
-                           </div>
-                         </GlassCard>
-                       )}
+                  <input
+                    className="text-3xl font-bold bg-transparent border-none outline-none text-white placeholder-zinc-600 w-full"
+                    placeholder="Lesson Title"
+                    value={activeLesson.title}
+                    onChange={(e) => updateLesson(activeLesson.id, { title: e.target.value })}
+                  />
 
-                       {/* 2. Document (PDF/PPT) Editor */}
-                       {(activeLesson.type === 'pdf' || activeLesson.type === 'presentation') && (
-                         <GlassCard className="space-y-6">
+                  {/* Content Type Specific Editors */}
+
+                  {/* 1. Video Editor */}
+                  {activeLesson.type === 'video' && (
+                    <GlassCard className="space-y-6">
+                      {/* Video Source Options */}
+                      <div className="space-y-4">
+                        <label className="block text-sm text-zinc-400 mb-2">Video Source</label>
+                        <div className="grid grid-cols-2 gap-4">
+                          {/* Option 1: URL */}
+                          <div className="space-y-2">
+                            <div className="text-xs text-zinc-500 uppercase font-bold">From URL (YouTube/Vimeo)</div>
+                            <input
+                              className="w-full bg-zinc-900/50 border border-white/10 rounded-xl p-3 outline-none focus:border-yellow-400 text-sm"
+                              placeholder="https://youtube.com/watch?v=..."
+                              value={activeLesson.videoUrl || ''}
+                              onChange={(e) => updateLesson(activeLesson.id, { videoUrl: e.target.value, fileUrl: undefined })}
+                            />
+                          </div>
+                          {/* Option 2: Upload */}
+                          <div className="space-y-2">
+                            <div className="text-xs text-zinc-500 uppercase font-bold">Upload from Computer</div>
                             <FileDropZone
-                              label={`Upload ${activeLesson.type === 'pdf' ? 'PDF Document' : 'PowerPoint Presentation'}`}
-                              accept={activeLesson.type === 'pdf' ? '.pdf,application/pdf' : '.ppt,.pptx,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation'}
+                              label="Upload Video"
+                              accept="video/mp4,video/webm,video/ogg,.mp4,.webm,.ogg"
                               currentFile={activeLesson.fileName}
                               isUploading={isUploading}
                               uploadProgress={uploadProgress}
@@ -3025,152 +2908,226 @@ const App: React.FC = () => {
                                   });
                                   updateLesson(activeLesson.id, {
                                     fileUrl: result.file.fileUrl,
-                                    fileName: result.file.originalName
+                                    fileName: result.file.originalName,
+                                    videoUrl: undefined
                                   });
-                                  showToast('success', 'File Uploaded', `${activeLesson.type === 'pdf' ? 'PDF document' : 'Presentation'} uploaded successfully.`);
+                                  showToast('success', 'Video Uploaded', 'Your video has been uploaded successfully.');
                                 } catch (error) {
-                                  console.error('Failed to upload file:', error);
-                                  showToast('error', 'Upload Failed', 'Failed to upload file. Please try again.');
+                                  console.error('Failed to upload video:', error);
+                                  showToast('error', 'Upload Failed', 'Failed to upload video. Please try again.');
                                 } finally {
                                   setIsUploading(false);
                                   setUploadProgress(0);
                                 }
                               }}
                             />
-                            
-                            <div className="grid grid-cols-2 gap-4">
-                              <div>
-                                <label className="block text-sm text-zinc-400 mb-1">Total {activeLesson.type === 'pdf' ? 'Pages' : 'Slides'}</label>
-                                <input 
-                                  type="number"
-                                  className="w-full bg-zinc-900/50 border border-white/10 rounded-xl p-3 outline-none focus:border-yellow-400"
-                                  value={activeLesson.pageCount || 0}
-                                  onChange={(e) => updateLesson(activeLesson.id, { pageCount: parseInt(e.target.value) })}
-                                />
-                                <p className="text-[10px] text-zinc-500 mt-1">Used to calculate est. reading time</p>
-                              </div>
-                              <div>
-                                <label className="block text-sm text-zinc-400 mb-1">Est. Time (min)</label>
-                                <input 
-                                  type="number"
-                                  className="w-full bg-zinc-900/50 border border-white/10 rounded-xl p-3 outline-none focus:border-yellow-400"
-                                  value={activeLesson.durationMin}
-                                  readOnly
-                                />
-                                <p className="text-[10px] text-yellow-400 mt-1">Auto-calculated: 2 min / page</p>
-                              </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Duration */}
+                      <div className="w-48">
+                        <label className="block text-sm text-zinc-400 mb-1">Duration (min)</label>
+                        <input
+                          type="number"
+                          className="w-full bg-zinc-900/50 border border-white/10 rounded-xl p-3 outline-none focus:border-yellow-400"
+                          value={activeLesson.durationMin}
+                          onChange={(e) => updateLesson(activeLesson.id, { durationMin: parseInt(e.target.value) })}
+                        />
+                      </div>
+
+                      {/* Preview */}
+                      <div className="aspect-video bg-black rounded-xl border border-white/10 flex items-center justify-center text-zinc-500 overflow-hidden">
+                        {activeLesson.videoUrl ? (
+                          isYouTubeUrl(activeLesson.videoUrl) ? (
+                            <iframe
+                              src={`https://www.youtube.com/embed/${getYouTubeVideoId(activeLesson.videoUrl)}`}
+                              className="w-full h-full"
+                              allowFullScreen
+                            />
+                          ) : (
+                            <iframe src={activeLesson.videoUrl} className="w-full h-full" allowFullScreen />
+                          )
+                        ) : activeLesson.fileUrl ? (
+                          <video
+                            src={activeLesson.fileUrl}
+                            controls
+                            className="w-full h-full"
+                          />
+                        ) : (
+                          <div className="text-center">
+                            <MonitorPlay size={48} className="mx-auto mb-2 opacity-50" />
+                            <p>Enter a URL or upload a video to preview</p>
+                          </div>
+                        )}
+                      </div>
+                    </GlassCard>
+                  )}
+
+                  {/* 2. Document (PDF/PPT) Editor */}
+                  {(activeLesson.type === 'pdf' || activeLesson.type === 'presentation') && (
+                    <GlassCard className="space-y-6">
+                      <FileDropZone
+                        label={`Upload ${activeLesson.type === 'pdf' ? 'PDF Document' : 'PowerPoint Presentation'}`}
+                        accept={activeLesson.type === 'pdf' ? '.pdf,application/pdf' : '.ppt,.pptx,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation'}
+                        currentFile={activeLesson.fileName}
+                        isUploading={isUploading}
+                        uploadProgress={uploadProgress}
+                        onFileSelect={async (file) => {
+                          try {
+                            setIsUploading(true);
+                            setUploadProgress(0);
+                            const result = await dataService.uploadFile(file, (progress) => {
+                              setUploadProgress(progress);
+                            });
+                            updateLesson(activeLesson.id, {
+                              fileUrl: result.file.fileUrl,
+                              fileName: result.file.originalName
+                            });
+                            showToast('success', 'File Uploaded', `${activeLesson.type === 'pdf' ? 'PDF document' : 'Presentation'} uploaded successfully.`);
+                          } catch (error) {
+                            console.error('Failed to upload file:', error);
+                            showToast('error', 'Upload Failed', 'Failed to upload file. Please try again.');
+                          } finally {
+                            setIsUploading(false);
+                            setUploadProgress(0);
+                          }
+                        }}
+                      />
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm text-zinc-400 mb-1">Total {activeLesson.type === 'pdf' ? 'Pages' : 'Slides'}</label>
+                          <input
+                            type="number"
+                            className="w-full bg-zinc-900/50 border border-white/10 rounded-xl p-3 outline-none focus:border-yellow-400"
+                            value={activeLesson.pageCount || 0}
+                            onChange={(e) => updateLesson(activeLesson.id, { pageCount: parseInt(e.target.value) })}
+                          />
+                          <p className="text-[10px] text-zinc-500 mt-1">Used to calculate est. reading time</p>
+                        </div>
+                        <div>
+                          <label className="block text-sm text-zinc-400 mb-1">Est. Time (min)</label>
+                          <input
+                            type="number"
+                            className="w-full bg-zinc-900/50 border border-white/10 rounded-xl p-3 outline-none focus:border-yellow-400"
+                            value={activeLesson.durationMin}
+                            readOnly
+                          />
+                          <p className="text-[10px] text-yellow-400 mt-1">Auto-calculated: 2 min / page</p>
+                        </div>
+                      </div>
+                    </GlassCard>
+                  )}
+
+                  {/* 3. Quiz Editor */}
+                  {activeLesson.type === 'quiz' && (
+                    <div className="space-y-4">
+                      {/* Passing Score Setting */}
+                      <GlassCard className="!bg-yellow-400/5 !border-yellow-400/20">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <Target size={20} className="text-yellow-400" />
+                            <div>
+                              <label className="text-sm font-bold text-white block">Passing Score</label>
+                              <p className="text-xs text-zinc-500">Minimum % required to complete this quiz</p>
                             </div>
-                         </GlassCard>
-                       )}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="number"
+                              min="0"
+                              max="100"
+                              value={activeLesson.passingScore || 70}
+                              onChange={(e) => updateLesson(activeLesson.id, { passingScore: parseInt(e.target.value) || 70 })}
+                              className="w-20 bg-zinc-900 border border-white/20 rounded-lg px-3 py-2 text-white text-center focus:border-yellow-400 outline-none"
+                            />
+                            <span className="text-zinc-400">%</span>
+                          </div>
+                        </div>
+                      </GlassCard>
 
-                       {/* 3. Quiz Editor */}
-                       {activeLesson.type === 'quiz' && (
-                         <div className="space-y-4">
-                            {/* Passing Score Setting */}
-                            <GlassCard className="!bg-yellow-400/5 !border-yellow-400/20">
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                  <Target size={20} className="text-yellow-400" />
-                                  <div>
-                                    <label className="text-sm font-bold text-white block">Passing Score</label>
-                                    <p className="text-xs text-zinc-500">Minimum % required to complete this quiz</p>
-                                  </div>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <input
-                                    type="number"
-                                    min="0"
-                                    max="100"
-                                    value={activeLesson.passingScore || 70}
-                                    onChange={(e) => updateLesson(activeLesson.id, { passingScore: parseInt(e.target.value) || 70 })}
-                                    className="w-20 bg-zinc-900 border border-white/20 rounded-lg px-3 py-2 text-white text-center focus:border-yellow-400 outline-none"
-                                  />
-                                  <span className="text-zinc-400">%</span>
-                                </div>
-                              </div>
-                            </GlassCard>
-
-                            {activeLesson.quiz?.map((q, qIdx) => (
-                              <GlassCard key={q.id} className="relative group">
-                                <button
-                                  onClick={() => {
-                                    if (!confirm('Delete this question?')) return;
-                                    const newQuiz = activeLesson.quiz?.filter((_, idx) => idx !== qIdx) || [];
+                      {activeLesson.quiz?.map((q, qIdx) => (
+                        <GlassCard key={q.id} className="relative group">
+                          <button
+                            onClick={() => {
+                              if (!confirm('Delete this question?')) return;
+                              const newQuiz = activeLesson.quiz?.filter((_, idx) => idx !== qIdx) || [];
+                              updateLesson(activeLesson.id, { quiz: newQuiz });
+                            }}
+                            className="absolute top-4 right-4 text-zinc-500 hover:text-red-400 transition-colors"
+                          >
+                            <X size={16} />
+                          </button>
+                          <div className="mb-4">
+                            <label className="text-xs font-bold text-zinc-500 uppercase mb-1 block">Question {qIdx + 1}</label>
+                            <input
+                              className="w-full bg-zinc-900 border-b border-white/10 p-2 outline-none focus:border-yellow-400"
+                              value={q.question}
+                              placeholder="Enter question..."
+                              onChange={(e) => {
+                                const newQuiz = [...(activeLesson.quiz || [])];
+                                newQuiz[qIdx].question = e.target.value;
+                                updateLesson(activeLesson.id, { quiz: newQuiz });
+                              }}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            {q.options.map((opt, oIdx) => (
+                              <div key={oIdx} className="flex items-center gap-3">
+                                <input
+                                  type="radio"
+                                  checked={q.correctAnswer === oIdx}
+                                  onChange={() => {
+                                    const newQuiz = [...(activeLesson.quiz || [])];
+                                    newQuiz[qIdx].correctAnswer = oIdx;
                                     updateLesson(activeLesson.id, { quiz: newQuiz });
                                   }}
-                                  className="absolute top-4 right-4 text-zinc-500 hover:text-red-400 transition-colors"
-                                >
-                                  <X size={16}/>
-                                </button>
-                                <div className="mb-4">
-                                  <label className="text-xs font-bold text-zinc-500 uppercase mb-1 block">Question {qIdx + 1}</label>
-                                  <input 
-                                    className="w-full bg-zinc-900 border-b border-white/10 p-2 outline-none focus:border-yellow-400"
-                                    value={q.question}
-                                    placeholder="Enter question..."
-                                    onChange={(e) => {
-                                      const newQuiz = [...(activeLesson.quiz || [])];
-                                      newQuiz[qIdx].question = e.target.value;
-                                      updateLesson(activeLesson.id, { quiz: newQuiz });
-                                    }}
-                                  />
-                                </div>
-                                <div className="space-y-2">
-                                  {q.options.map((opt, oIdx) => (
-                                    <div key={oIdx} className="flex items-center gap-3">
-                                      <input 
-                                        type="radio" 
-                                        checked={q.correctAnswer === oIdx}
-                                        onChange={() => {
-                                          const newQuiz = [...(activeLesson.quiz || [])];
-                                          newQuiz[qIdx].correctAnswer = oIdx;
-                                          updateLesson(activeLesson.id, { quiz: newQuiz });
-                                        }}
-                                        className="text-yellow-400 accent-yellow-400"
-                                      />
-                                      <input 
-                                        className="flex-1 bg-transparent border border-white/5 rounded px-2 py-1 text-sm focus:border-white/20 outline-none"
-                                        value={opt}
-                                        onChange={(e) => {
-                                          const newQuiz = [...(activeLesson.quiz || [])];
-                                          newQuiz[qIdx].options[oIdx] = e.target.value;
-                                          updateLesson(activeLesson.id, { quiz: newQuiz });
-                                        }}
-                                      />
-                                    </div>
-                                  ))}
-                                </div>
-                              </GlassCard>
-                            ))}
-                            
-                            {(activeLesson.quiz?.length || 0) < 5 ? (
-                                <button 
-                                onClick={() => {
-                                    const newQuiz = [...(activeLesson.quiz || []), { id: `q-${Date.now()}`, question: '', options: ['Option A', 'Option B'], correctAnswer: 0 }];
+                                  className="text-yellow-400 accent-yellow-400"
+                                />
+                                <input
+                                  className="flex-1 bg-transparent border border-white/5 rounded px-2 py-1 text-sm focus:border-white/20 outline-none"
+                                  value={opt}
+                                  onChange={(e) => {
+                                    const newQuiz = [...(activeLesson.quiz || [])];
+                                    newQuiz[qIdx].options[oIdx] = e.target.value;
                                     updateLesson(activeLesson.id, { quiz: newQuiz });
-                                }}
-                                className="w-full py-4 border-2 border-dashed border-white/10 rounded-2xl text-zinc-500 hover:text-yellow-400 hover:border-yellow-400/30 hover:bg-yellow-400/5 transition-all flex items-center justify-center gap-2"
-                                >
-                                <Plus size={20} /> Add Question
-                                </button>
-                            ) : (
-                                <div className="text-center p-4 text-zinc-500 text-sm italic border border-white/5 rounded-xl">
-                                    Maximum 5 questions per quiz reached.
-                                </div>
-                            )}
-                         </div>
-                       )}
+                                  }}
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        </GlassCard>
+                      ))}
 
+                      {(activeLesson.quiz?.length || 0) < 5 ? (
+                        <button
+                          onClick={() => {
+                            const newQuiz = [...(activeLesson.quiz || []), { id: `q-${Date.now()}`, question: '', options: ['Option A', 'Option B'], correctAnswer: 0 }];
+                            updateLesson(activeLesson.id, { quiz: newQuiz });
+                          }}
+                          className="w-full py-4 border-2 border-dashed border-white/10 rounded-2xl text-zinc-500 hover:text-yellow-400 hover:border-yellow-400/30 hover:bg-yellow-400/5 transition-all flex items-center justify-center gap-2"
+                        >
+                          <Plus size={20} /> Add Question
+                        </button>
+                      ) : (
+                        <div className="text-center p-4 text-zinc-500 text-sm italic border border-white/5 rounded-xl">
+                          Maximum 5 questions per quiz reached.
+                        </div>
+                      )}
                     </div>
-                 ) : (
-                    <div className="h-full flex flex-col items-center justify-center text-zinc-500">
-                       <Layout size={64} className="mb-6 opacity-20" />
-                       <h3 className="text-xl font-medium text-zinc-400">Select a lesson to edit content</h3>
-                       <p className="max-w-xs text-center mt-2 opacity-60">Choose from the curriculum on the left or create a new lesson.</p>
-                    </div>
-                 )}
-              </div>
-           </div>
+                  )}
+
+                </div>
+              ) : (
+                <div className="h-full flex flex-col items-center justify-center text-zinc-500">
+                  <Layout size={64} className="mb-6 opacity-20" />
+                  <h3 className="text-xl font-medium text-zinc-400">Select a lesson to edit content</h3>
+                  <p className="max-w-xs text-center mt-2 opacity-60">Choose from the curriculum on the left or create a new lesson.</p>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       );
     }
@@ -3315,11 +3272,10 @@ const App: React.FC = () => {
                 <button
                   key={role}
                   onClick={() => setUserFilterRole(role)}
-                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-                    userFilterRole === role
-                      ? 'bg-yellow-400 text-black'
-                      : 'bg-white/5 border border-white/10 text-zinc-400 hover:bg-white/10'
-                  }`}
+                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${userFilterRole === role
+                    ? 'bg-yellow-400 text-black'
+                    : 'bg-white/5 border border-white/10 text-zinc-400 hover:bg-white/10'
+                    }`}
                 >
                   {role === 'ALL' ? 'All Users' : role}
                 </button>
@@ -3343,9 +3299,8 @@ const App: React.FC = () => {
                 {filteredUsers.map(u => (
                   <div key={u.id} className="p-4 hover:bg-white/[0.02] transition-colors flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${
-                        u.is_approved ? 'bg-yellow-400 text-black' : 'bg-zinc-700 text-zinc-400'
-                      }`}>
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${u.is_approved ? 'bg-yellow-400 text-black' : 'bg-zinc-700 text-zinc-400'
+                        }`}>
                         {u.name?.charAt(0).toUpperCase() || '?'}
                       </div>
                       <div>
@@ -3395,177 +3350,177 @@ const App: React.FC = () => {
 
           {/* Render Overview Section */}
           <div className={adminSection === 'OVERVIEW' ? 'space-y-8' : 'hidden'}>
-              <div className="flex justify-between items-end">
-                <div>
-                  <h2 className="text-3xl font-bold">Admin Command Center</h2>
-                  <p className="text-zinc-400 mt-1">Overview of academy performance and content</p>
-                </div>
-                <PrimaryButton onClick={handleCreateCourse} className="text-sm shadow-lg shadow-yellow-400/20">
-                  <Plus size={18} /> New Course
-                </PrimaryButton>
+            <div className="flex justify-between items-end">
+              <div>
+                <h2 className="text-3xl font-bold">Admin Command Center</h2>
+                <p className="text-zinc-400 mt-1">Overview of academy performance and content</p>
               </div>
-
-          {/* KPI Cards - Glass Effect - Real Data */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <GlassCard className="relative overflow-hidden group">
-               <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><Users size={64} /></div>
-               <div className="text-zinc-400 text-sm font-medium uppercase tracking-wider mb-2">Total Learners</div>
-               <div className="text-4xl font-bold text-white mb-1">{fullStats?.totalLearners?.toLocaleString() || '—'}</div>
-               <div className="text-yellow-400 text-xs flex items-center gap-1"><div className="w-1.5 h-1.5 rounded-full bg-yellow-400"></div> {fullStats?.totalEnrollments || 0} enrollments</div>
-            </GlassCard>
-            <GlassCard className="relative overflow-hidden group">
-               <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><BookOpen size={64} /></div>
-               <div className="text-zinc-400 text-sm font-medium uppercase tracking-wider mb-2">Content Library</div>
-               <div className="text-4xl font-bold text-white mb-1">{fullStats?.totalLessons || totalLessons}</div>
-               <div className="text-zinc-400 text-xs">Across {fullStats?.totalCourses || courses.length} courses</div>
-            </GlassCard>
-            <GlassCard className="relative overflow-hidden group">
-               <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><CheckCircle size={64} /></div>
-               <div className="text-zinc-400 text-sm font-medium uppercase tracking-wider mb-2">Completion Rate</div>
-               <div className="text-4xl font-bold text-white mb-1">{fullStats?.completionRate ?? '—'}%</div>
-               <div className="text-yellow-400 text-xs">Avg. per enrollment</div>
-            </GlassCard>
-            <GlassCard className="relative overflow-hidden group">
-               <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><Target size={64} /></div>
-               <div className="text-zinc-400 text-sm font-medium uppercase tracking-wider mb-2">Quiz Pass Rate</div>
-               <div className="text-4xl font-bold text-white mb-1">{fullStats?.quizPassRate ?? '—'}%</div>
-               <div className="text-zinc-400 text-xs">Avg score: {fullStats?.averageQuizScore ?? '—'}%</div>
-            </GlassCard>
-          </div>
-
-          {/* Second Row KPIs - Study Hours & Overdue */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <GlassCard className="relative overflow-hidden group">
-               <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><MonitorPlay size={64} /></div>
-               <div className="text-zinc-400 text-sm font-medium uppercase tracking-wider mb-2">Total Study Hours</div>
-               <div className="text-4xl font-bold text-white mb-1">{fullStats?.totalStudyHours ? (fullStats.totalStudyHours >= 1000 ? `${(fullStats.totalStudyHours / 1000).toFixed(1)}k` : fullStats.totalStudyHours) : '—'}</div>
-               <div className="text-white text-xs">Total learning time logged</div>
-            </GlassCard>
-            <GlassCard className={`relative overflow-hidden group ${(fullStats?.overdueEnrollments || 0) > 0 ? 'border-red-500/30' : ''}`}>
-               <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><AlertTriangle size={64} /></div>
-               <div className="text-zinc-400 text-sm font-medium uppercase tracking-wider mb-2">Overdue Enrollments</div>
-               <div className={`text-4xl font-bold mb-1 ${(fullStats?.overdueEnrollments || 0) > 0 ? 'text-red-400' : 'text-green-400'}`}>
-                 {fullStats?.overdueEnrollments ?? 0}
-               </div>
-               <div className={`text-xs ${(fullStats?.overdueEnrollments || 0) > 0 ? 'text-red-400/80' : 'text-green-400/80'}`}>
-                 {(fullStats?.overdueEnrollments || 0) > 0 ? 'Learners past deadline' : 'All on track'}
-               </div>
-            </GlassCard>
-          </div>
-
-          {/* URGENT: Pending Users Alert - Hyper Visible Liquid Glass */}
-          {pendingUsers.length > 0 && (
-            <div className="relative group cursor-pointer" onClick={() => setAdminSection('USERS')}>
-              {/* Animated outer glow */}
-              <div className="absolute -inset-1 bg-gradient-to-r from-red-500/40 via-yellow-500/30 to-red-500/40 rounded-[28px] blur-xl opacity-80 animate-pulse" />
-              <div className="absolute -inset-0.5 bg-gradient-to-br from-red-400/20 via-transparent to-yellow-400/20 rounded-[26px] blur-md" />
-
-              <div className="relative rounded-3xl overflow-hidden backdrop-blur-2xl bg-gradient-to-br from-red-900/30 via-black/60 to-yellow-900/20 border-2 border-red-500/50 shadow-[0_8px_32px_rgba(239,68,68,0.3),inset_0_1px_0_rgba(255,255,255,0.1)] p-6 hover:border-yellow-400/60 transition-all duration-500">
-                {/* Inner highlight */}
-                <div className="absolute inset-0 bg-gradient-to-b from-white/5 via-transparent to-transparent pointer-events-none" />
-
-                {/* Pulsing alert indicator */}
-                <div className="absolute top-4 right-4">
-                  <span className="relative flex h-4 w-4">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-4 w-4 bg-red-500"></span>
-                  </span>
-                </div>
-
-                <div className="relative z-10 flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-red-500/30 to-yellow-500/20 border border-red-400/50 flex items-center justify-center shadow-[0_0_30px_rgba(239,68,68,0.3)]">
-                      <UserCheck size={32} className="text-red-400 drop-shadow-[0_0_10px_rgba(239,68,68,0.5)]" />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-red-500/30 text-red-400 font-bold uppercase tracking-wider animate-pulse">Action Required</span>
-                      </div>
-                      <h3 className="text-2xl font-bold text-white">{pendingUsers.length} Pending User{pendingUsers.length > 1 ? 's' : ''}</h3>
-                      <p className="text-sm text-zinc-400 mt-1">Click here to approve or reject registration requests</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="hidden md:flex flex-col items-end text-right">
-                      <span className="text-xs text-zinc-500">Oldest</span>
-                      <span className="text-sm text-white font-medium">{pendingUsers.length > 0 ? new Date(pendingUsers[0].created_at).toLocaleDateString('fr-FR') : '-'}</span>
-                    </div>
-                    <div className="w-12 h-12 rounded-xl bg-yellow-400/20 border border-yellow-400/30 flex items-center justify-center group-hover:bg-yellow-400/30 transition-all">
-                      <ChevronRight size={24} className="text-yellow-400 group-hover:translate-x-1 transition-transform" />
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <PrimaryButton onClick={handleCreateCourse} className="text-sm shadow-lg shadow-yellow-400/20">
+                <Plus size={18} /> New Course
+              </PrimaryButton>
             </div>
-          )}
 
-          {/* Overdue Learners Alert */}
-          {overdueLearners.length > 0 && (
-            <div className="relative group">
-              <div className="absolute -inset-0.5 bg-gradient-to-r from-orange-500/20 via-red-500/20 to-orange-500/20 rounded-[26px] blur-md opacity-60" />
-              <div className="relative rounded-2xl overflow-hidden backdrop-blur-xl bg-gradient-to-br from-orange-900/20 via-black/40 to-red-900/10 border border-orange-500/30 p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-red-500/30 to-orange-500/20 border border-red-400/40 flex items-center justify-center">
-                      <AlertTriangle size={24} className="text-red-400" />
+            {/* KPI Cards - Glass Effect - Real Data */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <GlassCard className="relative overflow-hidden group">
+                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><Users size={64} /></div>
+                <div className="text-zinc-400 text-sm font-medium uppercase tracking-wider mb-2">Total Learners</div>
+                <div className="text-4xl font-bold text-white mb-1">{fullStats?.totalLearners?.toLocaleString() || '—'}</div>
+                <div className="text-yellow-400 text-xs flex items-center gap-1"><div className="w-1.5 h-1.5 rounded-full bg-yellow-400"></div> {fullStats?.totalEnrollments || 0} enrollments</div>
+              </GlassCard>
+              <GlassCard className="relative overflow-hidden group">
+                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><BookOpen size={64} /></div>
+                <div className="text-zinc-400 text-sm font-medium uppercase tracking-wider mb-2">Content Library</div>
+                <div className="text-4xl font-bold text-white mb-1">{fullStats?.totalLessons || totalLessons}</div>
+                <div className="text-zinc-400 text-xs">Across {fullStats?.totalCourses || courses.length} courses</div>
+              </GlassCard>
+              <GlassCard className="relative overflow-hidden group">
+                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><CheckCircle size={64} /></div>
+                <div className="text-zinc-400 text-sm font-medium uppercase tracking-wider mb-2">Completion Rate</div>
+                <div className="text-4xl font-bold text-white mb-1">{fullStats?.completionRate ?? '—'}%</div>
+                <div className="text-yellow-400 text-xs">Avg. per enrollment</div>
+              </GlassCard>
+              <GlassCard className="relative overflow-hidden group">
+                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><Target size={64} /></div>
+                <div className="text-zinc-400 text-sm font-medium uppercase tracking-wider mb-2">Quiz Pass Rate</div>
+                <div className="text-4xl font-bold text-white mb-1">{fullStats?.quizPassRate ?? '—'}%</div>
+                <div className="text-zinc-400 text-xs">Avg score: {fullStats?.averageQuizScore ?? '—'}%</div>
+              </GlassCard>
+            </div>
+
+            {/* Second Row KPIs - Study Hours & Overdue */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <GlassCard className="relative overflow-hidden group">
+                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><MonitorPlay size={64} /></div>
+                <div className="text-zinc-400 text-sm font-medium uppercase tracking-wider mb-2">Total Study Hours</div>
+                <div className="text-4xl font-bold text-white mb-1">{fullStats?.totalStudyHours ? (fullStats.totalStudyHours >= 1000 ? `${(fullStats.totalStudyHours / 1000).toFixed(1)}k` : fullStats.totalStudyHours) : '—'}</div>
+                <div className="text-white text-xs">Total learning time logged</div>
+              </GlassCard>
+              <GlassCard className={`relative overflow-hidden group ${(fullStats?.overdueEnrollments || 0) > 0 ? 'border-red-500/30' : ''}`}>
+                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><AlertTriangle size={64} /></div>
+                <div className="text-zinc-400 text-sm font-medium uppercase tracking-wider mb-2">Overdue Enrollments</div>
+                <div className={`text-4xl font-bold mb-1 ${(fullStats?.overdueEnrollments || 0) > 0 ? 'text-red-400' : 'text-green-400'}`}>
+                  {fullStats?.overdueEnrollments ?? 0}
+                </div>
+                <div className={`text-xs ${(fullStats?.overdueEnrollments || 0) > 0 ? 'text-red-400/80' : 'text-green-400/80'}`}>
+                  {(fullStats?.overdueEnrollments || 0) > 0 ? 'Learners past deadline' : 'All on track'}
+                </div>
+              </GlassCard>
+            </div>
+
+            {/* URGENT: Pending Users Alert - Hyper Visible Liquid Glass */}
+            {pendingUsers.length > 0 && (
+              <div className="relative group cursor-pointer" onClick={() => setAdminSection('USERS')}>
+                {/* Animated outer glow */}
+                <div className="absolute -inset-1 bg-gradient-to-r from-red-500/40 via-yellow-500/30 to-red-500/40 rounded-[28px] blur-xl opacity-80 animate-pulse" />
+                <div className="absolute -inset-0.5 bg-gradient-to-br from-red-400/20 via-transparent to-yellow-400/20 rounded-[26px] blur-md" />
+
+                <div className="relative rounded-3xl overflow-hidden backdrop-blur-2xl bg-gradient-to-br from-red-900/30 via-black/60 to-yellow-900/20 border-2 border-red-500/50 shadow-[0_8px_32px_rgba(239,68,68,0.3),inset_0_1px_0_rgba(255,255,255,0.1)] p-6 hover:border-yellow-400/60 transition-all duration-500">
+                  {/* Inner highlight */}
+                  <div className="absolute inset-0 bg-gradient-to-b from-white/5 via-transparent to-transparent pointer-events-none" />
+
+                  {/* Pulsing alert indicator */}
+                  <div className="absolute top-4 right-4">
+                    <span className="relative flex h-4 w-4">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-4 w-4 bg-red-500"></span>
+                    </span>
+                  </div>
+
+                  <div className="relative z-10 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-red-500/30 to-yellow-500/20 border border-red-400/50 flex items-center justify-center shadow-[0_0_30px_rgba(239,68,68,0.3)]">
+                        <UserCheck size={32} className="text-red-400 drop-shadow-[0_0_10px_rgba(239,68,68,0.5)]" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-red-500/30 text-red-400 font-bold uppercase tracking-wider animate-pulse">Action Required</span>
+                        </div>
+                        <h3 className="text-2xl font-bold text-white">{pendingUsers.length} Pending User{pendingUsers.length > 1 ? 's' : ''}</h3>
+                        <p className="text-sm text-zinc-400 mt-1">Click here to approve or reject registration requests</p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="text-lg font-bold text-white">{overdueLearners.length} Overdue Enrollment{overdueLearners.length > 1 ? 's' : ''}</h3>
-                      <p className="text-sm text-zinc-400">Learners past their training deadline</p>
+                    <div className="flex items-center gap-3">
+                      <div className="hidden md:flex flex-col items-end text-right">
+                        <span className="text-xs text-zinc-500">Oldest</span>
+                        <span className="text-sm text-white font-medium">{pendingUsers.length > 0 ? new Date(pendingUsers[0].created_at).toLocaleDateString('fr-FR') : '-'}</span>
+                      </div>
+                      <div className="w-12 h-12 rounded-xl bg-yellow-400/20 border border-yellow-400/30 flex items-center justify-center group-hover:bg-yellow-400/30 transition-all">
+                        <ChevronRight size={24} className="text-yellow-400 group-hover:translate-x-1 transition-transform" />
+                      </div>
                     </div>
                   </div>
-                  <span className="px-3 py-1 text-xs rounded-full bg-red-500/20 text-red-400 font-medium border border-red-500/30">
-                    Requires Attention
-                  </span>
-                </div>
-                <div className="space-y-2 max-h-48 overflow-y-auto">
-                  {overdueLearners.slice(0, 5).map((learner, idx) => (
-                    <div key={idx} className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/10">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-red-500/20 to-orange-500/10 flex items-center justify-center text-xs font-bold text-red-400">
-                          {learner.daysOverdue}d
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-white">{learner.name}</p>
-                          <p className="text-xs text-zinc-500">{learner.courseTitle}</p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-xs text-zinc-400">{learner.ministry}</p>
-                        {learner.isMandatory && (
-                          <span className="text-xs text-red-400">Mandatory</span>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                  {overdueLearners.length > 5 && (
-                    <p className="text-center text-sm text-zinc-500 pt-2">
-                      + {overdueLearners.length - 5} more overdue
-                    </p>
-                  )}
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Analytics Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <GlassCard className="lg:col-span-2 p-8">
-               <div className="flex justify-between items-center mb-6">
-                 <h3 className="text-xl font-bold">Ministry Engagement</h3>
-                 <div className="flex gap-2">
-                   <button className="px-3 py-1 text-xs rounded-full bg-white/10 text-white">Weekly</button>
-                   <button className="px-3 py-1 text-xs rounded-full hover:bg-white/5 text-zinc-400">Monthly</button>
-                 </div>
-               </div>
-               <div className="h-64 w-full">
+            {/* Overdue Learners Alert */}
+            {overdueLearners.length > 0 && (
+              <div className="relative group">
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-orange-500/20 via-red-500/20 to-orange-500/20 rounded-[26px] blur-md opacity-60" />
+                <div className="relative rounded-2xl overflow-hidden backdrop-blur-xl bg-gradient-to-br from-orange-900/20 via-black/40 to-red-900/10 border border-orange-500/30 p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-red-500/30 to-orange-500/20 border border-red-400/40 flex items-center justify-center">
+                        <AlertTriangle size={24} className="text-red-400" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-bold text-white">{overdueLearners.length} Overdue Enrollment{overdueLearners.length > 1 ? 's' : ''}</h3>
+                        <p className="text-sm text-zinc-400">Learners past their training deadline</p>
+                      </div>
+                    </div>
+                    <span className="px-3 py-1 text-xs rounded-full bg-red-500/20 text-red-400 font-medium border border-red-500/30">
+                      Requires Attention
+                    </span>
+                  </div>
+                  <div className="space-y-2 max-h-48 overflow-y-auto">
+                    {overdueLearners.slice(0, 5).map((learner, idx) => (
+                      <div key={idx} className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/10">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-red-500/20 to-orange-500/10 flex items-center justify-center text-xs font-bold text-red-400">
+                            {learner.daysOverdue}d
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-white">{learner.name}</p>
+                            <p className="text-xs text-zinc-500">{learner.courseTitle}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-xs text-zinc-400">{learner.ministry}</p>
+                          {learner.isMandatory && (
+                            <span className="text-xs text-red-400">Mandatory</span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                    {overdueLearners.length > 5 && (
+                      <p className="text-center text-sm text-zinc-500 pt-2">
+                        + {overdueLearners.length - 5} more overdue
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Analytics Section */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <GlassCard className="lg:col-span-2 p-8">
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-xl font-bold">Ministry Engagement</h3>
+                  <div className="flex gap-2">
+                    <button className="px-3 py-1 text-xs rounded-full bg-white/10 text-white">Weekly</button>
+                    <button className="px-3 py-1 text-xs rounded-full hover:bg-white/5 text-zinc-400">Monthly</button>
+                  </div>
+                </div>
+                <div className="h-64 w-full">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={adminStats} barSize={40}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
-                      <XAxis dataKey="name" stroke="#64748b" tick={{fontSize: 10}} axisLine={false} tickLine={false} />
-                      <YAxis stroke="#64748b" tick={{fontSize: 10}} axisLine={false} tickLine={false} />
-                      <Tooltip 
-                        cursor={{fill: '#ffffff05'}}
+                      <XAxis dataKey="name" stroke="#64748b" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
+                      <YAxis stroke="#64748b" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
+                      <Tooltip
+                        cursor={{ fill: '#ffffff05' }}
                         contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '12px', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}
                         itemStyle={{ color: '#fff' }}
                       />
@@ -3576,13 +3531,13 @@ const App: React.FC = () => {
                       </Bar>
                     </BarChart>
                   </ResponsiveContainer>
-               </div>
-            </GlassCard>
-            
-            <GlassCard className="p-8">
-               <h3 className="text-xl font-bold mb-6">Content Types</h3>
-               <div className="h-64 w-full relative">
-                 <ResponsiveContainer width="100%" height="100%">
+                </div>
+              </GlassCard>
+
+              <GlassCard className="p-8">
+                <h3 className="text-xl font-bold mb-6">Content Types</h3>
+                <div className="h-64 w-full relative">
+                  <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
                         data={[
@@ -3595,89 +3550,89 @@ const App: React.FC = () => {
                         paddingAngle={5}
                         dataKey="value"
                       >
-                         <Cell fill="#FACC15" />
-                         <Cell fill="#FFFFFF" />
-                         <Cell fill="#A16207" />
+                        <Cell fill="#FACC15" />
+                        <Cell fill="#FFFFFF" />
+                        <Cell fill="#A16207" />
                       </Pie>
                       <Tooltip contentStyle={{ backgroundColor: '#0f172a', border: 'none', borderRadius: '8px' }} />
                     </PieChart>
-                 </ResponsiveContainer>
-                 <div className="absolute inset-0 flex items-center justify-center flex-col pointer-events-none">
+                  </ResponsiveContainer>
+                  <div className="absolute inset-0 flex items-center justify-center flex-col pointer-events-none">
                     <span className="text-3xl font-bold text-white">100%</span>
                     <span className="text-xs text-zinc-400">Balanced</span>
-                 </div>
-               </div>
-               <div className="flex justify-center gap-4 text-xs">
+                  </div>
+                </div>
+                <div className="flex justify-center gap-4 text-xs">
                   <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-yellow-400"></div> Video</div>
                   <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-white"></div> Docs</div>
                   <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-yellow-700"></div> Quiz</div>
-               </div>
-            </GlassCard>
-          </div>
-
-          {/* Manage Courses (Enhanced List) */}
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h3 className="text-xl font-bold">Manage Courses</h3>
-              <span className="text-sm text-zinc-400">
-                {courses.length} course{courses.length !== 1 ? 's' : ''} total
-              </span>
+                </div>
+              </GlassCard>
             </div>
-            <div className="grid gap-4">
-              {courses.map(course => (
-                <GlassCard key={course.id} className="group p-0 overflow-hidden flex flex-col md:flex-row items-center hover:border-yellow-400/50 transition-colors">
-                  <div className="h-32 w-full md:w-48 bg-cover bg-center grayscale group-hover:grayscale-0 transition-all duration-500" style={{backgroundImage: `url(${course.thumbnail})`}}>
-                     <div className="h-full w-full bg-black/40 group-hover:bg-transparent transition-colors"></div>
-                  </div>
-                  <div className="p-6 flex-1 min-w-0">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h4 className="text-xl font-bold text-white mb-1">{course.title}</h4>
-                        <p className="text-sm text-zinc-400 mb-3" title={course.description}>{course.description}</p>
-                        <div className="flex gap-3 text-xs">
-                          <Badge>{course.level}</Badge>
-                          <span className="flex items-center gap-1 text-zinc-400"><List size={14}/> {course.lessons.length} Modules</span>
-                          <span className="flex items-center gap-1 text-zinc-400"><Users size={14}/> {course.enrolledCount} Enrolled</span>
+
+            {/* Manage Courses (Enhanced List) */}
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xl font-bold">Manage Courses</h3>
+                <span className="text-sm text-zinc-400">
+                  {courses.length} course{courses.length !== 1 ? 's' : ''} total
+                </span>
+              </div>
+              <div className="grid gap-4">
+                {courses.map(course => (
+                  <GlassCard key={course.id} className="group p-0 overflow-hidden flex flex-col md:flex-row items-center hover:border-yellow-400/50 transition-colors">
+                    <div className="h-32 w-full md:w-48 bg-cover bg-center grayscale group-hover:grayscale-0 transition-all duration-500" style={{ backgroundImage: `url(${course.thumbnail})` }}>
+                      <div className="h-full w-full bg-black/40 group-hover:bg-transparent transition-colors"></div>
+                    </div>
+                    <div className="p-6 flex-1 min-w-0">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h4 className="text-xl font-bold text-white mb-1">{course.title}</h4>
+                          <p className="text-sm text-zinc-400 mb-3" title={course.description}>{course.description}</p>
+                          <div className="flex gap-3 text-xs">
+                            <Badge>{course.level}</Badge>
+                            <span className="flex items-center gap-1 text-zinc-400"><List size={14} /> {course.lessons.length} Modules</span>
+                            <span className="flex items-center gap-1 text-zinc-400"><Users size={14} /> {course.enrolledCount} Enrolled</span>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="p-6 border-l border-white/5 flex gap-3">
-                     <SecondaryButton onClick={() => handleEditCourse(course)} className="h-10 px-4 text-xs flex items-center gap-2">
-                       Edit Content
-                     </SecondaryButton>
-                     <button
-                       onClick={() => deleteCourse(course.id)}
-                       className="h-10 w-10 flex items-center justify-center rounded-full border border-red-900/30 text-red-400 hover:bg-red-900/20 transition-colors"
-                     >
-                       <Trash2 size={16} />
-                     </button>
-                  </div>
-                </GlassCard>
-              ))}
+                    <div className="p-6 border-l border-white/5 flex gap-3">
+                      <SecondaryButton onClick={() => handleEditCourse(course)} className="h-10 px-4 text-xs flex items-center gap-2">
+                        Edit Content
+                      </SecondaryButton>
+                      <button
+                        onClick={() => deleteCourse(course.id)}
+                        className="h-10 w-10 flex items-center justify-center rounded-full border border-red-900/30 text-red-400 hover:bg-red-900/20 transition-colors"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </GlassCard>
+                ))}
+              </div>
             </div>
-          </div>
           </div>
 
           {/* Courses Section - Liquid Glass Design */}
           <div className={adminSection === 'COURSES' ? '' : 'hidden'}>
-              <div className="flex justify-between items-end mb-8">
-                <div>
-                  <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-zinc-400">Course Manager</h2>
-                  <p className="text-zinc-400 mt-2 flex items-center gap-4">
-                    <span>{courses.length} course{courses.length !== 1 ? 's' : ''}</span>
-                    <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-green-400"></span><span className="text-green-400">{courses.filter(c => c.level === 'Beginner').length}</span> Beginner</span>
-                    <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-yellow-400"></span><span className="text-yellow-400">{courses.filter(c => c.level === 'Intermediate').length}</span> Intermediate</span>
-                    <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-purple-400"></span><span className="text-purple-400">{courses.filter(c => c.level === 'Advanced').length}</span> Advanced</span>
-                  </p>
-                </div>
-                <PrimaryButton onClick={handleCreateCourse} className="text-sm shadow-lg shadow-yellow-400/20">
-                  <Plus size={18} /> New Course
-                </PrimaryButton>
+            <div className="flex justify-between items-end mb-8">
+              <div>
+                <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-zinc-400">Course Manager</h2>
+                <p className="text-zinc-400 mt-2 flex items-center gap-4">
+                  <span>{courses.length} course{courses.length !== 1 ? 's' : ''}</span>
+                  <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-green-400"></span><span className="text-green-400">{courses.filter(c => c.level === 'Beginner').length}</span> Beginner</span>
+                  <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-yellow-400"></span><span className="text-yellow-400">{courses.filter(c => c.level === 'Intermediate').length}</span> Intermediate</span>
+                  <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-purple-400"></span><span className="text-purple-400">{courses.filter(c => c.level === 'Advanced').length}</span> Advanced</span>
+                </p>
               </div>
+              <PrimaryButton onClick={handleCreateCourse} className="text-sm shadow-lg shadow-yellow-400/20">
+                <Plus size={18} /> New Course
+              </PrimaryButton>
+            </div>
 
-              {/* Courses Grid - Liquid Glass Cards */}
-              <div className="space-y-10">
+            {/* Courses Grid - Liquid Glass Cards */}
+            <div className="space-y-10">
               {(['Beginner', 'Intermediate', 'Advanced'] as const).map(level => {
                 const levelCourses = courses.filter(c => c.level === level);
                 if (levelCourses.length === 0) return null;
@@ -3685,11 +3640,10 @@ const App: React.FC = () => {
                 return (
                   <div key={level} className="space-y-5">
                     <div className="flex items-center gap-4">
-                      <div className={`px-4 py-1.5 rounded-full text-sm font-bold ${
-                        level === 'Beginner' ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
+                      <div className={`px-4 py-1.5 rounded-full text-sm font-bold ${level === 'Beginner' ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
                         level === 'Intermediate' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' :
-                        'bg-purple-500/20 text-purple-400 border border-purple-500/30'
-                      }`}>{level}</div>
+                          'bg-purple-500/20 text-purple-400 border border-purple-500/30'
+                        }`}>{level}</div>
                       <div className="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent"></div>
                       <span className="text-sm text-zinc-500">{levelCourses.length} course{levelCourses.length > 1 ? 's' : ''} • Drag to reorder</span>
                     </div>
@@ -3721,18 +3675,16 @@ const App: React.FC = () => {
                             }
                             setDraggedCourseId(null);
                           }}
-                          className={`group relative rounded-2xl overflow-hidden transition-all duration-500 cursor-grab active:cursor-grabbing ${
-                            draggedCourseId === course.id
-                              ? 'opacity-50 scale-95 rotate-1 ring-2 ring-yellow-400'
-                              : 'hover:scale-[1.02] hover:-translate-y-1'
-                          }`}
+                          className={`group relative rounded-2xl overflow-hidden transition-all duration-500 cursor-grab active:cursor-grabbing ${draggedCourseId === course.id
+                            ? 'opacity-50 scale-95 rotate-1 ring-2 ring-yellow-400'
+                            : 'hover:scale-[1.02] hover:-translate-y-1'
+                            }`}
                         >
                           {/* Ambient Glow */}
-                          <div className={`absolute -inset-1 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl ${
-                            level === 'Beginner' ? 'bg-green-500/20' :
+                          <div className={`absolute -inset-1 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl ${level === 'Beginner' ? 'bg-green-500/20' :
                             level === 'Intermediate' ? 'bg-yellow-500/20' :
-                            'bg-purple-500/20'
-                          }`}></div>
+                              'bg-purple-500/20'
+                            }`}></div>
 
                           {/* Card */}
                           <div className="relative glass-panel rounded-2xl border border-white/10 group-hover:border-white/20 overflow-hidden backdrop-blur-xl bg-zinc-900/80">
@@ -3752,20 +3704,19 @@ const App: React.FC = () => {
                               </div>
 
                               {/* Level Badge */}
-                              <div className={`absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-bold backdrop-blur-sm ${
-                                level === 'Beginner' ? 'bg-green-500/30 text-green-300 border border-green-500/50' :
+                              <div className={`absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-bold backdrop-blur-sm ${level === 'Beginner' ? 'bg-green-500/30 text-green-300 border border-green-500/50' :
                                 level === 'Intermediate' ? 'bg-yellow-500/30 text-yellow-300 border border-yellow-500/50' :
-                                'bg-purple-500/30 text-purple-300 border border-purple-500/50'
-                              }`}>{level}</div>
+                                  'bg-purple-500/30 text-purple-300 border border-purple-500/50'
+                                }`}>{level}</div>
 
                               {/* Stats Overlay */}
                               <div className="absolute bottom-3 left-3 right-3 flex justify-between items-center">
                                 <div className="flex gap-3">
                                   <span className="flex items-center gap-1.5 text-xs text-white/80 bg-black/40 backdrop-blur-sm px-2 py-1 rounded-full">
-                                    <List size={12}/> {course.lessons.length} modules
+                                    <List size={12} /> {course.lessons.length} modules
                                   </span>
                                   <span className="flex items-center gap-1.5 text-xs text-white/80 bg-black/40 backdrop-blur-sm px-2 py-1 rounded-full">
-                                    <Users size={12}/> {course.enrolledCount || 0}
+                                    <Users size={12} /> {course.enrolledCount || 0}
                                   </span>
                                 </div>
                               </div>
@@ -3832,198 +3783,198 @@ const App: React.FC = () => {
                   </div>
                 );
               })}
-              </div>
+            </div>
           </div>
 
           {/* Analytics Section */}
           <div className={adminSection === 'ANALYTICS' ? 'space-y-6' : 'hidden'}>
-              <div>
-                <h2 className="text-3xl font-bold">Analytics Dashboard</h2>
-                <p className="text-zinc-400 mt-1">Detailed insights into platform engagement</p>
+            <div>
+              <h2 className="text-3xl font-bold">Analytics Dashboard</h2>
+              <p className="text-zinc-400 mt-1">Detailed insights into platform engagement</p>
+            </div>
+
+            {/* Ministry Progress Tracking - Enhanced with per-course breakdown */}
+            <GlassCard className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-bold">Ministry Training Progress</h3>
+                {selectedMinistry && (
+                  <button
+                    onClick={() => setSelectedMinistry(null)}
+                    className="text-sm text-yellow-400 hover:text-yellow-300 flex items-center gap-1"
+                  >
+                    <ArrowLeft size={14} /> Back to all ministries
+                  </button>
+                )}
               </div>
 
-              {/* Ministry Progress Tracking - Enhanced with per-course breakdown */}
-              <GlassCard className="p-6">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-xl font-bold">Ministry Training Progress</h3>
-                  {selectedMinistry && (
+              {!selectedMinistry ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {ministryStats.length > 0 ? ministryStats.map((ministry, idx) => (
                     <button
-                      onClick={() => setSelectedMinistry(null)}
-                      className="text-sm text-yellow-400 hover:text-yellow-300 flex items-center gap-1"
+                      key={idx}
+                      onClick={() => setSelectedMinistry(ministry.name)}
+                      className="p-4 rounded-xl bg-white/5 border border-white/10 hover:border-yellow-400/30 hover:bg-white/10 transition-all text-left group"
                     >
-                      <ArrowLeft size={14} /> Back to all ministries
+                      <div className="flex justify-between items-start mb-2">
+                        <div className="text-sm font-medium text-white truncate group-hover:text-yellow-400 transition-colors">{ministry.name}</div>
+                        <div className="flex gap-2">
+                          {ministry.overdueCount > 0 && (
+                            <Badge type="default" className="!bg-red-500/20 !text-red-400 !border-red-500/30">
+                              {ministry.overdueCount} overdue
+                            </Badge>
+                          )}
+                          <Badge type={ministry.activeLearners > 0 ? 'success' : 'default'}>
+                            {ministry.activeLearners} active
+                          </Badge>
+                        </div>
+                      </div>
+                      <div className="text-2xl font-bold text-yellow-400 mb-1">{ministry.totalLearners}</div>
+                      <div className="text-xs text-zinc-500 mb-3">learners enrolled</div>
+                      <div className="flex justify-between text-xs text-zinc-400 mb-1">
+                        <span>Courses Completed</span>
+                        <span className="text-white">{ministry.coursesCompleted}</span>
+                      </div>
+                      <div className="flex justify-between text-xs text-zinc-400 mb-1">
+                        <span>Avg Quiz Score</span>
+                        <span className="text-white">{ministry.avgQuizScore || 0}%</span>
+                      </div>
+                      <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-gradient-to-r from-yellow-400 to-yellow-500 rounded-full"
+                          style={{ width: `${ministry.totalLearners > 0 ? Math.min(100, (ministry.coursesCompleted / ministry.totalLearners) * 100) : 0}%` }}
+                        />
+                      </div>
+                      <div className="text-xs text-zinc-500 mt-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        Click to view course breakdown <ChevronRight size={12} />
+                      </div>
                     </button>
+                  )) : (
+                    <div className="col-span-3 text-center text-zinc-500 py-8">No ministry data available yet</div>
                   )}
                 </div>
-
-                {!selectedMinistry ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {ministryStats.length > 0 ? ministryStats.map((ministry, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => setSelectedMinistry(ministry.name)}
-                        className="p-4 rounded-xl bg-white/5 border border-white/10 hover:border-yellow-400/30 hover:bg-white/10 transition-all text-left group"
-                      >
-                        <div className="flex justify-between items-start mb-2">
-                          <div className="text-sm font-medium text-white truncate group-hover:text-yellow-400 transition-colors">{ministry.name}</div>
-                          <div className="flex gap-2">
-                            {ministry.overdueCount > 0 && (
-                              <Badge type="default" className="!bg-red-500/20 !text-red-400 !border-red-500/30">
-                                {ministry.overdueCount} overdue
-                              </Badge>
-                            )}
-                            <Badge type={ministry.activeLearners > 0 ? 'success' : 'default'}>
-                              {ministry.activeLearners} active
-                            </Badge>
+              ) : (
+                <div className="space-y-4">
+                  <div className="text-lg font-medium text-white mb-4">
+                    {selectedMinistry} - Per-Course Breakdown
+                  </div>
+                  {ministryCourseStats.length > 0 ? (
+                    <div className="space-y-3">
+                      {ministryCourseStats.map((stat, idx) => (
+                        <div key={idx} className="p-4 rounded-xl bg-white/5 border border-white/10">
+                          <div className="flex justify-between items-start mb-3">
+                            <div>
+                              <div className="font-medium text-white">{stat.courseTitle}</div>
+                              <div className="text-xs text-zinc-500">{stat.enrolledCount} enrolled</div>
+                            </div>
+                            <div className="flex gap-2">
+                              {stat.overdueCount > 0 && (
+                                <Badge type="default" className="!bg-red-500/20 !text-red-400 !border-red-500/30">
+                                  {stat.overdueCount} overdue
+                                </Badge>
+                              )}
+                              <Badge type="success">{stat.completionRate}% complete</Badge>
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-3 gap-4 text-center">
+                            <div>
+                              <div className="text-lg font-bold text-green-400">{stat.completedCount}</div>
+                              <div className="text-xs text-zinc-500">Completed</div>
+                            </div>
+                            <div>
+                              <div className="text-lg font-bold text-yellow-400">{stat.enrolledCount - stat.completedCount}</div>
+                              <div className="text-xs text-zinc-500">In Progress</div>
+                            </div>
+                            <div>
+                              <div className="text-lg font-bold text-white">{stat.avgScore}%</div>
+                              <div className="text-xs text-zinc-500">Avg Score</div>
+                            </div>
+                          </div>
+                          <div className="h-1.5 bg-white/10 rounded-full overflow-hidden mt-3">
+                            <div
+                              className="h-full bg-gradient-to-r from-green-400 to-green-500 rounded-full"
+                              style={{ width: `${stat.completionRate}%` }}
+                            />
                           </div>
                         </div>
-                        <div className="text-2xl font-bold text-yellow-400 mb-1">{ministry.totalLearners}</div>
-                        <div className="text-xs text-zinc-500 mb-3">learners enrolled</div>
-                        <div className="flex justify-between text-xs text-zinc-400 mb-1">
-                          <span>Courses Completed</span>
-                          <span className="text-white">{ministry.coursesCompleted}</span>
-                        </div>
-                        <div className="flex justify-between text-xs text-zinc-400 mb-1">
-                          <span>Avg Quiz Score</span>
-                          <span className="text-white">{ministry.avgQuizScore || 0}%</span>
-                        </div>
-                        <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-gradient-to-r from-yellow-400 to-yellow-500 rounded-full"
-                            style={{ width: `${ministry.totalLearners > 0 ? Math.min(100, (ministry.coursesCompleted / ministry.totalLearners) * 100) : 0}%` }}
-                          />
-                        </div>
-                        <div className="text-xs text-zinc-500 mt-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          Click to view course breakdown <ChevronRight size={12} />
-                        </div>
-                      </button>
-                    )) : (
-                      <div className="col-span-3 text-center text-zinc-500 py-8">No ministry data available yet</div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    <div className="text-lg font-medium text-white mb-4">
-                      {selectedMinistry} - Per-Course Breakdown
+                      ))}
                     </div>
-                    {ministryCourseStats.length > 0 ? (
-                      <div className="space-y-3">
-                        {ministryCourseStats.map((stat, idx) => (
-                          <div key={idx} className="p-4 rounded-xl bg-white/5 border border-white/10">
-                            <div className="flex justify-between items-start mb-3">
-                              <div>
-                                <div className="font-medium text-white">{stat.courseTitle}</div>
-                                <div className="text-xs text-zinc-500">{stat.enrolledCount} enrolled</div>
-                              </div>
-                              <div className="flex gap-2">
-                                {stat.overdueCount > 0 && (
-                                  <Badge type="default" className="!bg-red-500/20 !text-red-400 !border-red-500/30">
-                                    {stat.overdueCount} overdue
-                                  </Badge>
-                                )}
-                                <Badge type="success">{stat.completionRate}% complete</Badge>
-                              </div>
-                            </div>
-                            <div className="grid grid-cols-3 gap-4 text-center">
-                              <div>
-                                <div className="text-lg font-bold text-green-400">{stat.completedCount}</div>
-                                <div className="text-xs text-zinc-500">Completed</div>
-                              </div>
-                              <div>
-                                <div className="text-lg font-bold text-yellow-400">{stat.enrolledCount - stat.completedCount}</div>
-                                <div className="text-xs text-zinc-500">In Progress</div>
-                              </div>
-                              <div>
-                                <div className="text-lg font-bold text-white">{stat.avgScore}%</div>
-                                <div className="text-xs text-zinc-500">Avg Score</div>
-                              </div>
-                            </div>
-                            <div className="h-1.5 bg-white/10 rounded-full overflow-hidden mt-3">
-                              <div
-                                className="h-full bg-gradient-to-r from-green-400 to-green-500 rounded-full"
-                                style={{ width: `${stat.completionRate}%` }}
-                              />
-                            </div>
-                          </div>
+                  ) : (
+                    <div className="text-center text-zinc-500 py-8">No course data available for this ministry</div>
+                  )}
+                </div>
+              )}
+            </GlassCard>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <GlassCard className="lg:col-span-2 p-8">
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-xl font-bold">Ministry Engagement</h3>
+                </div>
+                <div className="h-64 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={ministryStats.length > 0 ? ministryStats.map(m => ({ name: m.name?.split(' ').pop() || m.name, value: m.totalLearners })) : adminStats} barSize={40}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
+                      <XAxis dataKey="name" stroke="#64748b" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
+                      <YAxis stroke="#64748b" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
+                      <Tooltip
+                        cursor={{ fill: '#ffffff05' }}
+                        contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '12px', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}
+                        itemStyle={{ color: '#fff' }}
+                      />
+                      <Bar dataKey="value" radius={[8, 8, 8, 8]}>
+                        {(ministryStats.length > 0 ? ministryStats : adminStats).map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={['#FACC15', '#CA8A04', '#FEF08A', '#713F12'][index % 4]} />
                         ))}
-                      </div>
-                    ) : (
-                      <div className="text-center text-zinc-500 py-8">No course data available for this ministry</div>
-                    )}
-                  </div>
-                )}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
               </GlassCard>
 
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <GlassCard className="lg:col-span-2 p-8">
-                   <div className="flex justify-between items-center mb-6">
-                     <h3 className="text-xl font-bold">Ministry Engagement</h3>
-                   </div>
-                   <div className="h-64 w-full">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={ministryStats.length > 0 ? ministryStats.map(m => ({ name: m.name?.split(' ').pop() || m.name, value: m.totalLearners })) : adminStats} barSize={40}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
-                          <XAxis dataKey="name" stroke="#64748b" tick={{fontSize: 10}} axisLine={false} tickLine={false} />
-                          <YAxis stroke="#64748b" tick={{fontSize: 10}} axisLine={false} tickLine={false} />
-                          <Tooltip
-                            cursor={{fill: '#ffffff05'}}
-                            contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '12px', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}
-                            itemStyle={{ color: '#fff' }}
-                          />
-                          <Bar dataKey="value" radius={[8, 8, 8, 8]}>
-                            {(ministryStats.length > 0 ? ministryStats : adminStats).map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={['#FACC15', '#CA8A04', '#FEF08A', '#713F12'][index % 4]} />
-                            ))}
-                          </Bar>
-                        </BarChart>
-                      </ResponsiveContainer>
-                   </div>
-                </GlassCard>
-
-                <GlassCard className="p-8">
-                   <h3 className="text-xl font-bold mb-6">Content Types</h3>
-                   <div className="h-64 w-full relative">
-                     <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                          <Pie
-                            data={contentStats.length > 0 ? contentStats : [
-                              { name: 'Video', value: 45 },
-                              { name: 'Pdf', value: 30 },
-                              { name: 'Quiz', value: 25 },
-                            ]}
-                            innerRadius={60}
-                            outerRadius={80}
-                            paddingAngle={5}
-                            dataKey="value"
-                          >
-                            {(contentStats.length > 0 ? contentStats : [1,2,3]).map((_, index) => (
-                              <Cell key={`cell-${index}`} fill={['#FACC15', '#FFFFFF', '#A16207', '#FEF08A'][index % 4]} />
-                            ))}
-                          </Pie>
-                          <Tooltip contentStyle={{ backgroundColor: '#0f172a', border: 'none', borderRadius: '8px' }} />
-                        </PieChart>
-                     </ResponsiveContainer>
-                     <div className="absolute inset-0 flex items-center justify-center flex-col pointer-events-none">
-                        <span className="text-3xl font-bold text-white">{fullStats?.totalLessons || '—'}</span>
-                        <span className="text-xs text-zinc-400">Total Lessons</span>
-                     </div>
-                   </div>
-                   <div className="flex justify-center gap-4 text-xs flex-wrap">
-                      {contentStats.length > 0 ? contentStats.map((c, idx) => (
-                        <div key={idx} className="flex items-center gap-1">
-                          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: ['#FACC15', '#FFFFFF', '#A16207', '#FEF08A'][idx % 4] }}></div>
-                          {c.name} ({c.count || c.value})
-                        </div>
-                      )) : (
-                        <>
-                          <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-yellow-400"></div> Video</div>
-                          <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-white"></div> Docs</div>
-                          <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-yellow-700"></div> Quiz</div>
-                        </>
-                      )}
-                   </div>
-                </GlassCard>
-              </div>
+              <GlassCard className="p-8">
+                <h3 className="text-xl font-bold mb-6">Content Types</h3>
+                <div className="h-64 w-full relative">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={contentStats.length > 0 ? contentStats : [
+                          { name: 'Video', value: 45 },
+                          { name: 'Pdf', value: 30 },
+                          { name: 'Quiz', value: 25 },
+                        ]}
+                        innerRadius={60}
+                        outerRadius={80}
+                        paddingAngle={5}
+                        dataKey="value"
+                      >
+                        {(contentStats.length > 0 ? contentStats : [1, 2, 3]).map((_, index) => (
+                          <Cell key={`cell-${index}`} fill={['#FACC15', '#FFFFFF', '#A16207', '#FEF08A'][index % 4]} />
+                        ))}
+                      </Pie>
+                      <Tooltip contentStyle={{ backgroundColor: '#0f172a', border: 'none', borderRadius: '8px' }} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div className="absolute inset-0 flex items-center justify-center flex-col pointer-events-none">
+                    <span className="text-3xl font-bold text-white">{fullStats?.totalLessons || '—'}</span>
+                    <span className="text-xs text-zinc-400">Total Lessons</span>
+                  </div>
+                </div>
+                <div className="flex justify-center gap-4 text-xs flex-wrap">
+                  {contentStats.length > 0 ? contentStats.map((c, idx) => (
+                    <div key={idx} className="flex items-center gap-1">
+                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: ['#FACC15', '#FFFFFF', '#A16207', '#FEF08A'][idx % 4] }}></div>
+                      {c.name} ({c.count || c.value})
+                    </div>
+                  )) : (
+                    <>
+                      <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-yellow-400"></div> Video</div>
+                      <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-white"></div> Docs</div>
+                      <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-yellow-700"></div> Quiz</div>
+                    </>
+                  )}
+                </div>
+              </GlassCard>
+            </div>
           </div>
         </div>
       </div>

@@ -1,0 +1,56 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-zinc-950 text-white font-sans antialiased overflow-x-hidden;
+    background-color: #050505;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display tracking-tight;
+  }
+
+  ::selection {
+    @apply bg-yellow-500/30 text-yellow-300;
+  }
+
+  /* Custom Scrollbar - Liquid Gold */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-zinc-800 rounded-full hover:bg-zinc-700 transition-colors;
+  }
+
+  /* For dark mode scrollbar inside specific containers */
+  .dark-scroll::-webkit-scrollbar-thumb {
+    background: linear-gradient(to bottom, #71717a, #52525b);
+  }
+}
+
+@layer components {
+  .glass-panel {
+    @apply bg-[#16161a]/90 backdrop-blur-xl border border-white/[0.06] shadow-2xl;
+  }
+  
+  .text-gradient-gold {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 via-yellow-200 to-yellow-500;
+  }
+}
+
+/* Global utility classes for animations that might not be in Tailwind keys */
+.delay-100 { animation-delay: 100ms; }
+.delay-200 { animation-delay: 200ms; }
+.delay-300 { animation-delay: 300ms; }
+.delay-500 { animation-delay: 500ms; }
+.delay-700 { animation-delay: 700ms; }
