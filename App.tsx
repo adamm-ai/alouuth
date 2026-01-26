@@ -43,7 +43,7 @@ import {
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from 'recharts';
 import { LiquidBackground } from './components/LiquidBackground';
 import { GlassCard, PrimaryButton, SecondaryButton, ProgressBar, Badge, FileDropZone, IconButton, ToastProvider, useToast, LiquidVideoFrame } from './components/UIComponents';
-import { AnimatePresence, Reorder, motion } from 'framer-motion';
+import { AnimatePresence, Reorder, motion, LayoutGroup } from 'framer-motion';
 import { PageTransition } from './components/PageTransition';
 import { dataService } from './services/dataService';
 import { authAPI, setAuthToken, getAuthToken, PendingUser, adminAPI } from './services/api';
@@ -3250,7 +3250,7 @@ const App: React.FC = () => {
 
     // --- Main Admin Dashboard ---
     return (
-      <div className={`md:ml-64 h-screen overflow-y-auto relative z-10 liquid-scroll transition-all duration-700 ${draggedCourseId ? 'bg-[#050505]' : 'bg-transparent'}`}>
+      <div className={`md:ml-64 h-screen overflow-y-auto relative z-10 liquid-scroll transition-colors duration-700 ${draggedCourseId ? 'bg-[#050505]' : 'bg-transparent'}`}>
         <AnimatePresence>
           {draggedCourseId && (
             <motion.div
@@ -3267,7 +3267,7 @@ const App: React.FC = () => {
           )}
         </AnimatePresence>
 
-        <div className={`p-6 md:p-10 max-w-7xl mx-auto space-y-8 pb-20 relative z-[60] transition-all duration-700 ${draggedCourseId ? 'scale-[0.98] blur-[0.5px]' : 'scale-100 blur-0'}`}>
+        <div className={`p-6 md:p-10 max-w-7xl mx-auto space-y-8 pb-20 relative z-[60] transition-[transform,filter] duration-700 ${draggedCourseId ? 'scale-[0.98] blur-[0.2px]' : 'scale-100 blur-0'}`}>
 
           <PageTransition viewKey={adminSection}>
             {adminSection === 'USERS' && <UserManagementSection />}
@@ -3595,161 +3595,161 @@ const App: React.FC = () => {
                           <span className="text-sm text-zinc-500 font-medium">{levelCourses.length} course{levelCourses.length > 1 ? 's' : ''} • Liquid Grid Reorder</span>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 relative">
-                          {levelCourses.map((course, index) => (
-                            <motion.div
-                              key={course.id}
-                              layout
-                              layoutId={course.id}
-                              drag
-                              dragDelay={70}
-                              dragElastic={0.05}
-                              dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
-                              onDragStart={() => setDraggedCourseId(course.id)}
-                              onDragEnd={async () => {
-                                setDraggedCourseId(null);
-                                // Sync final state to backend after reordering completes
-                                try {
-                                  const updatedLevelItems = levelCourses.map((c, idx) => ({
-                                    ...c,
-                                    orderIndex: idx
-                                  }));
-                                  const orderedIds = updatedLevelItems.map(c => c.id);
-                                  await dataService.reorderCourses(level, orderedIds);
-                                } catch (err) {
-                                  console.error('Reorder sync failed', err);
-                                }
-                              }}
-                              onDrag={(_, info) => {
-                                // 2D Grid Swap Logic: detect if we've moved enough to swap with a neighbor
-                                const threshold = 180; // Estimated half width/height of a card
-                                const { x, y } = info.offset;
-
-                                let newIndex = index;
-                                // Simple 2D to 1D mapping check for a 3-column grid (xl)
-                                // This is an approximation - for a perfect "Liquid" feel we'd measure DOM rects
-                                if (Math.abs(x) > threshold || Math.abs(y) > threshold) {
-                                  // Determine direction
-                                  const colChange = Math.round(x / 300); // 300px approx card width
-                                  const rowChange = Math.round(y / 350); // 350px approx card height
-
-                                  const targetIndex = index + colChange + (rowChange * 3); // Assuming 3 cols
-                                  if (targetIndex >= 0 && targetIndex < levelCourses.length && targetIndex !== index) {
-                                    newIndex = targetIndex;
+                        <LayoutGroup id={`level-${level}`}>
+                          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 relative">
+                            {levelCourses.map((course, index) => (
+                              <motion.div
+                                key={course.id}
+                                layout="position"
+                                drag
+                                dragDelay={70}
+                                dragElastic={0.05}
+                                dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
+                                onDragStart={() => setDraggedCourseId(course.id)}
+                                onDragEnd={async () => {
+                                  setDraggedCourseId(null);
+                                  // Sync final state to backend after reordering completes
+                                  try {
+                                    const updatedLevelItems = courses.filter(c => c.level === level).map((c, idx) => ({
+                                      ...c,
+                                      orderIndex: idx
+                                    }));
+                                    const orderedIds = updatedLevelItems.map(c => c.id);
+                                    await dataService.reorderCourses(level, orderedIds);
+                                  } catch (err) {
+                                    console.error('Reorder sync failed', err);
                                   }
-                                }
+                                }}
+                                onDrag={(_, info) => {
+                                  // 2D Grid Swap Logic: detect if we've moved enough to swap with a neighbor
+                                  const thresholdX = 150;
+                                  const thresholdY = 100;
+                                  const { x, y } = info.offset;
 
-                                if (newIndex !== index) {
-                                  const otherCourses = courses.filter(c => c.level !== level);
-                                  const reordered = [...levelCourses];
-                                  const [movedItem] = reordered.splice(index, 1);
-                                  reordered.splice(newIndex, 0, movedItem);
+                                  let newIndex = index;
+                                  // Logic to handle 3-column grid reordering
+                                  if (Math.abs(x) > thresholdX || Math.abs(y) > thresholdY) {
+                                    const colChange = Math.round(x / 300);
+                                    const rowChange = Math.round(y / 250);
+                                    const cols = window.innerWidth >= 1280 ? 3 : window.innerWidth >= 768 ? 2 : 1;
+                                    const targetIndex = index + colChange + (rowChange * cols);
+                                    if (targetIndex >= 0 && targetIndex < levelCourses.length && targetIndex !== index) {
+                                      newIndex = targetIndex;
+                                    }
+                                  }
 
-                                  const updated = reordered.map((item, i) => ({ ...item, orderIndex: i }));
-                                  setCourses(sortCourses([...otherCourses, ...updated]));
-                                }
-                              }}
-                              className={`group relative rounded-2xl transition-shadow duration-300 ${draggedCourseId === course.id ? 'z-[100]' : 'z-10'}`}
-                              whileDrag={{
-                                scale: 1.02,
-                                rotate: 0.5,
-                                zIndex: 100,
-                                boxShadow: "0 40px 80px rgba(0,0,0,0.6), 0 0 40px rgba(212, 175, 55, 0.15)",
-                                cursor: 'grabbing'
-                              }}
-                              transition={{ type: "spring", stiffness: 400, damping: 40, mass: 1 }}
-                            >
-                              {/* Ambient Glow */}
-                              <div className={`absolute -inset-1 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl ${level === 'Beginner' ? 'bg-green-500/20' :
-                                level === 'Intermediate' ? 'bg-yellow-500/20' :
-                                  'bg-purple-500/20'
-                                }`}></div>
+                                  if (newIndex !== index) {
+                                    const otherCourses = courses.filter(c => c.level !== level);
+                                    const reordered = [...levelCourses];
+                                    const [movedItem] = reordered.splice(index, 1);
+                                    reordered.splice(newIndex, 0, movedItem);
 
-                              {/* Card */}
-                              <div className={`relative glass-panel rounded-2xl border ${draggedCourseId === course.id ? 'border-yellow-400/50' : 'border-white/10'} group-hover:border-white/20 overflow-hidden backdrop-blur-xl bg-zinc-900/80 pointer-events-auto`}>
-                                {/* Thumbnail with Overlay */}
-                                <div className="relative aspect-video overflow-hidden">
-                                  <img
-                                    src={course.thumbnail || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=800'}
-                                    alt={course.title}
-                                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 pointer-events-none"
-                                  />
-                                  <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 via-zinc-900/50 to-transparent pointer-events-none"></div>
+                                    const updated = reordered.map((item, i) => ({ ...item, orderIndex: i }));
+                                    setCourses(sortCourses([...otherCourses, ...updated]));
+                                  }
+                                }}
+                                className={`group relative rounded-2xl transition-shadow duration-300 ${draggedCourseId === course.id ? 'z-[100]' : 'z-10'}`}
+                                whileDrag={{
+                                  scale: 1.02,
+                                  rotate: 0.5,
+                                  zIndex: 100,
+                                  boxShadow: "0 40px 80px rgba(0,0,0,0.6), 0 0 40px rgba(212, 175, 55, 0.15)",
+                                  cursor: 'grabbing'
+                                }}
+                                transition={{ type: "spring", stiffness: 400, damping: 40, mass: 1 }}
+                              >
+                                {/* Ambient Glow */}
+                                <div className={`absolute -inset-1 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl ${level === 'Beginner' ? 'bg-green-500/20' :
+                                  level === 'Intermediate' ? 'bg-yellow-500/20' :
+                                    'bg-purple-500/20'
+                                  }`}></div>
 
-                                  <div className="absolute top-3 left-3 w-8 h-8 rounded-full bg-black/60 backdrop-blur-sm border border-white/20 flex items-center justify-center text-sm font-helvetica-bold text-white">
-                                    {index + 1}
-                                  </div>
-
-                                  <div className={`absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-helvetica-bold backdrop-blur-sm ${level === 'Beginner' ? 'bg-green-500/30 text-green-300 border border-green-500/50' :
-                                    level === 'Intermediate' ? 'bg-yellow-500/30 text-yellow-300 border border-yellow-500/50' :
-                                      'bg-purple-500/30 text-purple-300 border border-purple-500/50'
-                                    }`}>{level}</div>
-
-                                  <div className="absolute bottom-3 left-3 right-3 flex justify-between items-center pointer-events-none">
-                                    <div className="flex gap-3">
-                                      <span className="flex items-center gap-1.5 text-xs text-white/80 bg-black/40 backdrop-blur-sm px-2 py-1 rounded-full">
-                                        <List size={12} /> {course.lessons.length} modules
-                                      </span>
-                                      <span className="flex items-center gap-1.5 text-xs text-white/80 bg-black/40 backdrop-blur-sm px-2 py-1 rounded-full">
-                                        <Users size={12} /> {course.enrolledCount || 0}
-                                      </span>
-                                    </div>
-                                  </div>
-
-                                  <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing">
-                                    <div className="p-4 rounded-full bg-yellow-400 text-black shadow-lg shadow-yellow-400/20 scale-90 group-hover:scale-100 transition-transform">
-                                      <GripVertical size={28} />
-                                    </div>
-                                  </div>
-                                </div>
-
-                                <div className="p-5">
-                                  {editingCourseId === course.id ? (
-                                    <input
-                                      type="text"
-                                      value={editingCourseTitle}
-                                      onChange={(e) => setEditingCourseTitle(e.target.value)}
-                                      onKeyDown={(e) => {
-                                        if (e.key === 'Enter') saveEditingCourseTitle();
-                                        if (e.key === 'Escape') cancelEditingCourseTitle();
-                                      }}
-                                      onBlur={saveEditingCourseTitle}
-                                      autoFocus
-                                      className="text-lg font-helvetica-bold text-white mb-2 bg-transparent border-b-2 border-yellow-400 outline-none w-full pb-1"
-                                      onPointerDown={(e) => e.stopPropagation()}
+                                {/* Card */}
+                                <div className={`relative glass-panel rounded-2xl border ${draggedCourseId === course.id ? 'border-yellow-400/50' : 'border-white/10'} group-hover:border-white/20 overflow-hidden backdrop-blur-xl bg-zinc-900/80 pointer-events-auto`}>
+                                  {/* Thumbnail with Overlay */}
+                                  <div className="relative aspect-video overflow-hidden">
+                                    <img
+                                      src={course.thumbnail || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=800'}
+                                      alt={course.title}
+                                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 pointer-events-none"
                                     />
-                                  ) : (
-                                    <h4
-                                      className="text-lg font-helvetica-bold text-white mb-2 cursor-text hover:text-[#D4AF37] transition-colors line-clamp-1"
-                                      onPointerDown={(e) => { e.stopPropagation(); startEditingCourseTitle(course); }}
-                                      title="Click to edit title"
-                                    >
-                                      {course.title}
-                                    </h4>
-                                  )}
+                                    <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 via-zinc-900/50 to-transparent pointer-events-none"></div>
 
-                                  <p className="text-sm text-zinc-400 mb-4 line-clamp-2">{course.description || 'No description'}</p>
+                                    <div className="absolute top-3 left-3 w-8 h-8 rounded-full bg-black/60 backdrop-blur-sm border border-white/20 flex items-center justify-center text-sm font-helvetica-bold text-white">
+                                      {index + 1}
+                                    </div>
 
-                                  <div className="flex gap-2">
-                                    <button
-                                      onPointerDown={(e) => { e.stopPropagation(); handleEditCourse(course); }}
-                                      className="flex-1 py-2.5 px-4 rounded-xl bg-yellow-400 text-black text-sm font-helvetica-bold hover:bg-yellow-300 transition-colors flex items-center justify-center gap-2"
-                                    >
-                                      <Pencil size={14} /> Edit Course
-                                    </button>
-                                    <button
-                                      onPointerDown={(e) => { e.stopPropagation(); deleteCourse(course.id); }}
-                                      className="p-2.5 rounded-xl border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-colors"
-                                      title="Delete course"
-                                    >
-                                      <Trash2 size={16} />
-                                    </button>
+                                    <div className={`absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-helvetica-bold backdrop-blur-sm ${level === 'Beginner' ? 'bg-green-500/30 text-green-300 border border-green-500/50' :
+                                      level === 'Intermediate' ? 'bg-yellow-500/30 text-yellow-300 border border-yellow-500/50' :
+                                        'bg-purple-500/30 text-purple-300 border border-purple-500/50'
+                                      }`}>{level}</div>
+
+                                    <div className="absolute bottom-3 left-3 right-3 flex justify-between items-center pointer-events-none">
+                                      <div className="flex gap-3">
+                                        <span className="flex items-center gap-1.5 text-xs text-white/80 bg-black/40 backdrop-blur-sm px-2 py-1 rounded-full">
+                                          <List size={12} /> {course.lessons.length} modules
+                                        </span>
+                                        <span className="flex items-center gap-1.5 text-xs text-white/80 bg-black/40 backdrop-blur-sm px-2 py-1 rounded-full">
+                                          <Users size={12} /> {course.enrolledCount || 0}
+                                        </span>
+                                      </div>
+                                    </div>
+
+                                    <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing">
+                                      <div className="p-4 rounded-full bg-yellow-400 text-black shadow-lg shadow-yellow-400/20 scale-90 group-hover:scale-100 transition-transform">
+                                        <GripVertical size={28} />
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  <div className="p-5">
+                                    {editingCourseId === course.id ? (
+                                      <input
+                                        type="text"
+                                        value={editingCourseTitle}
+                                        onChange={(e) => setEditingCourseTitle(e.target.value)}
+                                        onKeyDown={(e) => {
+                                          if (e.key === 'Enter') saveEditingCourseTitle();
+                                          if (e.key === 'Escape') cancelEditingCourseTitle();
+                                        }}
+                                        onBlur={saveEditingCourseTitle}
+                                        autoFocus
+                                        className="text-lg font-helvetica-bold text-white mb-2 bg-transparent border-b-2 border-yellow-400 outline-none w-full pb-1"
+                                        onPointerDown={(e) => e.stopPropagation()}
+                                      />
+                                    ) : (
+                                      <h4
+                                        className="text-lg font-helvetica-bold text-white mb-2 cursor-text hover:text-[#D4AF37] transition-colors line-clamp-1"
+                                        onPointerDown={(e) => { e.stopPropagation(); startEditingCourseTitle(course); }}
+                                        title="Click to edit title"
+                                      >
+                                        {course.title}
+                                      </h4>
+                                    )}
+
+                                    <p className="text-sm text-zinc-400 mb-4 line-clamp-2">{course.description || 'No description'}</p>
+
+                                    <div className="flex gap-2">
+                                      <button
+                                        onPointerDown={(e) => { e.stopPropagation(); handleEditCourse(course); }}
+                                        className="flex-1 py-2.5 px-4 rounded-xl bg-yellow-400 text-black text-sm font-helvetica-bold hover:bg-yellow-300 transition-colors flex items-center justify-center gap-2"
+                                      >
+                                        <Pencil size={14} /> Edit Course
+                                      </button>
+                                      <button
+                                        onPointerDown={(e) => { e.stopPropagation(); deleteCourse(course.id); }}
+                                        className="p-2.5 rounded-xl border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-colors"
+                                        title="Delete course"
+                                      >
+                                        <Trash2 size={16} />
+                                      </button>
+                                    </div>
                                   </div>
                                 </div>
-                              </div>
-                            </motion.div>
-                          ))}
-                        </div>
+                              </motion.div>
+                            ))}
+                          </div>
+                        </LayoutGroup>
                       </div>
                     );
                   })}
