@@ -3522,13 +3522,17 @@ const App: React.FC = () => {
                                   <span className="flex items-center gap-1.5 text-zinc-400"><Users size={12} className="text-zinc-600" /> {course.enrolledCount} Enrolled</span>
                                 </div>
                               </div>
-                              <div className="flex gap-2 mt-4 pt-4 border-t border-white/5">
-                                <SecondaryButton onClick={() => handleEditCourse(course)} className="flex-1 h-8 text-[11px] px-3 gap-1.5 font-helvetica-bold">
-                                  <Pencil size={12} /> Edit
-                                </SecondaryButton>
+                              <div className="flex items-center gap-2 mt-4 pt-4 border-t border-white/5">
+                                <PrimaryButton
+                                  onClick={() => handleEditCourse(course)}
+                                  className="flex-1 h-8 !py-0 !px-3 !text-[11px] !rounded-xl shadow-lg shadow-yellow-400/10"
+                                >
+                                  <Pencil size={12} /> Edit Module
+                                </PrimaryButton>
                                 <button
                                   onClick={() => deleteCourse(course.id)}
-                                  className="h-8 w-8 flex items-center justify-center rounded-lg border border-red-900/30 text-red-400 hover:bg-red-400 hover:text-white transition-all"
+                                  className="h-8 w-8 flex items-center justify-center rounded-xl border border-red-500/20 text-red-500/60 hover:bg-red-500 hover:text-white hover:border-red-500 hover:shadow-[0_0_15px_rgba(239,68,68,0.3)] transition-all shrink-0"
+                                  title="Delete Course"
                                 >
                                   <Trash2 size={12} />
                                 </button>
