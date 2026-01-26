@@ -96,6 +96,7 @@ const App: React.FC = () => {
   const [expandedDescriptions, setExpandedDescriptions] = useState<Set<string>>(new Set());
   const [adminSection, setAdminSection] = useState<AdminSection>('OVERVIEW');
   const [draggedCourseId, setDraggedCourseId] = useState<string | null>(null);
+  const [playerSidebarCollapsed, setPlayerSidebarCollapsed] = useState(false); // Persists across lesson navigation
   const [userDashboardStats, setUserDashboardStats] = useState<{
     enrolledCourses: number;
     completedCourses: number;
@@ -1290,7 +1291,7 @@ const App: React.FC = () => {
     const [isDownloaded, setIsDownloaded] = useState(false);
 
     // Sidebar collapse state
-    const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+    // Sidebar collapse state moved to App level (playerSidebarCollapsed) for persistence
 
     // Video Progress Tracking State
     const [videoWatchedPercent, setVideoWatchedPercent] = useState(0);
@@ -1638,8 +1639,8 @@ const App: React.FC = () => {
         <div className="flex-1 flex flex-col md:flex-row overflow-hidden relative z-10">
           {/* Sidebar Curriculum - Hyper Liquid Glass */}
           <div className={`
-            transition-all duration-200 ease-out hidden md:flex flex-col
-            ${sidebarCollapsed ? 'w-20' : 'w-96'}
+            transition-transform duration-150 ease-out hidden md:flex flex-col w-96
+            ${playerSidebarCollapsed ? '-translate-x-80' : 'translate-x-0'}
           `}>
             <div className="h-full relative">
               {/* Solid background - no gradient */}
@@ -1650,12 +1651,12 @@ const App: React.FC = () => {
                 {/* Header */}
                 <div className="p-6 border-b border-white/10">
                   <div className="flex items-center justify-between mb-4">
-                    <div className={`transition-all duration-300 ${sidebarCollapsed ? 'opacity-0 w-0' : 'opacity-100'}`}>
+                    <div className={`transition-opacity duration-100 ${playerSidebarCollapsed ? 'opacity-0' : 'opacity-100'}`}>
                       <h2 className="text-sm font-bold text-white uppercase tracking-wider">Curriculum</h2>
                       <p className="text-[11px] text-zinc-500 mt-1">{totalCount} lessons • {activeCourse?.totalDuration}</p>
                     </div>
                     <button
-                      onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+                      onClick={() => setPlayerSidebarCollapsed(!playerSidebarCollapsed)}
                       className="p-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-all"
                     >
                       <List size={16} className="text-zinc-400" />
@@ -1663,7 +1664,7 @@ const App: React.FC = () => {
                   </div>
 
                   {/* Mini progress */}
-                  {!sidebarCollapsed && (
+                  {!playerSidebarCollapsed && (
                     <div className="relative h-1.5 bg-white/5 rounded-full overflow-hidden">
                       <div
                         className="absolute inset-y-0 left-0 bg-gradient-to-r from-yellow-400 to-yellow-500 rounded-full shadow-[0_0_10px_rgba(250,204,21,0.5)] transition-all duration-700"
@@ -1679,7 +1680,7 @@ const App: React.FC = () => {
                     const isLocked = idx > 0 && !activeCourse.lessons[idx - 1].isCompleted;
                     const isActive = activeLesson?.id === lesson.id;
 
-                    if (sidebarCollapsed) {
+                    if (playerSidebarCollapsed) {
                       return (
                         <button
                           key={lesson.id}
