@@ -1638,12 +1638,12 @@ const App: React.FC = () => {
         <div className="flex-1 flex flex-col md:flex-row overflow-hidden relative z-10">
           {/* Sidebar Curriculum - Hyper Liquid Glass */}
           <div className={`
-            transition-all duration-500 ease-out hidden md:flex flex-col
+            transition-all duration-200 ease-out hidden md:flex flex-col
             ${sidebarCollapsed ? 'w-20' : 'w-96'}
           `}>
             <div className="h-full relative">
-              {/* Glass background */}
-              <div className="absolute inset-0 bg-[linear-gradient(180deg,#131315_0%,#0a0a0b_100%)] border-r border-white/[0.05]" />
+              {/* Solid background - no gradient */}
+              <div className="absolute inset-0 bg-[#0a0a0b] border-r border-white/[0.05]" />
 
               {/* Content */}
               <div className="relative h-full flex flex-col">
