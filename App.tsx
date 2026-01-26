@@ -526,13 +526,6 @@ const App: React.FC = () => {
     );
   };
 
-  const PageTransition: React.FC<{ children: React.ReactNode; viewKey?: string }> = ({ children, viewKey }) => (
-    <div key={viewKey} className="relative animate-page-entrance min-h-full w-full">
-      <div className="light-sweep" />
-      {children}
-    </div>
-  );
-
   // --- Views ---
 
   const LandingView = () => (
@@ -3268,9 +3261,7 @@ const App: React.FC = () => {
         <div className="p-6 md:p-10 max-w-7xl mx-auto space-y-8 pb-20">
 
           <PageTransition viewKey={adminSection}>
-            {adminSection === 'USERS' && (
-              <UserManagementSection />
-            )}
+            {adminSection === 'USERS' && <UserManagementSection />}
 
             {adminSection === 'OVERVIEW' && (
               <div className="space-y-8">
@@ -3536,426 +3527,428 @@ const App: React.FC = () => {
                     ))}
                   </div>
                 </div>
+              </div>
             )}
 
-                {adminSection === 'COURSES' && (
-                  <div className="space-y-8">
-                    <div className="flex justify-between items-end mb-8">
-                      <div>
-                        <h2 className="text-3xl font-helvetica-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-zinc-400">Course Manager</h2>
-                        <p className="text-zinc-400 mt-2 flex items-center gap-4">
-                          <span>{courses.length} course{courses.length !== 1 ? 's' : ''}</span>
-                          <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-green-400"></span><span className="text-green-400">{courses.filter(c => c.level === 'Beginner').length}</span> Beginner</span>
-                          <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-yellow-400"></span><span className="text-[#D4AF37]">{courses.filter(c => c.level === 'Intermediate').length}</span> Intermediate</span>
-                          <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-purple-400"></span><span className="text-purple-400">{courses.filter(c => c.level === 'Advanced').length}</span> Advanced</span>
-                        </p>
-                      </div>
-                      <PrimaryButton onClick={handleCreateCourse} className="text-sm shadow-lg shadow-yellow-400/20">
-                        <Plus size={18} /> New Course
-                      </PrimaryButton>
-                    </div>
+            {adminSection === 'COURSES' && (
+              <div className="space-y-8">
+                <div className="flex justify-between items-end mb-8">
+                  <div>
+                    <h2 className="text-3xl font-helvetica-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-zinc-400">Course Manager</h2>
+                    <p className="text-zinc-400 mt-2 flex items-center gap-4">
+                      <span>{courses.length} course{courses.length !== 1 ? 's' : ''}</span>
+                      <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-green-400"></span><span className="text-green-400">{courses.filter(c => c.level === 'Beginner').length}</span> Beginner</span>
+                      <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-yellow-400"></span><span className="text-[#D4AF37]">{courses.filter(c => c.level === 'Intermediate').length}</span> Intermediate</span>
+                      <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-purple-400"></span><span className="text-purple-400">{courses.filter(c => c.level === 'Advanced').length}</span> Advanced</span>
+                    </p>
+                  </div>
+                  <PrimaryButton onClick={handleCreateCourse} className="text-sm shadow-lg shadow-yellow-400/20">
+                    <Plus size={18} /> New Course
+                  </PrimaryButton>
+                </div>
 
-                    {/* Courses Grid - Liquid Glass Cards */}
-                    <div className="space-y-10">
-                      {(['Beginner', 'Intermediate', 'Advanced'] as const).map(level => {
-                        const levelCourses = courses.filter(c => c.level === level);
-                        if (levelCourses.length === 0) return null;
-                        const levelColor = level === 'Beginner' ? 'green' : level === 'Intermediate' ? 'yellow' : 'purple';
-                        return (
-                          <div key={level} className="space-y-5">
-                            <div className="flex items-center gap-4">
-                              <div className={`px-4 py-1.5 rounded-full text-sm font-helvetica-bold ${level === 'Beginner' ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
-                                level === 'Intermediate' ? 'bg-yellow-500/20 text-[#D4AF37] border border-yellow-500/30' :
-                                  'bg-purple-500/20 text-purple-400 border border-purple-500/30'
-                                }`}>{level}</div>
-                              <div className="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent"></div>
-                              <span className="text-sm text-zinc-500">{levelCourses.length} course{levelCourses.length > 1 ? 's' : ''} • Drag to reorder</span>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                              {levelCourses.map((course, index) => (
-                                <div
-                                  key={course.id}
-                                  draggable
-                                  onDragStart={(e) => {
-                                    setDraggedCourseId(course.id);
-                                    e.dataTransfer.effectAllowed = 'move';
-                                    e.dataTransfer.setData('text/plain', JSON.stringify({ level, fromIndex: index }));
-                                  }}
-                                  onDragEnd={() => setDraggedCourseId(null)}
-                                  onDragOver={(e) => {
-                                    e.preventDefault();
-                                    e.dataTransfer.dropEffect = 'move';
-                                  }}
-                                  onDrop={async (e) => {
-                                    e.preventDefault();
-                                    const data = JSON.parse(e.dataTransfer.getData('text/plain'));
-                                    if (data.level === level && data.fromIndex !== index) {
-                                      const success = await handleCourseDrop(level, data.fromIndex, index);
-                                      if (success) {
-                                        showToast('success', 'Order Saved', 'Course order updated and saved for all users.');
-                                      } else {
-                                        showToast('error', 'Save Failed', 'Failed to save course order. Please try again.');
-                                      }
-                                    }
-                                    setDraggedCourseId(null);
-                                  }}
-                                  className={`group relative rounded-2xl overflow-hidden transition-all duration-500 cursor-grab active:cursor-grabbing ${draggedCourseId === course.id
-                                    ? 'opacity-50 scale-95 rotate-1 ring-2 ring-yellow-400'
-                                    : 'hover:scale-[1.02] hover:-translate-y-1'
-                                    }`}
-                                >
-                                  {/* Ambient Glow */}
-                                  <div className={`absolute -inset-1 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl ${level === 'Beginner' ? 'bg-green-500/20' :
-                                    level === 'Intermediate' ? 'bg-yellow-500/20' :
-                                      'bg-purple-500/20'
-                                    }`}></div>
-
-                                  {/* Card */}
-                                  <div className="relative glass-panel rounded-2xl border border-white/10 group-hover:border-white/20 overflow-hidden backdrop-blur-xl bg-zinc-900/80">
-                                    {/* Thumbnail with Overlay */}
-                                    <div className="relative aspect-video overflow-hidden">
-                                      <img
-                                        src={course.thumbnail || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=800'}
-                                        alt={course.title}
-                                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                                      />
-                                      {/* Gradient Overlay */}
-                                      <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 via-zinc-900/50 to-transparent"></div>
-
-                                      {/* Order Badge */}
-                                      <div className="absolute top-3 left-3 w-8 h-8 rounded-full bg-black/60 backdrop-blur-sm border border-white/20 flex items-center justify-center text-sm font-helvetica-bold text-white">
-                                        {index + 1}
-                                      </div>
-
-                                      {/* Level Badge */}
-                                      <div className={`absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-helvetica-bold backdrop-blur-sm ${level === 'Beginner' ? 'bg-green-500/30 text-green-300 border border-green-500/50' :
-                                        level === 'Intermediate' ? 'bg-yellow-500/30 text-yellow-300 border border-yellow-500/50' :
-                                          'bg-purple-500/30 text-purple-300 border border-purple-500/50'
-                                        }`}>{level}</div>
-
-                                      {/* Stats Overlay */}
-                                      <div className="absolute bottom-3 left-3 right-3 flex justify-between items-center">
-                                        <div className="flex gap-3">
-                                          <span className="flex items-center gap-1.5 text-xs text-white/80 bg-black/40 backdrop-blur-sm px-2 py-1 rounded-full">
-                                            <List size={12} /> {course.lessons.length} modules
-                                          </span>
-                                          <span className="flex items-center gap-1.5 text-xs text-white/80 bg-black/40 backdrop-blur-sm px-2 py-1 rounded-full">
-                                            <Users size={12} /> {course.enrolledCount || 0}
-                                          </span>
-                                        </div>
-                                      </div>
-
-                                      {/* Drag Handle - Appears on Hover */}
-                                      <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <div className="p-3 rounded-full bg-white/10 backdrop-blur-sm border border-white/20">
-                                          <GripVertical size={24} className="text-white" />
-                                        </div>
-                                      </div>
-                                    </div>
-
-                                    {/* Content */}
-                                    <div className="p-5">
-                                      {/* Title - Editable */}
-                                      {editingCourseId === course.id ? (
-                                        <input
-                                          type="text"
-                                          value={editingCourseTitle}
-                                          onChange={(e) => setEditingCourseTitle(e.target.value)}
-                                          onKeyDown={(e) => {
-                                            if (e.key === 'Enter') saveEditingCourseTitle();
-                                            if (e.key === 'Escape') cancelEditingCourseTitle();
-                                          }}
-                                          onBlur={saveEditingCourseTitle}
-                                          autoFocus
-                                          className="text-lg font-helvetica-bold text-white mb-2 bg-transparent border-b-2 border-yellow-400 outline-none w-full pb-1"
-                                          onClick={(e) => e.stopPropagation()}
-                                        />
-                                      ) : (
-                                        <h4
-                                          className="text-lg font-helvetica-bold text-white mb-2 cursor-text hover:text-[#D4AF37] transition-colors line-clamp-1"
-                                          onClick={(e) => { e.stopPropagation(); startEditingCourseTitle(course); }}
-                                          title="Click to edit title"
-                                        >
-                                          {course.title}
-                                        </h4>
-                                      )}
-
-                                      {/* Description */}
-                                      <p className="text-sm text-zinc-400 mb-4 line-clamp-2">{course.description || 'No description'}</p>
-
-                                      {/* Actions */}
-                                      <div className="flex gap-2">
-                                        <button
-                                          onClick={(e) => { e.stopPropagation(); handleEditCourse(course); }}
-                                          className="flex-1 py-2.5 px-4 rounded-xl bg-yellow-400 text-black text-sm font-helvetica-bold hover:bg-yellow-300 transition-colors flex items-center justify-center gap-2"
-                                        >
-                                          <Pencil size={14} /> Edit Course
-                                        </button>
-                                        <button
-                                          onClick={(e) => { e.stopPropagation(); deleteCourse(course.id); }}
-                                          className="p-2.5 rounded-xl border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-colors"
-                                          title="Delete course"
-                                        >
-                                          <Trash2 size={16} />
-                                        </button>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-            )}
-
-                    {adminSection === 'ANALYTICS' && (
-                      <div className="space-y-6">
-                        <div>
-                          <h2 className="text-3xl font-helvetica-bold">Analytics Dashboard</h2>
-                          <p className="text-zinc-400 mt-1">Detailed insights into platform engagement</p>
+                {/* Courses Grid - Liquid Glass Cards */}
+                <div className="space-y-10">
+                  {(['Beginner', 'Intermediate', 'Advanced'] as const).map(level => {
+                    const levelCourses = courses.filter(c => c.level === level);
+                    if (levelCourses.length === 0) return null;
+                    const levelColor = level === 'Beginner' ? 'green' : level === 'Intermediate' ? 'yellow' : 'purple';
+                    return (
+                      <div key={level} className="space-y-5">
+                        <div className="flex items-center gap-4">
+                          <div className={`px-4 py-1.5 rounded-full text-sm font-helvetica-bold ${level === 'Beginner' ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
+                            level === 'Intermediate' ? 'bg-yellow-500/20 text-[#D4AF37] border border-yellow-500/30' :
+                              'bg-purple-500/20 text-purple-400 border border-purple-500/30'
+                            }`}>{level}</div>
+                          <div className="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent"></div>
+                          <span className="text-sm text-zinc-500">{levelCourses.length} course{levelCourses.length > 1 ? 's' : ''} • Drag to reorder</span>
                         </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                          {levelCourses.map((course, index) => (
+                            <div
+                              key={course.id}
+                              draggable
+                              onDragStart={(e) => {
+                                setDraggedCourseId(course.id);
+                                e.dataTransfer.effectAllowed = 'move';
+                                e.dataTransfer.setData('text/plain', JSON.stringify({ level, fromIndex: index }));
+                              }}
+                              onDragEnd={() => setDraggedCourseId(null)}
+                              onDragOver={(e) => {
+                                e.preventDefault();
+                                e.dataTransfer.dropEffect = 'move';
+                              }}
+                              onDrop={async (e) => {
+                                e.preventDefault();
+                                const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+                                if (data.level === level && data.fromIndex !== index) {
+                                  const success = await handleCourseDrop(level, data.fromIndex, index);
+                                  if (success) {
+                                    showToast('success', 'Order Saved', 'Course order updated and saved for all users.');
+                                  } else {
+                                    showToast('error', 'Save Failed', 'Failed to save course order. Please try again.');
+                                  }
+                                }
+                                setDraggedCourseId(null);
+                              }}
+                              className={`group relative rounded-2xl overflow-hidden transition-all duration-500 cursor-grab active:cursor-grabbing ${draggedCourseId === course.id
+                                ? 'opacity-50 scale-95 rotate-1 ring-2 ring-yellow-400'
+                                : 'hover:scale-[1.02] hover:-translate-y-1'
+                                }`}
+                            >
+                              {/* Ambient Glow */}
+                              <div className={`absolute -inset-1 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl ${level === 'Beginner' ? 'bg-green-500/20' :
+                                level === 'Intermediate' ? 'bg-yellow-500/20' :
+                                  'bg-purple-500/20'
+                                }`}></div>
 
-                        {/* Ministry Progress Tracking - Enhanced with per-course breakdown */}
-                        <GlassCard className="p-6">
-                          <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-xl font-helvetica-bold">Ministry Training Progress</h3>
-                            {selectedMinistry && (
-                              <button
-                                onClick={() => setSelectedMinistry(null)}
-                                className="text-sm text-[#D4AF37] hover:text-yellow-300 flex items-center gap-1"
-                              >
-                                <ArrowLeft size={14} /> Back to all ministries
-                              </button>
-                            )}
-                          </div>
-
-                          {!selectedMinistry ? (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                              {ministryStats.length > 0 ? ministryStats.map((ministry, idx) => (
-                                <button
-                                  key={idx}
-                                  onClick={() => setSelectedMinistry(ministry.name)}
-                                  className="p-4 rounded-xl bg-white/5 border border-white/10 hover:border-[#D4AF37]/50 hover:bg-white/10 transition-all text-left group"
-                                >
-                                  <div className="flex justify-between items-start mb-2">
-                                    <div className="text-sm font-medium text-white truncate group-hover:text-[#D4AF37] transition-colors">{ministry.name}</div>
-                                    <div className="flex gap-2">
-                                      {ministry.overdueCount > 0 && (
-                                        <Badge type="default" className="!bg-red-500/20 !text-red-400 !border-red-500/30">
-                                          {ministry.overdueCount} overdue
-                                        </Badge>
-                                      )}
-                                      <Badge type={ministry.activeLearners > 0 ? 'success' : 'default'}>
-                                        {ministry.activeLearners} active
-                                      </Badge>
-                                    </div>
-                                  </div>
-                                  <div className="text-2xl font-helvetica-bold text-[#D4AF37] mb-1">{ministry.totalLearners}</div>
-                                  <div className="text-xs text-zinc-500 mb-3">learners enrolled</div>
-                                  <div className="flex justify-between text-xs text-zinc-400 mb-1">
-                                    <span>Courses Completed</span>
-                                    <span className="text-white">{ministry.coursesCompleted}</span>
-                                  </div>
-                                  <div className="flex justify-between text-xs text-zinc-400 mb-1">
-                                    <span>Avg Quiz Score</span>
-                                    <span className="text-white">{ministry.avgQuizScore || 0}%</span>
-                                  </div>
-                                  <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
-                                    <div
-                                      className="h-full bg-[#D4AF37] rounded-full"
-                                      style={{ width: `${ministry.totalLearners > 0 ? Math.min(100, (ministry.coursesCompleted / ministry.totalLearners) * 100) : 0}%` }}
-                                    />
-                                  </div>
-                                  <div className="text-xs text-zinc-500 mt-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    Click to view course breakdown <ChevronRight size={12} />
-                                  </div>
-                                </button>
-                              )) : (
-                                <div className="col-span-3 text-center text-zinc-500 py-8">No ministry data available yet</div>
-                              )}
-                            </div>
-                          ) : (
-                            <div className="space-y-4">
-                              <div className="text-lg font-medium text-white mb-4">
-                                {selectedMinistry} - Per-Course Breakdown
-                              </div>
-                              {ministryCourseStats.length > 0 ? (
-                                <div className="space-y-3">
-                                  {ministryCourseStats.map((stat, idx) => (
-                                    <div key={idx} className="p-4 rounded-xl bg-white/5 border border-white/10">
-                                      <div className="flex justify-between items-start mb-3">
-                                        <div>
-                                          <div className="font-medium text-white">{stat.courseTitle}</div>
-                                          <div className="text-xs text-zinc-500">{stat.enrolledCount} enrolled</div>
-                                        </div>
-                                        <div className="flex gap-2">
-                                          {stat.overdueCount > 0 && (
-                                            <Badge type="default" className="!bg-red-500/20 !text-red-400 !border-red-500/30">
-                                              {stat.overdueCount} overdue
-                                            </Badge>
-                                          )}
-                                          <Badge type="success">{stat.completionRate}% complete</Badge>
-                                        </div>
-                                      </div>
-                                      <div className="grid grid-cols-3 gap-4 text-center">
-                                        <div>
-                                          <div className="text-lg font-helvetica-bold text-green-400">{stat.completedCount}</div>
-                                          <div className="text-xs text-zinc-500">Completed</div>
-                                        </div>
-                                        <div>
-                                          <div className="text-lg font-helvetica-bold text-[#D4AF37]">{stat.enrolledCount - stat.completedCount}</div>
-                                          <div className="text-xs text-zinc-500">In Progress</div>
-                                        </div>
-                                        <div>
-                                          <div className="text-lg font-helvetica-bold text-white">{stat.avgScore}%</div>
-                                          <div className="text-xs text-zinc-500">Avg Score</div>
-                                        </div>
-                                      </div>
-                                      <div className="h-1.5 bg-white/10 rounded-full overflow-hidden mt-3">
-                                        <div
-                                          className="h-full bg-gradient-to-r from-green-400 to-green-500 rounded-full"
-                                          style={{ width: `${stat.completionRate}%` }}
-                                        />
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                              ) : (
-                                <div className="text-center text-zinc-500 py-8">No course data available for this ministry</div>
-                              )}
-                            </div>
-                          )}
-                        </GlassCard>
-
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                          <GlassCard className="lg:col-span-2 p-8">
-                            <div className="flex justify-between items-center mb-6">
-                              <h3 className="text-xl font-helvetica-bold">Ministry Engagement</h3>
-                            </div>
-                            <div className="h-64 w-full">
-                              <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={ministryStats.length > 0 ? ministryStats.map(m => ({ name: m.name?.split(' ').pop() || m.name, value: m.totalLearners })) : adminStats} barSize={40}>
-                                  <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
-                                  <XAxis dataKey="name" stroke="#64748b" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
-                                  <YAxis stroke="#64748b" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
-                                  <Tooltip
-                                    cursor={{ fill: '#ffffff05' }}
-                                    contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '12px', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}
-                                    itemStyle={{ color: '#fff' }}
+                              {/* Card */}
+                              <div className="relative glass-panel rounded-2xl border border-white/10 group-hover:border-white/20 overflow-hidden backdrop-blur-xl bg-zinc-900/80">
+                                {/* Thumbnail with Overlay */}
+                                <div className="relative aspect-video overflow-hidden">
+                                  <img
+                                    src={course.thumbnail || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=800'}
+                                    alt={course.title}
+                                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                                   />
-                                  <Bar dataKey="value" radius={[8, 8, 8, 8]}>
-                                    {(ministryStats.length > 0 ? ministryStats : adminStats).map((entry, index) => (
-                                      <Cell key={`cell-${index}`} fill={['#FACC15', '#CA8A04', '#FEF08A', '#713F12'][index % 4]} />
-                                    ))}
-                                  </Bar>
-                                </BarChart>
-                              </ResponsiveContainer>
-                            </div>
-                          </GlassCard>
+                                  {/* Gradient Overlay */}
+                                  <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 via-zinc-900/50 to-transparent"></div>
 
-                          <GlassCard className="p-8">
-                            <h3 className="text-xl font-helvetica-bold mb-6">Content Types</h3>
-                            <div className="h-64 w-full relative">
-                              <ResponsiveContainer width="100%" height="100%">
-                                <PieChart>
-                                  <Pie
-                                    data={contentStats.length > 0 ? contentStats : [
-                                      { name: 'Video', value: 45 },
-                                      { name: 'Pdf', value: 30 },
-                                      { name: 'Quiz', value: 25 },
-                                    ]}
-                                    innerRadius={60}
-                                    outerRadius={80}
-                                    paddingAngle={5}
-                                    dataKey="value"
-                                  >
-                                    {(contentStats.length > 0 ? contentStats : [1, 2, 3]).map((_, index) => (
-                                      <Cell key={`cell-${index}`} fill={['#FACC15', '#FFFFFF', '#A16207', '#FEF08A'][index % 4]} />
-                                    ))}
-                                  </Pie>
-                                  <Tooltip contentStyle={{ backgroundColor: '#0f172a', border: 'none', borderRadius: '8px' }} />
-                                </PieChart>
-                              </ResponsiveContainer>
-                              <div className="absolute inset-0 flex items-center justify-center flex-col pointer-events-none">
-                                <span className="text-3xl font-helvetica-bold text-white">{fullStats?.totalLessons || '—'}</span>
-                                <span className="text-xs text-zinc-400">Total Lessons</span>
+                                  {/* Order Badge */}
+                                  <div className="absolute top-3 left-3 w-8 h-8 rounded-full bg-black/60 backdrop-blur-sm border border-white/20 flex items-center justify-center text-sm font-helvetica-bold text-white">
+                                    {index + 1}
+                                  </div>
+
+                                  {/* Level Badge */}
+                                  <div className={`absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-helvetica-bold backdrop-blur-sm ${level === 'Beginner' ? 'bg-green-500/30 text-green-300 border border-green-500/50' :
+                                    level === 'Intermediate' ? 'bg-yellow-500/30 text-yellow-300 border border-yellow-500/50' :
+                                      'bg-purple-500/30 text-purple-300 border border-purple-500/50'
+                                    }`}>{level}</div>
+
+                                  {/* Stats Overlay */}
+                                  <div className="absolute bottom-3 left-3 right-3 flex justify-between items-center">
+                                    <div className="flex gap-3">
+                                      <span className="flex items-center gap-1.5 text-xs text-white/80 bg-black/40 backdrop-blur-sm px-2 py-1 rounded-full">
+                                        <List size={12} /> {course.lessons.length} modules
+                                      </span>
+                                      <span className="flex items-center gap-1.5 text-xs text-white/80 bg-black/40 backdrop-blur-sm px-2 py-1 rounded-full">
+                                        <Users size={12} /> {course.enrolledCount || 0}
+                                      </span>
+                                    </div>
+                                  </div>
+
+                                  {/* Drag Handle - Appears on Hover */}
+                                  <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <div className="p-3 rounded-full bg-white/10 backdrop-blur-sm border border-white/20">
+                                      <GripVertical size={24} className="text-white" />
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Content */}
+                                <div className="p-5">
+                                  {/* Title - Editable */}
+                                  {editingCourseId === course.id ? (
+                                    <input
+                                      type="text"
+                                      value={editingCourseTitle}
+                                      onChange={(e) => setEditingCourseTitle(e.target.value)}
+                                      onKeyDown={(e) => {
+                                        if (e.key === 'Enter') saveEditingCourseTitle();
+                                        if (e.key === 'Escape') cancelEditingCourseTitle();
+                                      }}
+                                      onBlur={saveEditingCourseTitle}
+                                      autoFocus
+                                      className="text-lg font-helvetica-bold text-white mb-2 bg-transparent border-b-2 border-yellow-400 outline-none w-full pb-1"
+                                      onClick={(e) => e.stopPropagation()}
+                                    />
+                                  ) : (
+                                    <h4
+                                      className="text-lg font-helvetica-bold text-white mb-2 cursor-text hover:text-[#D4AF37] transition-colors line-clamp-1"
+                                      onClick={(e) => { e.stopPropagation(); startEditingCourseTitle(course); }}
+                                      title="Click to edit title"
+                                    >
+                                      {course.title}
+                                    </h4>
+                                  )}
+
+                                  {/* Description */}
+                                  <p className="text-sm text-zinc-400 mb-4 line-clamp-2">{course.description || 'No description'}</p>
+
+                                  {/* Actions */}
+                                  <div className="flex gap-2">
+                                    <button
+                                      onClick={(e) => { e.stopPropagation(); handleEditCourse(course); }}
+                                      className="flex-1 py-2.5 px-4 rounded-xl bg-yellow-400 text-black text-sm font-helvetica-bold hover:bg-yellow-300 transition-colors flex items-center justify-center gap-2"
+                                    >
+                                      <Pencil size={14} /> Edit Course
+                                    </button>
+                                    <button
+                                      onClick={(e) => { e.stopPropagation(); deleteCourse(course.id); }}
+                                      className="p-2.5 rounded-xl border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-colors"
+                                      title="Delete course"
+                                    >
+                                      <Trash2 size={16} />
+                                    </button>
+                                  </div>
+                                </div>
                               </div>
                             </div>
-                            <div className="flex justify-center gap-4 text-xs flex-wrap">
-                              {contentStats.length > 0 ? contentStats.map((c, idx) => (
-                                <div key={idx} className="flex items-center gap-1">
-                                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: ['#FACC15', '#FFFFFF', '#A16207', '#FEF08A'][idx % 4] }}></div>
-                                  {c.name} ({c.count || c.value})
-                                </div>
-                              )) : (
-                                <>
-                                  <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-yellow-400"></div> Video</div>
-                                  <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-white"></div> Docs</div>
-                                  <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-yellow-700"></div> Quiz</div>
-                                </>
-                              )}
-                            </div>
-                          </GlassCard>
+                          ))}
                         </div>
                       </div>
-                    )}
-                  </PageTransition>
-          </div>
-        </div>
-        );
-    };
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
-        if (isLoading) {
-    return (
-        <div className="font-helvetica text-slate-50 min-h-screen flex items-center justify-center bg-[#0a0a0b]">
-          <Loader2 className="animate-spin text-[#D4AF37]" size={48} />
+            {adminSection === 'ANALYTICS' && (
+              <div className="space-y-6">
+                <div>
+                  <h2 className="text-3xl font-helvetica-bold">Analytics Dashboard</h2>
+                  <p className="text-zinc-400 mt-1">Detailed insights into platform engagement</p>
+                </div>
+
+                {/* Ministry Progress Tracking - Enhanced with per-course breakdown */}
+                <GlassCard className="p-6">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-xl font-helvetica-bold">Ministry Training Progress</h3>
+                    {selectedMinistry && (
+                      <button
+                        onClick={() => setSelectedMinistry(null)}
+                        className="text-sm text-[#D4AF37] hover:text-yellow-300 flex items-center gap-1"
+                      >
+                        <ArrowLeft size={14} /> Back to all ministries
+                      </button>
+                    )}
+                  </div>
+
+                  {!selectedMinistry ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {ministryStats.length > 0 ? ministryStats.map((ministry, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => setSelectedMinistry(ministry.name)}
+                          className="p-4 rounded-xl bg-white/5 border border-white/10 hover:border-[#D4AF37]/50 hover:bg-white/10 transition-all text-left group"
+                        >
+                          <div className="flex justify-between items-start mb-2">
+                            <div className="text-sm font-medium text-white truncate group-hover:text-[#D4AF37] transition-colors">{ministry.name}</div>
+                            <div className="flex gap-2">
+                              {ministry.overdueCount > 0 && (
+                                <Badge type="default" className="!bg-red-500/20 !text-red-400 !border-red-500/30">
+                                  {ministry.overdueCount} overdue
+                                </Badge>
+                              )}
+                              <Badge type={ministry.activeLearners > 0 ? 'success' : 'default'}>
+                                {ministry.activeLearners} active
+                              </Badge>
+                            </div>
+                          </div>
+                          <div className="text-2xl font-helvetica-bold text-[#D4AF37] mb-1">{ministry.totalLearners}</div>
+                          <div className="text-xs text-zinc-500 mb-3">learners enrolled</div>
+                          <div className="flex justify-between text-xs text-zinc-400 mb-1">
+                            <span>Courses Completed</span>
+                            <span className="text-white">{ministry.coursesCompleted}</span>
+                          </div>
+                          <div className="flex justify-between text-xs text-zinc-400 mb-1">
+                            <span>Avg Quiz Score</span>
+                            <span className="text-white">{ministry.avgQuizScore || 0}%</span>
+                          </div>
+                          <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-[#D4AF37] rounded-full"
+                              style={{ width: `${ministry.totalLearners > 0 ? Math.min(100, (ministry.coursesCompleted / ministry.totalLearners) * 100) : 0}%` }}
+                            />
+                          </div>
+                          <div className="text-xs text-zinc-500 mt-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            Click to view course breakdown <ChevronRight size={12} />
+                          </div>
+                        </button>
+                      )) : (
+                        <div className="col-span-3 text-center text-zinc-500 py-8">No ministry data available yet</div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="text-lg font-medium text-white mb-4">
+                        {selectedMinistry} - Per-Course Breakdown
+                      </div>
+                      {ministryCourseStats.length > 0 ? (
+                        <div className="space-y-3">
+                          {ministryCourseStats.map((stat, idx) => (
+                            <div key={idx} className="p-4 rounded-xl bg-white/5 border border-white/10">
+                              <div className="flex justify-between items-start mb-3">
+                                <div>
+                                  <div className="font-medium text-white">{stat.courseTitle}</div>
+                                  <div className="text-xs text-zinc-500">{stat.enrolledCount} enrolled</div>
+                                </div>
+                                <div className="flex gap-2">
+                                  {stat.overdueCount > 0 && (
+                                    <Badge type="default" className="!bg-red-500/20 !text-red-400 !border-red-500/30">
+                                      {stat.overdueCount} overdue
+                                    </Badge>
+                                  )}
+                                  <Badge type="success">{stat.completionRate}% complete</Badge>
+                                </div>
+                              </div>
+                              <div className="grid grid-cols-3 gap-4 text-center">
+                                <div>
+                                  <div className="text-lg font-helvetica-bold text-green-400">{stat.completedCount}</div>
+                                  <div className="text-xs text-zinc-500">Completed</div>
+                                </div>
+                                <div>
+                                  <div className="text-lg font-helvetica-bold text-[#D4AF37]">{stat.enrolledCount - stat.completedCount}</div>
+                                  <div className="text-xs text-zinc-500">In Progress</div>
+                                </div>
+                                <div>
+                                  <div className="text-lg font-helvetica-bold text-white">{stat.avgScore}%</div>
+                                  <div className="text-xs text-zinc-500">Avg Score</div>
+                                </div>
+                              </div>
+                              <div className="h-1.5 bg-white/10 rounded-full overflow-hidden mt-3">
+                                <div
+                                  className="h-full bg-gradient-to-r from-green-400 to-green-500 rounded-full"
+                                  style={{ width: `${stat.completionRate}%` }}
+                                />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center text-zinc-500 py-8">No course data available for this ministry</div>
+                      )}
+                    </div>
+                  )}
+                </GlassCard>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <GlassCard className="lg:col-span-2 p-8">
+                    <div className="flex justify-between items-center mb-6">
+                      <h3 className="text-xl font-helvetica-bold">Ministry Engagement</h3>
+                    </div>
+                    <div className="h-64 w-full">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={ministryStats.length > 0 ? ministryStats.map(m => ({ name: m.name?.split(' ').pop() || m.name, value: m.totalLearners })) : adminStats} barSize={40}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
+                          <XAxis dataKey="name" stroke="#64748b" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
+                          <YAxis stroke="#64748b" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
+                          <Tooltip
+                            cursor={{ fill: '#ffffff05' }}
+                            contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '12px', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}
+                            itemStyle={{ color: '#fff' }}
+                          />
+                          <Bar dataKey="value" radius={[8, 8, 8, 8]}>
+                            {(ministryStats.length > 0 ? ministryStats : adminStats).map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={['#FACC15', '#CA8A04', '#FEF08A', '#713F12'][index % 4]} />
+                            ))}
+                          </Bar>
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </GlassCard>
+
+                  <GlassCard className="p-8">
+                    <h3 className="text-xl font-helvetica-bold mb-6">Content Types</h3>
+                    <div className="h-64 w-full relative">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={contentStats.length > 0 ? contentStats : [
+                              { name: 'Video', value: 45 },
+                              { name: 'Pdf', value: 30 },
+                              { name: 'Quiz', value: 25 },
+                            ]}
+                            innerRadius={60}
+                            outerRadius={80}
+                            paddingAngle={5}
+                            dataKey="value"
+                          >
+                            {(contentStats.length > 0 ? contentStats : [1, 2, 3]).map((_, index) => (
+                              <Cell key={`cell-${index}`} fill={['#FACC15', '#FFFFFF', '#A16207', '#FEF08A'][index % 4]} />
+                            ))}
+                          </Pie>
+                          <Tooltip contentStyle={{ backgroundColor: '#0f172a', border: 'none', borderRadius: '8px' }} />
+                        </PieChart>
+                      </ResponsiveContainer>
+                      <div className="absolute inset-0 flex items-center justify-center flex-col pointer-events-none">
+                        <span className="text-3xl font-helvetica-bold text-white">{fullStats?.totalLessons || '—'}</span>
+                        <span className="text-xs text-zinc-400">Total Lessons</span>
+                      </div>
+                    </div>
+                    <div className="flex justify-center gap-4 text-xs flex-wrap">
+                      {contentStats.length > 0 ? contentStats.map((c, idx) => (
+                        <div key={idx} className="flex items-center gap-1">
+                          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: ['#FACC15', '#FFFFFF', '#A16207', '#FEF08A'][idx % 4] }}></div>
+                          {c.name} ({c.count || c.value})
+                        </div>
+                      )) : (
+                        <>
+                          <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-yellow-400"></div> Video</div>
+                          <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-white"></div> Docs</div>
+                          <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-yellow-700"></div> Quiz</div>
+                        </>
+                      )}
+                    </div>
+                  </GlassCard>
+                </div>
+              </div>
+            )}
+          </PageTransition>
         </div>
-        );
+      </div>
+    );
+  };
+
+  if (isLoading) {
+    return (
+      <div className="font-helvetica text-slate-50 min-h-screen flex items-center justify-center bg-[#0a0a0b]">
+        <Loader2 className="animate-spin text-[#D4AF37]" size={48} />
+      </div>
+    );
   }
 
-        return (
-        <ToastProvider>
-          <div className="font-helvetica text-slate-50 selection:bg-yellow-400/30 h-screen overflow-hidden">
-            <LiquidBackground />
+  return (
+    <ToastProvider>
+      <div className="font-helvetica text-slate-50 selection:bg-yellow-400/30 h-screen overflow-hidden">
+        <LiquidBackground />
 
-            {/* Sidebar for authenticated views except player */}
-            {(currentView === 'DASHBOARD' || currentView === 'ADMIN') && <Sidebar />}
+        {/* Sidebar for authenticated views except player */}
+        {(currentView === 'DASHBOARD' || currentView === 'ADMIN') && <Sidebar />}
 
-            {/* Main Content Router */}
-            <main className="h-screen overflow-hidden relative">
-              <AnimatePresence mode="wait">
-                {currentView === 'LANDING' && (
-                  <PageTransition viewKey="landing">
-                    <LandingView />
-                  </PageTransition>
-                )}
-                {currentView === 'AUTH' && (
-                  <PageTransition viewKey="auth">
-                    <AuthView />
-                  </PageTransition>
-                )}
-                {currentView === 'DASHBOARD' && (
-                  <PageTransition viewKey="dashboard">
-                    <DashboardView />
-                  </PageTransition>
-                )}
-                {currentView === 'COURSE_PLAYER' && (
-                  <PageTransition viewKey="player">
-                    <PlayerView />
-                  </PageTransition>
-                )}
-                {currentView === 'ADMIN' && (
-                  <PageTransition key="admin">
-                    <AdminView />
-                  </PageTransition>
-                )}
-              </AnimatePresence>
-            </main>
-          </div>
-        </ToastProvider>
-        );
+        {/* Main Content Router */}
+        <main className="h-screen overflow-hidden relative">
+          <AnimatePresence mode="wait">
+            {currentView === 'LANDING' && (
+              <PageTransition key="landing">
+                <LandingView />
+              </PageTransition>
+            )}
+            {currentView === 'AUTH' && (
+              <PageTransition key="auth">
+                <AuthView />
+              </PageTransition>
+            )}
+            {currentView === 'DASHBOARD' && (
+              <PageTransition key="dashboard">
+                <DashboardView />
+              </PageTransition>
+            )}
+            {currentView === 'COURSE_PLAYER' && (
+              <PageTransition key="player">
+                <PlayerView />
+              </PageTransition>
+            )}
+            {currentView === 'ADMIN' && (
+              <PageTransition key="admin">
+                <AdminView />
+              </PageTransition>
+            )}
+          </AnimatePresence>
+        </main>
+      </div>
+    </ToastProvider>
+  );
 };
 
-        export default App;
+export default App;
