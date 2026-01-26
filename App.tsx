@@ -357,7 +357,7 @@ const App: React.FC = () => {
       <div className="h-full flex flex-col bg-[#0a0a0b] border-r border-white/[0.06]">
         {/* Logo section with premium treatment */}
         <div className="p-8 relative">
-          <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+
           <h1
             className="text-2xl font-helvetica-bold tracking-wider cursor-pointer group"
             onClick={() => setCurrentView('LANDING')}
@@ -394,7 +394,6 @@ const App: React.FC = () => {
                 label="User Approvals"
                 active={currentView === 'ADMIN' && adminSection === 'USERS'}
                 onClick={() => { if (currentView !== 'ADMIN') setCurrentView('ADMIN'); setAdminSection('USERS'); }}
-                badge={<span className="ml-auto px-2.5 py-0.5 text-[10px] rounded-full bg-red-500/20 text-red-400 font-helvetica-bold border border-red-500/30 shadow-[0_0_10px_rgba(239,68,68,0.2)]">ACTION</span>}
               />
 
               <SidebarItem
@@ -411,7 +410,7 @@ const App: React.FC = () => {
                 onClick={() => { if (currentView !== 'ADMIN') setCurrentView('ADMIN'); setAdminSection('ANALYTICS'); }}
               />
 
-              <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent my-4 mx-2" />
+
 
               <SidebarItem
                 icon={<Layout size={20} />}
@@ -425,7 +424,6 @@ const App: React.FC = () => {
 
         {/* User profile section */}
         <div className="p-6 relative">
-          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
           <div className="flex items-center gap-3 mb-4">
             <div className="relative">
               <div className="w-11 h-11 rounded-xl border border-[#D4AF37]/40 bg-[#D4AF37]/5 flex items-center justify-center font-helvetica-bold text-[#D4AF37] shadow-[0_0_15px_rgba(212,175,55,0.1)]">
@@ -433,8 +431,8 @@ const App: React.FC = () => {
               </div>
             </div>
             <div>
-              <p className="text-sm font-helvetica-bold text-white">{user?.name || 'User'}</p>
-              <p className="text-xs text-zinc-500 truncate w-32">{user?.ministry || 'Ministry'}</p>
+              <p className="text-xs font-helvetica-bold text-white">{user?.name || 'User'}</p>
+              <p className="text-[10px] text-zinc-500 truncate w-32">{user?.ministry || 'Ministry'}</p>
             </div>
           </div>
           <button
@@ -485,7 +483,7 @@ const App: React.FC = () => {
       <button
         onClick={handleClick}
         className={`
-        relative w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 overflow-hidden
+        relative w-full flex items-center gap-3 px-4 py-2 rounded-xl transition-all duration-300 overflow-hidden
         ${active
             ? 'text-[#D4AF37] border border-[#D4AF37]/40 bg-[#D4AF37]/5'
             : 'text-zinc-500 hover:text-white hover:bg-white/[0.03]'
@@ -514,13 +512,8 @@ const App: React.FC = () => {
           <div className="absolute inset-0 bg-[#D4AF37]/20 animate-gold-flood z-0" />
         )}
 
-        {/* Active Glow Accent */}
-        {active && (
-          <div className="absolute left-0 top-1 bottom-1 w-1 bg-[#D4AF37] rounded-r-full shadow-[0_0_15px_rgba(212,175,55,0.6)]" />
-        )}
-
-        <span className="relative z-10">{icon}</span>
-        <span className={`relative z-10 font-helvetica ${active || isRadiating ? 'font-helvetica-bold' : ''}`}>{label}</span>
+        <span className="relative z-10 scale-90">{icon}</span>
+        <span className={`relative z-10 font-helvetica text-[13px] tracking-wide ${active || isRadiating ? 'font-helvetica-bold' : ''}`}>{label}</span>
         {badge && <span className="relative z-10 ml-auto">{badge}</span>}
       </button>
     );
