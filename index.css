@@ -145,6 +145,30 @@
   }
 }
 
+@keyframes page-entrance {
+  0% {
+    opacity: 0;
+    transform: scale(0.985);
+    filter: blur(4px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes sweep-light {
+  0% {
+    transform: translateX(-100%) skewX(-45deg);
+  }
+
+  100% {
+    transform: translateX(200%) skewX(-45deg);
+  }
+}
+
 .animate-radiant {
   animation: radiant-pulse 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
@@ -157,4 +181,20 @@
 
 .animate-expand-x {
   animation: expand-x 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-page-entrance {
+  animation: page-entrance 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.light-sweep {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(to right, transparent, rgba(212, 175, 55, 0.05), transparent);
+  animation: sweep-light 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  pointer-events: none;
+  z-index: 0;
 }
