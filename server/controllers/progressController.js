@@ -202,17 +202,30 @@ export const completeLesson = async (req, res) => {
 
       // If quiz not passed, don't mark as completed
       if (!passed) {
-        // Still record the attempt
-        await pool.query(`
-          INSERT INTO lesson_progress (user_id, lesson_id, course_id, status, progress_percent, quiz_score, passed, started_at)
-          VALUES ($1, $2, $3, 'IN_PROGRESS', 0, $4, false, CURRENT_TIMESTAMP)
-          ON CONFLICT (user_id, lesson_id)
-          DO UPDATE SET
-            quiz_score = $4,
-            quiz_attempts = lesson_progress.quiz_attempts + 1,
-            passed = false,
-            last_accessed = CURRENT_TIMESTAMP
-        `, [req.user.id, lessonId, lesson.course_id, quizResult.percentage]);
+        // Still record the attempt - handle possible missing passed column
+        try {
+          await pool.query(`
+            INSERT INTO lesson_progress (user_id, lesson_id, course_id, status, progress_percent, quiz_score, passed, started_at)
+            VALUES ($1, $2, $3, 'IN_PROGRESS', 0, $4, false, CURRENT_TIMESTAMP)
+            ON CONFLICT (user_id, lesson_id)
+            DO UPDATE SET
+              quiz_score = $4,
+              quiz_attempts = lesson_progress.quiz_attempts + 1,
+              passed = false,
+              last_accessed = CURRENT_TIMESTAMP
+          `, [req.user.id, lessonId, lesson.course_id, quizResult.percentage]);
+        } catch (e) {
+          console.log('Failed to save passed status, retrying without it');
+          await pool.query(`
+            INSERT INTO lesson_progress (user_id, lesson_id, course_id, status, progress_percent, quiz_score, started_at)
+            VALUES ($1, $2, $3, 'IN_PROGRESS', 0, $4, CURRENT_TIMESTAMP)
+            ON CONFLICT (user_id, lesson_id)
+            DO UPDATE SET
+              quiz_score = $4,
+              quiz_attempts = lesson_progress.quiz_attempts + 1,
+              last_accessed = CURRENT_TIMESTAMP
+          `, [req.user.id, lessonId, lesson.course_id, quizResult.percentage]);
+        }
 
         return res.json({
           message: 'Quiz not passed',
@@ -223,22 +236,38 @@ export const completeLesson = async (req, res) => {
       }
     }
 
-    // Upsert completion (passed or non-quiz lesson)
+    // Upsert completion (passed or non-quiz lesson) - handle possible missing passed column
     const scoreToStore = quizResult ? quizResult.percentage : quizScore;
 
-    await pool.query(`
-      INSERT INTO lesson_progress (user_id, lesson_id, course_id, status, progress_percent, quiz_score, passed, completed_at, started_at)
-      VALUES ($1, $2, $3, 'COMPLETED', 100, $4, $5, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-      ON CONFLICT (user_id, lesson_id)
-      DO UPDATE SET
-        status = 'COMPLETED',
-        progress_percent = 100,
-        quiz_score = COALESCE($4, lesson_progress.quiz_score),
-        passed = $5,
-        quiz_attempts = CASE WHEN $4 IS NOT NULL THEN lesson_progress.quiz_attempts + 1 ELSE lesson_progress.quiz_attempts END,
-        completed_at = CURRENT_TIMESTAMP,
-        last_accessed = CURRENT_TIMESTAMP
-    `, [req.user.id, lessonId, lesson.course_id, scoreToStore, passed]);
+    try {
+      await pool.query(`
+        INSERT INTO lesson_progress (user_id, lesson_id, course_id, status, progress_percent, quiz_score, passed, completed_at, started_at)
+        VALUES ($1, $2, $3, 'COMPLETED', 100, $4, $5, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        ON CONFLICT (user_id, lesson_id)
+        DO UPDATE SET
+          status = 'COMPLETED',
+          progress_percent = 100,
+          quiz_score = COALESCE($4, lesson_progress.quiz_score),
+          passed = $5,
+          quiz_attempts = CASE WHEN $4 IS NOT NULL THEN lesson_progress.quiz_attempts + 1 ELSE lesson_progress.quiz_attempts END,
+          completed_at = CURRENT_TIMESTAMP,
+          last_accessed = CURRENT_TIMESTAMP
+      `, [req.user.id, lessonId, lesson.course_id, scoreToStore, passed]);
+    } catch (e) {
+      console.log('Failed to save passed status during completion, retrying without it');
+      await pool.query(`
+        INSERT INTO lesson_progress (user_id, lesson_id, course_id, status, progress_percent, quiz_score, completed_at, started_at)
+        VALUES ($1, $2, $3, 'COMPLETED', 100, $4, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        ON CONFLICT (user_id, lesson_id)
+        DO UPDATE SET
+          status = 'COMPLETED',
+          progress_percent = 100,
+          quiz_score = COALESCE($4, lesson_progress.quiz_score),
+          quiz_attempts = CASE WHEN $4 IS NOT NULL THEN lesson_progress.quiz_attempts + 1 ELSE lesson_progress.quiz_attempts END,
+          completed_at = CURRENT_TIMESTAMP,
+          last_accessed = CURRENT_TIMESTAMP
+      `, [req.user.id, lessonId, lesson.course_id, scoreToStore]);
+    }
 
     // Calculate course progress
     const courseProgress = await calculateCourseProgress(req.user.id, lesson.course_id);
@@ -457,20 +486,38 @@ export const getLessonRequirements = async (req, res) => {
   try {
     const { lessonId } = req.params;
 
-    const result = await pool.query(`
-      SELECT
-        l.id,
-        l.title,
-        l.type,
-        l.passing_score,
-        lp.quiz_score,
-        lp.quiz_attempts,
-        lp.passed,
-        lp.status
-      FROM lessons l
-      LEFT JOIN lesson_progress lp ON lp.lesson_id = l.id AND lp.user_id = $1
-      WHERE l.id = $2
-    `, [req.user.id, lessonId]);
+    let result;
+    try {
+      result = await pool.query(`
+        SELECT
+          l.id,
+          l.title,
+          l.type,
+          l.passing_score,
+          lp.quiz_score,
+          lp.quiz_attempts,
+          lp.passed,
+          lp.status
+        FROM lessons l
+        LEFT JOIN lesson_progress lp ON lp.lesson_id = l.id AND lp.user_id = $1
+        WHERE l.id = $2
+      `, [req.user.id, lessonId]);
+    } catch (e) {
+      console.log('Passed column missing in requirements check, retrying without it');
+      result = await pool.query(`
+        SELECT
+          l.id,
+          l.title,
+          l.type,
+          l.passing_score,
+          lp.quiz_score,
+          lp.quiz_attempts,
+          lp.status
+        FROM lessons l
+        LEFT JOIN lesson_progress lp ON lp.lesson_id = l.id AND lp.user_id = $1
+        WHERE l.id = $2
+      `, [req.user.id, lessonId]);
+    }
 
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Lesson not found.' });

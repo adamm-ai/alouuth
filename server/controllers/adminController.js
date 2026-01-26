@@ -59,18 +59,37 @@ export const getDashboardStats = async (req, res) => {
       WHERE quiz_score IS NOT NULL
     `);
 
-    // Quiz pass rate
-    const quizPassResult = await pool.query(`
-      SELECT
-        COUNT(CASE WHEN passed = true THEN 1 END) as passed,
-        COUNT(*) as total
-      FROM lesson_progress
-      WHERE quiz_score IS NOT NULL
-    `);
+    // Quiz pass rate - handle missing passed column gracefully
+    let quizPassRate = 0;
+    try {
+      const quizPassResult = await pool.query(`
+        SELECT
+          COUNT(CASE WHEN passed = true THEN 1 END) as passed,
+          COUNT(*) as total
+        FROM lesson_progress
+        WHERE quiz_score IS NOT NULL
+      `);
 
-    const quizPassRate = parseInt(quizPassResult.rows[0].total) > 0
-      ? Math.round((parseInt(quizPassResult.rows[0].passed) / parseInt(quizPassResult.rows[0].total)) * 100)
-      : 0;
+      quizPassRate = parseInt(quizPassResult.rows[0].total) > 0
+        ? Math.round((parseInt(quizPassResult.rows[0].passed) / parseInt(quizPassResult.rows[0].total)) * 100)
+        : 0;
+    } catch (e) {
+      console.log('Passed column not available yet, using score-based estimation');
+      try {
+        const fallbackResult = await pool.query(`
+          SELECT
+            COUNT(CASE WHEN quiz_score >= 70 THEN 1 END) as passed,
+            COUNT(*) as total
+          FROM lesson_progress
+          WHERE quiz_score IS NOT NULL
+        `);
+        quizPassRate = parseInt(fallbackResult.rows[0].total) > 0
+          ? Math.round((parseInt(fallbackResult.rows[0].passed) / parseInt(fallbackResult.rows[0].total)) * 100)
+          : 0;
+      } catch (innerError) {
+        console.log('Fallback quiz pass calculation failed');
+      }
+    }
 
     res.json({
       stats: {

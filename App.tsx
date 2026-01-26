@@ -2143,7 +2143,7 @@ const App: React.FC = () => {
 
     // --- NEW: Reorder Buffer ---
     // This allows liquid reordering without triggering global App re-renders during drag
-    const [localCourses, setLocalCourses] = useState<Course[]>([]);
+    const [localCourses, setLocalCourses] = useState<Course[]>(courses);
 
     useEffect(() => {
       // Sync local courses with global courses when global changes (but don't interrupt active drag)
@@ -3578,7 +3578,8 @@ const App: React.FC = () => {
 
                 <div className="space-y-12">
                   {(['Beginner', 'Intermediate', 'Advanced'] as const).map(level => {
-                    const levelCourses = localCourses.filter(c => c.level === level);
+                    const currentCourses = (localCourses && localCourses.length > 0) ? localCourses : courses;
+                    const levelCourses = currentCourses.filter(c => c.level === level);
                     if (levelCourses.length === 0) return null;
                     return (
                       <div key={level} className="space-y-6">
