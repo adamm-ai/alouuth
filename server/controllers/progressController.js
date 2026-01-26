@@ -77,10 +77,20 @@ export const enrollInCourse = async (req, res) => {
     const { courseId } = req.params;
 
     // Check if course exists
-    const courseCheck = await pool.query(
-      'SELECT id, deadline, is_mandatory FROM courses WHERE id = $1',
-      [courseId]
-    );
+    let courseCheck;
+    try {
+      courseCheck = await pool.query(
+        'SELECT id, deadline, is_mandatory FROM courses WHERE id = $1',
+        [courseId]
+      );
+    } catch (e) {
+      console.log('Deadline or mandatory column missing in courses table, falling back');
+      courseCheck = await pool.query(
+        'SELECT id FROM courses WHERE id = $1',
+        [courseId]
+      );
+    }
+
     if (courseCheck.rows.length === 0) {
       return res.status(404).json({ error: 'Course not found.' });
     }
@@ -107,10 +117,18 @@ export const enrollInCourse = async (req, res) => {
     }
 
     // Create enrollment with course deadline if set
-    await pool.query(
-      'INSERT INTO enrollments (user_id, course_id, deadline) VALUES ($1, $2, $3)',
-      [req.user.id, courseId, course.deadline]
-    );
+    try {
+      await pool.query(
+        'INSERT INTO enrollments (user_id, course_id, deadline) VALUES ($1, $2, $3)',
+        [req.user.id, courseId, course.deadline]
+      );
+    } catch (e) {
+      console.log('Deadline column missing in enrollments table, enrolling without it');
+      await pool.query(
+        'INSERT INTO enrollments (user_id, course_id) VALUES ($1, $2)',
+        [req.user.id, courseId]
+      );
+    }
 
     res.status(201).json({ message: 'Successfully enrolled in course.' });
   } catch (error) {
@@ -180,10 +198,19 @@ export const completeLesson = async (req, res) => {
     const { lessonId } = req.params;
     const { quizScore, totalQuestions } = req.body;
 
-    const lessonResult = await pool.query(
-      'SELECT id, course_id, type, passing_score FROM lessons WHERE id = $1',
-      [lessonId]
-    );
+    let lessonResult;
+    try {
+      lessonResult = await pool.query(
+        'SELECT id, course_id, type, passing_score FROM lessons WHERE id = $1',
+        [lessonId]
+      );
+    } catch (e) {
+      console.log('Passing score column missing in lessons table, falling back');
+      lessonResult = await pool.query(
+        'SELECT id, course_id, type FROM lessons WHERE id = $1',
+        [lessonId]
+      );
+    }
 
     if (lessonResult.rows.length === 0) {
       return res.status(404).json({ error: 'Lesson not found.' });
@@ -425,42 +452,69 @@ export const checkCourseAccess = async (req, res) => {
 // Get user's courses with deadline status
 export const getDeadlines = async (req, res) => {
   try {
-    const result = await pool.query(`
-      SELECT
-        e.id as enrollment_id,
-        c.id as course_id,
-        c.title,
-        c.is_mandatory,
-        COALESCE(e.deadline, c.deadline) as deadline,
-        e.completed_at,
-        e.enrolled_at,
-        CASE
-          WHEN e.completed_at IS NOT NULL THEN 'completed'
-          WHEN COALESCE(e.deadline, c.deadline) IS NULL THEN 'no_deadline'
-          WHEN COALESCE(e.deadline, c.deadline) < NOW() THEN 'overdue'
-          WHEN COALESCE(e.deadline, c.deadline) < NOW() + INTERVAL '7 days' THEN 'urgent'
-          WHEN COALESCE(e.deadline, c.deadline) < NOW() + INTERVAL '14 days' THEN 'upcoming'
-          ELSE 'on_track'
-        END as status,
-        EXTRACT(DAY FROM COALESCE(e.deadline, c.deadline) - NOW())::int as days_remaining
-      FROM enrollments e
-      JOIN courses c ON c.id = e.course_id
-      WHERE e.user_id = $1
-      ORDER BY
-        CASE WHEN e.completed_at IS NOT NULL THEN 1 ELSE 0 END,
-        COALESCE(e.deadline, c.deadline) ASC NULLS LAST
-    `, [req.user.id]);
+    let result;
+    try {
+      result = await pool.query(`
+        SELECT
+          e.id as enrollment_id,
+          c.id as course_id,
+          c.title,
+          c.is_mandatory,
+          COALESCE(e.deadline, c.deadline) as deadline,
+          e.completed_at,
+          e.enrolled_at,
+          CASE
+            WHEN e.completed_at IS NOT NULL THEN 'completed'
+            WHEN COALESCE(e.deadline, c.deadline) IS NULL THEN 'no_deadline'
+            WHEN COALESCE(e.deadline, c.deadline) < NOW() THEN 'overdue'
+            WHEN COALESCE(e.deadline, c.deadline) < NOW() + INTERVAL '7 days' THEN 'urgent'
+            WHEN COALESCE(e.deadline, c.deadline) < NOW() + INTERVAL '14 days' THEN 'upcoming'
+            ELSE 'on_track'
+          END as status,
+          EXTRACT(DAY FROM COALESCE(e.deadline, c.deadline) - NOW())::int as days_remaining
+        FROM enrollments e
+        JOIN courses c ON c.id = e.course_id
+        WHERE e.user_id = $1
+        ORDER BY
+          CASE WHEN e.completed_at IS NOT NULL THEN 1 ELSE 0 END,
+          COALESCE(e.deadline, c.deadline) ASC NULLS LAST
+      `, [req.user.id]);
+    } catch (e) {
+      console.log('Deadline columns missing in getDeadlines, falling back');
+      result = await pool.query(`
+        SELECT
+          e.id as enrollment_id,
+          c.id as course_id,
+          c.title,
+          e.completed_at,
+          e.enrolled_at,
+          CASE
+            WHEN e.completed_at IS NOT NULL THEN 'completed'
+            ELSE 'on_track'
+          END as status
+        FROM enrollments e
+        JOIN courses c ON c.id = e.course_id
+        WHERE e.user_id = $1
+        ORDER BY
+          CASE WHEN e.completed_at IS NOT NULL THEN 1 ELSE 0 END,
+          e.enrolled_at DESC
+      `, [req.user.id]);
+    }
 
     // Update overdue status in enrollments
-    await pool.query(`
-      UPDATE enrollments
-      SET is_overdue = true
-      WHERE user_id = $1
-        AND completed_at IS NULL
-        AND (deadline < NOW() OR course_id IN (
-          SELECT id FROM courses WHERE deadline < NOW()
-        ))
-    `, [req.user.id]);
+    try {
+      await pool.query(`
+        UPDATE enrollments
+        SET is_overdue = true
+        WHERE user_id = $1
+          AND completed_at IS NULL
+          AND (deadline < NOW() OR course_id IN (
+            SELECT id FROM courses WHERE deadline < NOW()
+          ))
+      `, [req.user.id]);
+    } catch (e) {
+      console.log('Deadline or is_overdue column missing during update, skipping');
+    }
 
     res.json({
       deadlines: result.rows.map(row => ({
@@ -503,13 +557,12 @@ export const getLessonRequirements = async (req, res) => {
         WHERE l.id = $2
       `, [req.user.id, lessonId]);
     } catch (e) {
-      console.log('Passed column missing in requirements check, retrying without it');
+      console.log('Passed or passing_score column missing in requirements check, retrying without them');
       result = await pool.query(`
         SELECT
           l.id,
           l.title,
           l.type,
-          l.passing_score,
           lp.quiz_score,
           lp.quiz_attempts,
           lp.status

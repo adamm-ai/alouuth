@@ -196,6 +196,32 @@ const createTables = async () => {
       CREATE INDEX IF NOT EXISTS idx_enrollments_user ON enrollments(user_id);
     `);
 
+    // --- Upgrade Section: Add missing columns if they don't exist ---
+    console.log('Checking for schema upgrades...');
+
+    // Courses table updates
+    try {
+      await client.query('ALTER TABLE courses ADD COLUMN IF NOT EXISTS deadline TIMESTAMP');
+      await client.query('ALTER TABLE courses ADD COLUMN IF NOT EXISTS is_mandatory BOOLEAN DEFAULT false');
+      await client.query('ALTER TABLE courses ADD COLUMN IF NOT EXISTS prerequisite_course_id UUID REFERENCES courses(id)');
+    } catch (e) { console.log('Courses columns already exist or failed to add'); }
+
+    // Lessons table updates
+    try {
+      await client.query('ALTER TABLE lessons ADD COLUMN IF NOT EXISTS passing_score INTEGER DEFAULT 70');
+    } catch (e) { console.log('Lessons columns already exist or failed to add'); }
+
+    // Enrollments table updates
+    try {
+      await client.query('ALTER TABLE enrollments ADD COLUMN IF NOT EXISTS deadline TIMESTAMP');
+      await client.query('ALTER TABLE enrollments ADD COLUMN IF NOT EXISTS is_overdue BOOLEAN DEFAULT false');
+    } catch (e) { console.log('Enrollments columns already exist or failed to add'); }
+
+    // Lesson Progress updates
+    try {
+      await client.query('ALTER TABLE lesson_progress ADD COLUMN IF NOT EXISTS passed BOOLEAN DEFAULT false');
+    } catch (e) { console.log('Lesson progress columns already exist or failed to add'); }
+
     await client.query('COMMIT');
     console.log('All tables created successfully');
   } catch (error) {

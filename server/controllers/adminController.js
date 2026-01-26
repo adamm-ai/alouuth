@@ -413,33 +413,45 @@ export const setCourseDeadline = async (req, res) => {
     const { courseId } = req.params;
     const { deadline, isMandatory, prerequisiteCourseId } = req.body;
 
-    const result = await pool.query(`
-      UPDATE courses
-      SET deadline = $1,
-          is_mandatory = COALESCE($2, is_mandatory),
-          prerequisite_course_id = $3,
-          updated_at = CURRENT_TIMESTAMP
-      WHERE id = $4
-      RETURNING id, title, deadline, is_mandatory, prerequisite_course_id
-    `, [deadline || null, isMandatory, prerequisiteCourseId || null, courseId]);
+    try {
+      const result = await pool.query(`
+        UPDATE courses
+        SET deadline = $1,
+            is_mandatory = COALESCE($2, is_mandatory),
+            prerequisite_course_id = $3,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = $4
+        RETURNING id, title, deadline, is_mandatory, prerequisite_course_id
+      `, [deadline || null, isMandatory, prerequisiteCourseId || null, courseId]);
 
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Course not found.' });
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Course not found.' });
+      }
+
+      // Update existing enrollments without a custom deadline to use the course deadline
+      if (deadline) {
+        try {
+          await pool.query(`
+            UPDATE enrollments
+            SET deadline = $1
+            WHERE course_id = $2 AND deadline IS NULL AND completed_at IS NULL
+          `, [deadline, courseId]);
+        } catch (enrollErr) {
+          console.log('Enrollment deadline column missing, skipping enrollment update');
+        }
+      }
+
+      return res.json({
+        message: 'Course deadline updated successfully',
+        course: result.rows[0]
+      });
+    } catch (dbErr) {
+      console.error('Database error while setting course deadline:', dbErr);
+      if (dbErr.code === '42703') { // undefined_column
+        return res.status(400).json({ error: 'This feature (deadlines/mandatory status) is not supported by the current database schema.' });
+      }
+      throw dbErr;
     }
-
-    // Update existing enrollments without a custom deadline to use the course deadline
-    if (deadline) {
-      await pool.query(`
-        UPDATE enrollments
-        SET deadline = $1
-        WHERE course_id = $2 AND deadline IS NULL AND completed_at IS NULL
-      `, [deadline, courseId]);
-    }
-
-    res.json({
-      message: 'Course deadline updated successfully',
-      course: result.rows[0]
-    });
   } catch (error) {
     console.error('Set course deadline error:', error);
     res.status(500).json({ error: 'Failed to set course deadline.' });
@@ -452,22 +464,30 @@ export const setEnrollmentDeadline = async (req, res) => {
     const { enrollmentId } = req.params;
     const { deadline } = req.body;
 
-    const result = await pool.query(`
-      UPDATE enrollments
-      SET deadline = $1,
-          is_overdue = CASE WHEN $1 < NOW() THEN true ELSE false END
-      WHERE id = $2
-      RETURNING id, user_id, course_id, deadline, is_overdue
-    `, [deadline, enrollmentId]);
+    try {
+      const result = await pool.query(`
+        UPDATE enrollments
+        SET deadline = $1,
+            is_overdue = CASE WHEN $1 < NOW() THEN true ELSE false END
+        WHERE id = $2
+        RETURNING id, user_id, course_id, deadline, is_overdue
+      `, [deadline, enrollmentId]);
 
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Enrollment not found.' });
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Enrollment not found.' });
+      }
+
+      res.json({
+        message: 'Enrollment deadline updated',
+        enrollment: result.rows[0]
+      });
+    } catch (dbErr) {
+      console.error('Database error while setting enrollment deadline:', dbErr);
+      if (dbErr.code === '42703') {
+        return res.status(400).json({ error: 'Direct enrollment deadlines are not supported by the current database schema.' });
+      }
+      throw dbErr;
     }
-
-    res.json({
-      message: 'Enrollment deadline updated',
-      enrollment: result.rows[0]
-    });
   } catch (error) {
     console.error('Set enrollment deadline error:', error);
     res.status(500).json({ error: 'Failed to set enrollment deadline.' });
@@ -484,22 +504,30 @@ export const setLessonPassingScore = async (req, res) => {
       return res.status(400).json({ error: 'Passing score must be between 0 and 100.' });
     }
 
-    const result = await pool.query(`
-      UPDATE lessons
-      SET passing_score = $1,
-          updated_at = CURRENT_TIMESTAMP
-      WHERE id = $2
-      RETURNING id, title, type, passing_score
-    `, [passingScore, lessonId]);
+    try {
+      const result = await pool.query(`
+        UPDATE lessons
+        SET passing_score = $1,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = $2
+        RETURNING id, title, type, passing_score
+      `, [passingScore, lessonId]);
 
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Lesson not found.' });
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Lesson not found.' });
+      }
+
+      res.json({
+        message: 'Lesson passing score updated',
+        lesson: result.rows[0]
+      });
+    } catch (dbErr) {
+      console.error('Database error while setting passing score:', dbErr);
+      if (dbErr.code === '42703') {
+        return res.status(400).json({ error: 'Custom passing scores are not supported by the current database schema.' });
+      }
+      throw dbErr;
     }
-
-    res.json({
-      message: 'Lesson passing score updated',
-      lesson: result.rows[0]
-    });
   } catch (error) {
     console.error('Set lesson passing score error:', error);
     res.status(500).json({ error: 'Failed to set passing score.' });
