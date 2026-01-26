@@ -43,6 +43,8 @@ import {
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from 'recharts';
 import { LiquidBackground } from './components/LiquidBackground';
 import { GlassCard, PrimaryButton, SecondaryButton, ProgressBar, Badge, FileDropZone, IconButton, ToastProvider, useToast, LiquidVideoFrame } from './components/UIComponents';
+import { AnimatePresence } from 'framer-motion';
+import { PageTransition } from './components/PageTransition';
 import { dataService } from './services/dataService';
 import { authAPI, setAuthToken, getAuthToken, PendingUser, adminAPI } from './services/api';
 import api from './services/api';
@@ -89,7 +91,7 @@ const App: React.FC = () => {
   const [activeCourse, setActiveCourse] = useState<Course | null>(null);
   const [activeLesson, setActiveLesson] = useState<Lesson | null>(null);
   const [adminStats, setAdminStats] = useState<AnalyticData[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(() => dataService.isAuthenticated());
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [expandedDescriptions, setExpandedDescriptions] = useState<Set<string>>(new Set());
   const [adminSection, setAdminSection] = useState<AdminSection>('OVERVIEW');
@@ -3948,6 +3950,14 @@ const App: React.FC = () => {
     );
   };
 
+  if (isLoading) {
+    return (
+      <div className="font-sans text-slate-50 min-h-screen flex items-center justify-center bg-[#0a0a0b]">
+        <Loader2 className="animate-spin text-yellow-400" size={48} />
+      </div>
+    );
+  }
+
   return (
     <ToastProvider>
       <div className="font-sans text-slate-50 selection:bg-yellow-400/30 h-screen overflow-hidden">
@@ -3957,12 +3967,34 @@ const App: React.FC = () => {
         {(currentView === 'DASHBOARD' || currentView === 'ADMIN') && <Sidebar />}
 
         {/* Main Content Router */}
-        <main className="h-screen overflow-hidden">
-          {currentView === 'LANDING' && <LandingView />}
-          {currentView === 'AUTH' && <AuthView />}
-          {currentView === 'DASHBOARD' && <DashboardView />}
-          {currentView === 'COURSE_PLAYER' && <PlayerView />}
-          {currentView === 'ADMIN' && <AdminView />}
+        <main className="h-screen overflow-hidden relative">
+          <AnimatePresence mode="wait">
+            {currentView === 'LANDING' && (
+              <PageTransition key="landing">
+                <LandingView />
+              </PageTransition>
+            )}
+            {currentView === 'AUTH' && (
+              <PageTransition key="auth">
+                <AuthView />
+              </PageTransition>
+            )}
+            {currentView === 'DASHBOARD' && (
+              <PageTransition key="dashboard">
+                <DashboardView />
+              </PageTransition>
+            )}
+            {currentView === 'COURSE_PLAYER' && (
+              <PageTransition key="player">
+                <PlayerView />
+              </PageTransition>
+            )}
+            {currentView === 'ADMIN' && (
+              <PageTransition key="admin">
+                <AdminView />
+              </PageTransition>
+            )}
+          </AnimatePresence>
         </main>
       </div>
     </ToastProvider>
