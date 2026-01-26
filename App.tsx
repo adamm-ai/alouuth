@@ -3486,38 +3486,58 @@ const App: React.FC = () => {
                       {courses.length} course{courses.length !== 1 ? 's' : ''} total
                     </span>
                   </div>
-                  <div className="grid gap-4">
-                    {courses.map(course => (
-                      <GlassCard key={course.id} className="group p-0 overflow-hidden flex flex-col md:flex-row items-center hover:border-yellow-400/50 transition-colors">
-                        <div className="h-32 w-full md:w-48 bg-cover bg-center grayscale group-hover:grayscale-0 transition-all duration-500" style={{ backgroundImage: `url(${course.thumbnail})` }}>
-                          <div className="h-full w-full bg-black/40 group-hover:bg-transparent transition-colors"></div>
-                        </div>
-                        <div className="p-6 flex-1 min-w-0">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <h4 className="text-xl font-helvetica-bold text-white mb-1">{course.title}</h4>
-                              <p className="text-sm text-zinc-400 mb-3" title={course.description}>{course.description}</p>
-                              <div className="flex gap-3 text-xs">
-                                <Badge>{course.level}</Badge>
-                                <span className="flex items-center gap-1 text-zinc-400"><List size={14} /> {course.lessons.length} Modules</span>
-                                <span className="flex items-center gap-1 text-zinc-400"><Users size={14} /> {course.enrolledCount} Enrolled</span>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {courses.map(course => {
+                      const levelColor = course.level === 'Beginner' ? 'green' : course.level === 'Intermediate' ? 'yellow' : 'purple';
+                      return (
+                        <div key={course.id} className="group relative rounded-2xl transition-all duration-500 hover:scale-[1.01] hover:-translate-y-1">
+                          {/* Ambient Glow */}
+                          <div className={`absolute -inset-1 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl ${course.level === 'Beginner' ? 'bg-green-500/20' :
+                            course.level === 'Intermediate' ? 'bg-yellow-500/20' :
+                              'bg-purple-500/20'
+                            }`}></div>
+
+                          <div className="relative glass-panel rounded-2xl border border-white/10 group-hover:border-white/20 overflow-hidden backdrop-blur-xl bg-zinc-900/80 flex flex-col sm:flex-row h-full">
+                            {/* Thumbnail */}
+                            <div className="w-full sm:w-48 h-32 sm:h-auto relative overflow-hidden shrink-0">
+                              <img
+                                src={course.thumbnail || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=800'}
+                                alt={course.title}
+                                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                              />
+                              <div className="absolute inset-0 bg-gradient-to-t from-zinc-900/80 via-transparent to-transparent"></div>
+                              <div className={`absolute top-2 left-2 px-2 py-0.5 rounded-full text-[10px] font-helvetica-bold backdrop-blur-md ${course.level === 'Beginner' ? 'bg-green-500/30 text-green-300 border border-green-500/50' :
+                                course.level === 'Intermediate' ? 'bg-yellow-500/30 text-yellow-300 border border-yellow-500/50' :
+                                  'bg-purple-500/30 text-purple-300 border border-purple-500/50'
+                                }`}>{course.level}</div>
+                            </div>
+
+                            {/* Content */}
+                            <div className="p-4 flex-1 flex flex-col justify-between min-w-0">
+                              <div>
+                                <h4 className="text-base font-helvetica-bold text-white mb-1 group-hover:text-[#D4AF37] transition-colors line-clamp-1">{course.title}</h4>
+                                <p className="text-[11px] text-zinc-500 line-clamp-2 leading-relaxed mb-3">{course.description || 'No description provided for this module.'}</p>
+                                <div className="flex gap-3 text-[10px]">
+                                  <span className="flex items-center gap-1.5 text-zinc-400"><List size={12} className="text-zinc-600" /> {course.lessons.length} Modules</span>
+                                  <span className="flex items-center gap-1.5 text-zinc-400"><Users size={12} className="text-zinc-600" /> {course.enrolledCount} Enrolled</span>
+                                </div>
+                              </div>
+                              <div className="flex gap-2 mt-4 pt-4 border-t border-white/5">
+                                <SecondaryButton onClick={() => handleEditCourse(course)} className="flex-1 h-8 text-[11px] px-3 gap-1.5 font-helvetica-bold">
+                                  <Pencil size={12} /> Edit
+                                </SecondaryButton>
+                                <button
+                                  onClick={() => deleteCourse(course.id)}
+                                  className="h-8 w-8 flex items-center justify-center rounded-lg border border-red-900/30 text-red-400 hover:bg-red-400 hover:text-white transition-all"
+                                >
+                                  <Trash2 size={12} />
+                                </button>
                               </div>
                             </div>
                           </div>
                         </div>
-                        <div className="p-6 border-l border-white/5 flex gap-3">
-                          <SecondaryButton onClick={() => handleEditCourse(course)} className="h-10 px-4 text-xs flex items-center gap-2">
-                            Edit Content
-                          </SecondaryButton>
-                          <button
-                            onClick={() => deleteCourse(course.id)}
-                            className="h-10 w-10 flex items-center justify-center rounded-full border border-red-900/30 text-red-400 hover:bg-red-900/20 transition-colors"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      </GlassCard>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               </div>
