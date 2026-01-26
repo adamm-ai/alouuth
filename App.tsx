@@ -3250,23 +3250,7 @@ const App: React.FC = () => {
 
     // --- Main Admin Dashboard ---
     return (
-      <div className={`md:ml-64 h-screen overflow-y-auto relative z-10 liquid-scroll transition-colors duration-700 ${draggedCourseId ? 'bg-[#050505]' : 'bg-transparent'}`}>
-        <AnimatePresence>
-          {draggedCourseId && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.8, ease: "easeInOut" }}
-              className="fixed inset-0 z-50 pointer-events-none"
-            >
-              {/* Luxury Vignette */}
-              <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/20 to-black/60 backdrop-blur-[1px]" />
-              <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-black/40" />
-            </motion.div>
-          )}
-        </AnimatePresence>
-
+      <div className={`md:ml-64 h-screen overflow-y-auto relative z-10 liquid-scroll transition-colors duration-700 bg-transparent`}>
         <div className={`p-6 md:p-10 max-w-7xl mx-auto space-y-8 pb-20 relative z-[60]`}>
 
           <PageTransition viewKey={adminSection}>
@@ -3596,7 +3580,14 @@ const App: React.FC = () => {
                         </div>
 
                         <LayoutGroup id={`level-${level}`}>
-                          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 relative">
+                          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 relative p-4 rounded-3xl transition-all duration-700">
+                            {draggedCourseId && (
+                              <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                className="absolute -inset-4 bg-black/30 backdrop-blur-[2px] rounded-[2.5rem] z-20 pointer-events-none border border-white/5"
+                              />
+                            )}
                             {levelCourses.map((course, index) => (
                               <motion.div
                                 key={course.id}
