@@ -6,10 +6,16 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
     @apply bg-zinc-950 text-white antialiased overflow-x-hidden;
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     background-color: #050505;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   .font-helvetica-light {
@@ -82,6 +88,15 @@
 
   .btn-gold-frame:hover {
     @apply bg-[#D4AF37] text-black shadow-[0_0_20px_rgba(212, 175, 55, 0.4)];
+  }
+
+  .liquid-scroll {
+    scrollbar-gutter: stable;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    will-change: scroll-position;
+    backface-visibility: hidden;
+    transform: translateZ(0);
   }
 }
 

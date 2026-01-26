@@ -900,7 +900,7 @@ const App: React.FC = () => {
     const avgQuizScore = userDashboardStats?.averageQuizScore || 0;
 
     return (
-      <div className="md:ml-64 h-screen overflow-y-auto relative z-10">
+      <div className="md:ml-64 h-screen overflow-y-auto relative z-10 liquid-scroll">
         {/* Mobile Header */}
         <div className="md:hidden p-4 flex justify-between items-center bg-[#0c0c0e] border-b border-white/[0.04] sticky top-0 z-40">
           <span className="font-helvetica-bold">Amini Academy</span>
@@ -1713,7 +1713,7 @@ const App: React.FC = () => {
                 </div>
 
                 {/* Lessons list */}
-                <div className="flex-1 overflow-y-auto p-4 space-y-2 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+                <div className="flex-1 overflow-y-auto p-4 space-y-2 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent liquid-scroll">
                   {activeCourse?.lessons.map((lesson, idx) => {
                     const isLocked = idx > 0 && !activeCourse.lessons[idx - 1].isCompleted;
                     const isActive = activeLesson?.id === lesson.id;
@@ -1759,7 +1759,7 @@ const App: React.FC = () => {
           </div>
 
           {/* Main Content Area */}
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto liquid-scroll">
             <div className="min-h-full p-6 md:p-10 flex flex-col items-center">
               {activeLesson ? (
                 <div className={`
@@ -3250,7 +3250,7 @@ const App: React.FC = () => {
 
     // --- Main Admin Dashboard ---
     return (
-      <div className="md:ml-64 h-screen overflow-y-auto relative z-10">
+      <div className="md:ml-64 h-screen overflow-y-auto relative z-10 liquid-scroll">
         <div className="p-6 md:p-10 max-w-7xl mx-auto space-y-8 pb-20">
 
           <PageTransition viewKey={adminSection}>
