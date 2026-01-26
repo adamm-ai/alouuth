@@ -3267,7 +3267,7 @@ const App: React.FC = () => {
           )}
         </AnimatePresence>
 
-        <div className={`p-6 md:p-10 max-w-7xl mx-auto space-y-8 pb-20 relative z-[60] transition-[transform,filter] duration-700 ${draggedCourseId ? 'scale-[0.98] blur-[0.2px]' : 'scale-100 blur-0'}`}>
+        <div className={`p-6 md:p-10 max-w-7xl mx-auto space-y-8 pb-20 relative z-[60]`}>
 
           <PageTransition viewKey={adminSection}>
             {adminSection === 'USERS' && <UserManagementSection />}
@@ -3565,7 +3565,7 @@ const App: React.FC = () => {
 
             {adminSection === 'COURSES' && (
               <div className="space-y-8">
-                <div className="flex justify-between items-end mb-8">
+                <div className={`flex justify-between items-end mb-8 transition-all duration-700 ${draggedCourseId ? 'opacity-20 blur-sm pointer-events-none' : 'opacity-100'}`}>
                   <div>
                     <h2 className="text-3xl font-helvetica-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-zinc-400">Course Manager</h2>
                     <p className="text-zinc-400 mt-2 flex items-center gap-4">
@@ -3586,7 +3586,7 @@ const App: React.FC = () => {
                     if (levelCourses.length === 0) return null;
                     return (
                       <div key={level} className="space-y-6">
-                        <div className="flex items-center gap-4">
+                        <div className={`flex items-center gap-4 transition-all duration-700 ${draggedCourseId ? 'opacity-20 blur-sm' : 'opacity-100'}`}>
                           <div className={`px-4 py-1.5 rounded-full text-sm font-helvetica-bold ${level === 'Beginner' ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
                             level === 'Intermediate' ? 'bg-yellow-500/20 text-[#D4AF37] border border-yellow-500/30' :
                               'bg-purple-500/20 text-purple-400 border border-purple-500/30'
@@ -3656,7 +3656,7 @@ const App: React.FC = () => {
                                   boxShadow: "0 40px 80px rgba(0,0,0,0.6), 0 0 40px rgba(212, 175, 55, 0.15)",
                                   cursor: 'grabbing'
                                 }}
-                                transition={{ type: "spring", stiffness: 400, damping: 40, mass: 1 }}
+                                transition={{ type: "spring", stiffness: 120, damping: 20, mass: 1 }}
                               >
                                 {/* Ambient Glow */}
                                 <div className={`absolute -inset-1 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl ${level === 'Beginner' ? 'bg-green-500/20' :
