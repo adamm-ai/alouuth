@@ -3,13 +3,22 @@ import pool from '../config/database.js';
 // Helper: Check if user has completed prerequisite course
 async function checkPrerequisites(userId, courseId) {
   // Get course and its prerequisite
-  const courseResult = await pool.query(`
-    SELECT c.id, c.level, c.prerequisite_course_id,
-           pc.title as prereq_title
-    FROM courses c
-    LEFT JOIN courses pc ON pc.id = c.prerequisite_course_id
-    WHERE c.id = $1
-  `, [courseId]);
+  let courseResult;
+  try {
+    courseResult = await pool.query(`
+      SELECT c.id, c.level, c.prerequisite_course_id,
+             pc.title as prereq_title
+      FROM courses c
+      LEFT JOIN courses pc ON pc.id = c.prerequisite_course_id
+      WHERE c.id = $1
+    `, [courseId]);
+  } catch (e) {
+    console.log('Prerequisite column missing in courses table, falling back');
+    courseResult = await pool.query(`
+      SELECT id, level FROM courses
+      WHERE id = $1
+    `, [courseId]);
+  }
 
   if (courseResult.rows.length === 0) {
     return { allowed: false, reason: 'Course not found' };
