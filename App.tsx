@@ -2185,10 +2185,19 @@ const App: React.FC = () => {
 
     // Local courses state for drag reordering
     const [localCourses, setLocalCourses] = useState<Course[]>(courses);
+    const dragState = React.useRef<{
+      dragging: boolean;
+      courseId: string | null;
+      startIndex: number;
+      currentIndex: number;
+      level: string;
+    }>({ dragging: false, courseId: null, startIndex: -1, currentIndex: -1, level: '' });
 
     // Sync local courses with global courses
     useEffect(() => {
-      setLocalCourses([...courses]);
+      if (!dragState.current.dragging) {
+        setLocalCourses([...courses]);
+      }
     }, [courses]);
 
 
@@ -3618,106 +3627,186 @@ const App: React.FC = () => {
                 <div className="space-y-12">
                   {(['Beginner', 'Intermediate', 'Advanced'] as const).map(level => {
                     const currentCourses = (localCourses && localCourses.length > 0) ? localCourses : courses;
-                    const levelCourses = currentCourses.filter(c => c.level === level);
+                    const levelCourses = currentCourses.filter(c => c.level === level).sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0));
                     if (levelCourses.length === 0) return null;
-
-                    // Handler for when Reorder.Group reorders items
-                    const handleReorder = async (newOrder: Course[]) => {
-                      // Update orderIndex for each course
-                      const updatedOrder = newOrder.map((course, idx) => ({ ...course, orderIndex: idx }));
-
-                      // Update local state immediately for smooth UX
-                      const otherCourses = localCourses.filter(c => c.level !== level);
-                      const newLocalCourses = sortCourses([...otherCourses, ...updatedOrder]);
-                      setLocalCourses(newLocalCourses);
-                      setCourses(newLocalCourses);
-
-                      // Sync to backend
-                      try {
-                        const orderedIds = updatedOrder.map(c => c.id);
-                        await dataService.reorderCourses(level, orderedIds);
-                      } catch (err) {
-                        console.error('Reorder sync failed:', err);
-                      }
-                    };
 
                     return (
                       <div key={level} className="space-y-6">
-                        <div className="flex items-center gap-4">
+                        <div className={`flex items-center gap-4 transition-all duration-300 ${draggedCourseId ? 'opacity-50' : 'opacity-100'}`}>
                           <div className={`px-4 py-1.5 rounded-full text-sm font-helvetica-bold ${level === 'Beginner' ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
                             level === 'Intermediate' ? 'bg-yellow-500/20 text-[#D4AF37] border border-yellow-500/30' :
                               'bg-purple-500/20 text-purple-400 border border-purple-500/30'
                             }`}>{level}</div>
                           <div className="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent"></div>
-                          <span className="text-sm text-zinc-500 font-medium">{levelCourses.length} course{levelCourses.length > 1 ? 's' : ''} • Drag to Reorder</span>
+                          <span className="text-sm text-zinc-500 font-medium">{levelCourses.length} course{levelCourses.length > 1 ? 's' : ''}</span>
                         </div>
 
-                        <Reorder.Group
-                          axis="y"
-                          values={levelCourses}
-                          onReorder={handleReorder}
-                          className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 relative p-4 rounded-3xl"
-                        >
-                          {levelCourses.map((course, index) => (
-                            <Reorder.Item
-                              key={course.id}
-                              value={course}
-                              className="group relative rounded-2xl z-10 cursor-grab active:cursor-grabbing"
-                              onDragStart={() => setDraggedCourseId(course.id)}
-                              onDragEnd={() => setDraggedCourseId(null)}
-                              whileDrag={{
-                                scale: 1.03,
-                                zIndex: 100,
-                                boxShadow: "0 25px 50px rgba(0,0,0,0.5), 0 0 30px rgba(212, 175, 55, 0.2)",
-                              }}
-                              transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                            >
-                              {/* Card Body */}
-                              <div className="relative glass-panel rounded-2xl border border-white/10 group-hover:border-[#D4AF37]/50 overflow-hidden backdrop-blur-xl bg-zinc-900/80 transition-colors">
-                                <div className="relative aspect-video overflow-hidden">
-                                  <img
-                                    src={course.thumbnail || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=800'}
-                                    alt={course.title}
-                                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 pointer-events-none"
-                                  />
-                                  <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 via-zinc-900/50 to-transparent pointer-events-none"></div>
-                                  <div className="absolute top-3 left-3 w-8 h-8 rounded-full bg-black/60 backdrop-blur-sm border border-white/20 flex items-center justify-center text-sm font-helvetica-bold text-white">
-                                    {index + 1}
-                                  </div>
-                                  <div className={`absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-helvetica-bold backdrop-blur-sm ${level === 'Beginner' ? 'bg-green-500/30 text-green-300 border border-green-500/50' :
-                                    level === 'Intermediate' ? 'bg-yellow-500/30 text-yellow-300 border border-yellow-500/50' :
+                        <LayoutGroup>
+                          <motion.div
+                            layout
+                            className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 relative"
+                          >
+                            {levelCourses.map((course, index) => (
+                              <motion.div
+                                key={course.id}
+                                layout
+                                layoutId={course.id}
+                                initial={false}
+                                animate={{
+                                  scale: draggedCourseId === course.id ? 1.05 : 1,
+                                  zIndex: draggedCourseId === course.id ? 50 : 1,
+                                  boxShadow: draggedCourseId === course.id
+                                    ? "0 25px 50px rgba(0,0,0,0.4), 0 0 30px rgba(212, 175, 55, 0.3)"
+                                    : "0 0 0 rgba(0,0,0,0)"
+                                }}
+                                transition={{
+                                  layout: { type: "spring", stiffness: 350, damping: 30 },
+                                  scale: { type: "spring", stiffness: 400, damping: 25 }
+                                }}
+                                drag
+                                dragSnapToOrigin
+                                dragElastic={0.2}
+                                dragTransition={{ bounceStiffness: 300, bounceDamping: 20 }}
+                                onDragStart={() => {
+                                  dragState.current = {
+                                    dragging: true,
+                                    courseId: course.id,
+                                    startIndex: index,
+                                    currentIndex: index,
+                                    level
+                                  };
+                                  setDraggedCourseId(course.id);
+                                }}
+                                onDrag={(_, info) => {
+                                  if (!dragState.current.dragging) return;
+
+                                  const cols = window.innerWidth >= 1280 ? 3 : window.innerWidth >= 768 ? 2 : 1;
+                                  const cardWidth = 380;
+                                  const cardHeight = 340;
+                                  const gap = 24;
+
+                                  // Calculate movement in grid units
+                                  const deltaCol = Math.round(info.offset.x / (cardWidth + gap));
+                                  const deltaRow = Math.round(info.offset.y / (cardHeight + gap));
+
+                                  const startRow = Math.floor(dragState.current.startIndex / cols);
+                                  const startCol = dragState.current.startIndex % cols;
+
+                                  let newCol = startCol + deltaCol;
+                                  let newRow = startRow + deltaRow;
+
+                                  // Clamp to valid range
+                                  newCol = Math.max(0, Math.min(cols - 1, newCol));
+                                  newRow = Math.max(0, newRow);
+
+                                  const newIndex = Math.min(levelCourses.length - 1, Math.max(0, newRow * cols + newCol));
+
+                                  if (newIndex !== dragState.current.currentIndex) {
+                                    dragState.current.currentIndex = newIndex;
+
+                                    // Reorder the array
+                                    const reordered = [...levelCourses];
+                                    const [moved] = reordered.splice(
+                                      reordered.findIndex(c => c.id === course.id),
+                                      1
+                                    );
+                                    reordered.splice(newIndex, 0, moved);
+
+                                    // Update with new orderIndex
+                                    const updated = reordered.map((c, i) => ({ ...c, orderIndex: i }));
+                                    const otherCourses = localCourses.filter(c => c.level !== level);
+                                    setLocalCourses(sortCourses([...otherCourses, ...updated]));
+                                  }
+                                }}
+                                onDragEnd={async () => {
+                                  const finalLevel = dragState.current.level;
+                                  dragState.current = { dragging: false, courseId: null, startIndex: -1, currentIndex: -1, level: '' };
+                                  setDraggedCourseId(null);
+
+                                  // Persist to backend and global state
+                                  const finalLevelCourses = localCourses.filter(c => c.level === finalLevel);
+                                  setCourses([...localCourses]);
+
+                                  try {
+                                    await dataService.reorderCourses(finalLevel, finalLevelCourses.map(c => c.id));
+                                  } catch (err) {
+                                    console.error('Reorder sync failed:', err);
+                                  }
+                                }}
+                                className={`group relative rounded-2xl cursor-grab active:cursor-grabbing select-none ${
+                                  draggedCourseId && draggedCourseId !== course.id ? 'pointer-events-none' : ''
+                                }`}
+                                style={{ touchAction: 'none' }}
+                              >
+                                {/* Card Body */}
+                                <div className={`relative rounded-2xl border overflow-hidden backdrop-blur-xl bg-zinc-900/90 transition-all duration-200 ${
+                                  draggedCourseId === course.id
+                                    ? 'border-[#D4AF37] ring-2 ring-[#D4AF37]/30'
+                                    : 'border-white/10 hover:border-white/25'
+                                }`}>
+                                  <div className="relative aspect-video overflow-hidden">
+                                    <img
+                                      src={course.thumbnail || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=800'}
+                                      alt={course.title}
+                                      className="w-full h-full object-cover pointer-events-none"
+                                      draggable={false}
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 via-zinc-900/40 to-transparent pointer-events-none" />
+
+                                    {/* Order Badge */}
+                                    <div className="absolute top-3 left-3 w-8 h-8 rounded-full bg-black/70 backdrop-blur-sm border border-white/20 flex items-center justify-center text-sm font-helvetica-bold text-white">
+                                      {index + 1}
+                                    </div>
+
+                                    {/* Level Badge */}
+                                    <div className={`absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-helvetica-bold backdrop-blur-sm ${
+                                      level === 'Beginner' ? 'bg-green-500/30 text-green-300 border border-green-500/50' :
+                                      level === 'Intermediate' ? 'bg-yellow-500/30 text-yellow-300 border border-yellow-500/50' :
                                       'bg-purple-500/30 text-purple-300 border border-purple-500/50'
                                     }`}>{level}</div>
-                                  <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <div className="p-4 rounded-full bg-yellow-400 text-black shadow-lg shadow-yellow-400/20 scale-90 group-hover:scale-100 transition-transform">
-                                      <GripVertical size={28} />
+
+                                    {/* Drag Handle Overlay */}
+                                    <motion.div
+                                      className="absolute inset-0 flex items-center justify-center bg-black/60"
+                                      initial={{ opacity: 0 }}
+                                      whileHover={{ opacity: 1 }}
+                                      transition={{ duration: 0.15 }}
+                                    >
+                                      <motion.div
+                                        className="p-4 rounded-full bg-[#D4AF37] text-black shadow-xl"
+                                        whileHover={{ scale: 1.1 }}
+                                        whileTap={{ scale: 0.95 }}
+                                      >
+                                        <GripVertical size={28} />
+                                      </motion.div>
+                                    </motion.div>
+                                  </div>
+
+                                  <div className="p-5">
+                                    <h4 className="text-lg font-helvetica-bold text-white mb-2 line-clamp-1">{course.title}</h4>
+                                    <p className="text-sm text-zinc-400 mb-4 line-clamp-2">{course.description || 'No description'}</p>
+                                    <div className="flex gap-2">
+                                      <button
+                                        onPointerDown={(e) => e.stopPropagation()}
+                                        onClick={(e) => { e.stopPropagation(); handleEditCourse(course); }}
+                                        className="flex-1 py-2.5 px-4 rounded-xl bg-[#D4AF37] text-black text-sm font-helvetica-bold hover:bg-yellow-400 transition-colors flex items-center justify-center gap-2"
+                                      >
+                                        <Pencil size={14} /> Edit
+                                      </button>
+                                      <button
+                                        onPointerDown={(e) => e.stopPropagation()}
+                                        onClick={(e) => { e.stopPropagation(); deleteCourse(course.id); }}
+                                        className="p-2.5 rounded-xl border border-red-500/30 text-red-400 hover:bg-red-500/20 transition-colors"
+                                      >
+                                        <Trash2 size={16} />
+                                      </button>
                                     </div>
                                   </div>
                                 </div>
-                                <div className="p-5">
-                                  <h4 className="text-lg font-helvetica-bold text-white mb-2 line-clamp-1 truncate">{course.title}</h4>
-                                  <p className="text-sm text-zinc-400 mb-4 line-clamp-2">{course.description || 'No description'}</p>
-                                  <div className="flex gap-2">
-                                    <button
-                                      onPointerDown={(e) => e.stopPropagation()}
-                                      onClick={() => handleEditCourse(course)}
-                                      className="flex-1 py-2.5 px-4 rounded-xl bg-yellow-400 text-black text-sm font-helvetica-bold hover:bg-yellow-300 transition-colors flex items-center justify-center gap-2"
-                                    >
-                                      <Pencil size={14} /> Edit Course
-                                    </button>
-                                    <button
-                                      onPointerDown={(e) => e.stopPropagation()}
-                                      onClick={() => deleteCourse(course.id)}
-                                      className="p-2.5 rounded-xl border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-colors"
-                                    >
-                                      <Trash2 size={16} />
-                                    </button>
-                                  </div>
-                                </div>
-                              </div>
-                            </Reorder.Item>
-                          ))}
-                        </Reorder.Group>
+                              </motion.div>
+                            ))}
+                          </motion.div>
+                        </LayoutGroup>
                       </div>
                     );
                   })}
