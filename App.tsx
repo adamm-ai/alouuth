@@ -43,7 +43,7 @@ import {
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from 'recharts';
 import { LiquidBackground } from './components/LiquidBackground';
 import { GlassCard, PrimaryButton, SecondaryButton, ProgressBar, Badge, FileDropZone, IconButton, ToastProvider, useToast, LiquidVideoFrame } from './components/UIComponents';
-import { AnimatePresence } from 'framer-motion';
+import { AnimatePresence, Reorder } from 'framer-motion';
 import { PageTransition } from './components/PageTransition';
 import { dataService } from './services/dataService';
 import { authAPI, setAuthToken, getAuthToken, PendingUser, adminAPI } from './services/api';
@@ -350,7 +350,7 @@ const App: React.FC = () => {
   // --- Sub-Components ---
 
   const Sidebar = () => (
-    <div className={`fixed inset-y-0 left-0 z-50 w-64 transform ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 transition-transform duration-300 ease-in-out`}>
+    <div className={`fixed inset-y-0 left-0 z-50 w-64 transform ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 transition-transform duration-300 ease-in-out ${draggedCourseId ? 'opacity-20 blur-sm pointer-events-none' : 'opacity-100'} transition-opacity`}>
       {/* Subtle glow accent on edge */}
       <div className="absolute inset-y-0 right-0 w-px bg-gradient-to-b from-transparent via-yellow-400/10 to-transparent" />
 
@@ -3250,8 +3250,11 @@ const App: React.FC = () => {
 
     // --- Main Admin Dashboard ---
     return (
-      <div className="md:ml-64 h-screen overflow-y-auto relative z-10 liquid-scroll">
-        <div className="p-6 md:p-10 max-w-7xl mx-auto space-y-8 pb-20">
+      <div className={`md:ml-64 h-screen overflow-y-auto relative z-10 liquid-scroll transition-all duration-500 ${draggedCourseId ? 'bg-black/40' : ''}`}>
+        {draggedCourseId && (
+          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-[2px] pointer-events-none animate-fade-in" />
+        )}
+        <div className={`p-6 md:p-10 max-w-7xl mx-auto space-y-8 pb-20 relative z-[60] ${draggedCourseId ? 'scale-[0.99] origin-center' : 'scale-100'} transition-transform duration-500`}>
 
           <PageTransition viewKey={adminSection}>
             {adminSection === 'USERS' && <UserManagementSection />}
@@ -3564,54 +3567,60 @@ const App: React.FC = () => {
                   </PrimaryButton>
                 </div>
 
-                {/* Courses Grid - Liquid Glass Cards */}
-                <div className="space-y-10">
+                <div className="space-y-12">
                   {(['Beginner', 'Intermediate', 'Advanced'] as const).map(level => {
                     const levelCourses = courses.filter(c => c.level === level);
                     if (levelCourses.length === 0) return null;
-                    const levelColor = level === 'Beginner' ? 'green' : level === 'Intermediate' ? 'yellow' : 'purple';
                     return (
-                      <div key={level} className="space-y-5">
+                      <div key={level} className="space-y-6">
                         <div className="flex items-center gap-4">
                           <div className={`px-4 py-1.5 rounded-full text-sm font-helvetica-bold ${level === 'Beginner' ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
                             level === 'Intermediate' ? 'bg-yellow-500/20 text-[#D4AF37] border border-yellow-500/30' :
                               'bg-purple-500/20 text-purple-400 border border-purple-500/30'
                             }`}>{level}</div>
                           <div className="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent"></div>
-                          <span className="text-sm text-zinc-500">{levelCourses.length} course{levelCourses.length > 1 ? 's' : ''} • Drag to reorder</span>
+                          <span className="text-sm text-zinc-500 font-medium">{levelCourses.length} course{levelCourses.length > 1 ? 's' : ''} • Drag handle for Focus reorder</span>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+
+                        <Reorder.Group
+                          axis="y"
+                          values={levelCourses}
+                          onReorder={async (reorderedItems) => {
+                            // Calculate standard order mapping for the level
+                            const otherCourses = courses.filter(c => c.level !== level);
+                            const updatedLevelItems = reorderedItems.map((course, idx) => ({
+                              ...course,
+                              orderIndex: idx
+                            }));
+
+                            // Update local state immediately for fluidity
+                            const newCourses = sortCourses([...otherCourses, ...updatedLevelItems]);
+                            setCourses(newCourses);
+
+                            // Sync with backend (Note: In a high-traffic app, we'd debounce this)
+                            try {
+                              const orderedIds = updatedLevelItems.map(c => c.id);
+                              await dataService.reorderCourses(level, orderedIds);
+                            } catch (err) {
+                              console.error('Reorder sync failed', err);
+                            }
+                          }}
+                          className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"
+                        >
                           {levelCourses.map((course, index) => (
-                            <div
+                            <Reorder.Item
                               key={course.id}
-                              draggable
-                              onDragStart={(e) => {
-                                setDraggedCourseId(course.id);
-                                e.dataTransfer.effectAllowed = 'move';
-                                e.dataTransfer.setData('text/plain', JSON.stringify({ level, fromIndex: index }));
-                              }}
+                              value={course}
+                              onDragStart={() => setDraggedCourseId(course.id)}
                               onDragEnd={() => setDraggedCourseId(null)}
-                              onDragOver={(e) => {
-                                e.preventDefault();
-                                e.dataTransfer.dropEffect = 'move';
+                              className={`group relative rounded-2xl transition-all duration-300 ${draggedCourseId === course.id ? 'z-[100]' : 'z-10'}`}
+                              initial={false}
+                              dragTransition={{ bounceStiffness: 600, bounceDamping: 20 }}
+                              whileDrag={{
+                                scale: 1.05,
+                                rotate: 1,
+                                boxShadow: "0 20px 50px rgba(0,0,0,0.5), 0 0 30px rgba(212, 175, 55, 0.2)"
                               }}
-                              onDrop={async (e) => {
-                                e.preventDefault();
-                                const data = JSON.parse(e.dataTransfer.getData('text/plain'));
-                                if (data.level === level && data.fromIndex !== index) {
-                                  const success = await handleCourseDrop(level, data.fromIndex, index);
-                                  if (success) {
-                                    showToast('success', 'Order Saved', 'Course order updated and saved for all users.');
-                                  } else {
-                                    showToast('error', 'Save Failed', 'Failed to save course order. Please try again.');
-                                  }
-                                }
-                                setDraggedCourseId(null);
-                              }}
-                              className={`group relative rounded-2xl overflow-hidden transition-all duration-500 cursor-grab active:cursor-grabbing ${draggedCourseId === course.id
-                                ? 'opacity-50 scale-95 rotate-1 ring-2 ring-yellow-400'
-                                : 'hover:scale-[1.02] hover:-translate-y-1'
-                                }`}
                             >
                               {/* Ambient Glow */}
                               <div className={`absolute -inset-1 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl ${level === 'Beginner' ? 'bg-green-500/20' :
@@ -3620,7 +3629,7 @@ const App: React.FC = () => {
                                 }`}></div>
 
                               {/* Card */}
-                              <div className="relative glass-panel rounded-2xl border border-white/10 group-hover:border-white/20 overflow-hidden backdrop-blur-xl bg-zinc-900/80">
+                              <div className={`relative glass-panel rounded-2xl border ${draggedCourseId === course.id ? 'border-yellow-400/50' : 'border-white/10'} group-hover:border-white/20 overflow-hidden backdrop-blur-xl bg-zinc-900/80`}>
                                 {/* Thumbnail with Overlay */}
                                 <div className="relative aspect-video overflow-hidden">
                                   <img
@@ -3654,10 +3663,10 @@ const App: React.FC = () => {
                                     </div>
                                   </div>
 
-                                  {/* Drag Handle - Appears on Hover */}
-                                  <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <div className="p-3 rounded-full bg-white/10 backdrop-blur-sm border border-white/20">
-                                      <GripVertical size={24} className="text-white" />
+                                  {/* Drag Handle - Best in Class UX */}
+                                  <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing">
+                                    <div className="p-4 rounded-full bg-yellow-400 text-black shadow-lg shadow-yellow-400/20 scale-90 group-hover:scale-100 transition-transform">
+                                      <GripVertical size={28} />
                                     </div>
                                   </div>
                                 </div>
@@ -3710,9 +3719,9 @@ const App: React.FC = () => {
                                   </div>
                                 </div>
                               </div>
-                            </div>
+                            </Reorder.Item>
                           ))}
-                        </div>
+                        </Reorder.Group>
                       </div>
                     );
                   })}
