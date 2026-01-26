@@ -139,28 +139,16 @@ export const PrimaryButton: React.FC<{ children: React.ReactNode; onClick?: () =
     onClick={onClick}
     disabled={disabled}
     className={`
-      relative group overflow-hidden rounded-full px-8 py-3 font-bold text-black transition-all duration-300
+      relative group overflow-hidden rounded-full px-8 py-3 font-helvetica-bold text-[#D4AF37] transition-all duration-300
+      border border-[#D4AF37] bg-[#050505]
       ${disabled
         ? 'opacity-50 cursor-not-allowed grayscale'
-        : 'hover:shadow-[0_0_40px_rgba(250,204,21,0.5),0_0_80px_rgba(250,204,21,0.2)] active:scale-[0.97]'
+        : 'hover:bg-[#D4AF37] hover:text-black hover:shadow-[0_0_25px_rgba(212,175,55,0.4)] active:scale-[0.97]'
       }
-      bg-liquid-gold
       ${className}
     `}
   >
-    {/* Base gold background */}
-    <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-400 transition-all duration-500" />
-
-    {/* Shine sweep effect */}
-    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out" />
-
-    {/* Top highlight */}
-    <div className="absolute inset-x-0 top-0 h-[1px] bg-white/50" />
-
-    {/* Inner glow */}
-    <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-
-    <span className="relative z-10 flex items-center gap-2 justify-center drop-shadow-sm">{children}</span>
+    <span className="relative z-10 flex items-center gap-2 justify-center">{children}</span>
   </button>
 );
 
@@ -168,15 +156,13 @@ export const SecondaryButton: React.FC<{ children: React.ReactNode; onClick?: ()
   <button
     onClick={onClick}
     className={`
-      relative group overflow-hidden rounded-full px-8 py-3 font-semibold text-zinc-300
-      glass-subtle hover:text-white hover:border-white/20
-      hover:shadow-[0_0_30px_rgba(255,255,255,0.05),inset_0_1px_0_rgba(255,255,255,0.1)]
+      relative group overflow-hidden rounded-full px-8 py-3 font-helvetica text-zinc-400
+      border border-white/10 bg-transparent
+      hover:text-white hover:border-white/30
+      hover:shadow-[0_0_30px_rgba(255,255,255,0.05)]
       transition-all duration-300 active:scale-[0.97] ${className}
     `}
   >
-    {/* Subtle hover glow */}
-    <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/0 via-yellow-400/5 to-yellow-400/0 opacity-0 group-hover:opacity-100 transition-opacity" />
-
     <span className="relative z-10 flex items-center gap-2 justify-center">{children}</span>
   </button>
 );
@@ -188,54 +174,38 @@ export const IconButton: React.FC<{ icon: React.ReactNode; onClick?: () => void;
     className={`
       relative group p-3 rounded-xl
       border border-white/10 bg-white/[0.03] backdrop-blur-sm text-zinc-400
-      hover:text-black hover:bg-yellow-400 hover:border-yellow-400
-      hover:shadow-[0_0_25px_rgba(250,204,21,0.4),inset_0_1px_0_rgba(255,255,255,0.2)]
-      transition-all duration-300 active:scale-90 flex items-center justify-center
+      hover:text-black hover:bg-[#D4AF37] hover:border-[#D4AF37]
+      hover:shadow-[0_0_20px_rgba(212,175,55,0.3)]
+      transition-all duration-300 active:scale-95 flex items-center justify-center
       ${className}
     `}
   >
-    {/* Glow effect on hover */}
-    <div className="absolute inset-0 rounded-xl bg-yellow-400/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
-
     <span className="relative z-10">{icon}</span>
   </button>
 );
 
 export const ProgressBar: React.FC<{ progress: number; className?: string }> = ({ progress, className = '' }) => (
-  <div className={`relative h-2.5 w-full bg-zinc-900/80 backdrop-blur-sm border border-white/10 rounded-full overflow-hidden ${className}`}>
-    {/* Track highlight */}
-    <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent" />
-
+  <div className={`relative h-1.5 w-full bg-zinc-900 border border-white/5 rounded-full overflow-hidden ${className}`}>
     <div
-      className="h-full bg-gradient-to-r from-yellow-500 via-yellow-400 to-yellow-300 shadow-[0_0_20px_rgba(250,204,21,0.6)] transition-all duration-700 ease-out relative"
+      className="h-full bg-[#D4AF37] shadow-[0_0_15px_rgba(212,175,55,0.5)] transition-all duration-700 ease-out relative"
       style={{ width: `${progress}%` }}
     >
-      {/* Inner shine */}
-      <div className="absolute inset-0 bg-gradient-to-b from-white/30 to-transparent" />
-
-      {/* Animated glow pulse */}
-      <div className="absolute inset-0 bg-white/20 animate-pulse" />
-
-      {/* Leading glow */}
-      <div className="absolute right-0 top-0 bottom-0 w-4 bg-gradient-to-r from-transparent to-white/50 blur-sm" />
+      <div className="absolute inset-0 bg-white/10 animate-pulse" />
     </div>
   </div>
 );
 
 export const Badge: React.FC<{ children: React.ReactNode; type?: 'default' | 'success' | 'warning' | 'purple' | 'locked' }> = ({ children, type = 'default' }) => {
   const styles = {
-    default: 'bg-zinc-800/80 text-zinc-300 border-zinc-700/80',
-    success: 'bg-gradient-to-r from-yellow-400/20 to-yellow-500/10 text-yellow-400 border-yellow-500/30 shadow-[0_0_20px_rgba(250,204,21,0.1)]',
-    warning: 'bg-gradient-to-r from-white/15 to-white/5 text-white border-white/20 shadow-[0_0_20px_rgba(255,255,255,0.05)]',
-    purple: 'bg-zinc-700/50 text-zinc-200 border-zinc-600/80',
-    locked: 'bg-zinc-900/60 text-zinc-500 border-zinc-800/80',
+    default: 'bg-zinc-900 text-zinc-400 border-white/10',
+    success: 'bg-[#D4AF37]/10 text-[#D4AF37] border-[#D4AF37]/30 shadow-[0_0_15px_rgba(212,175,55,0.05)]',
+    warning: 'bg-white/5 text-white border-white/10',
+    purple: 'bg-zinc-800 text-zinc-300 border-white/5',
+    locked: 'bg-black/40 text-zinc-600 border-white/5',
   };
 
   return (
-    <span className={`relative px-3 py-1.5 rounded-full text-xs font-semibold border backdrop-blur-md flex items-center gap-1.5 ${styles[type]}`}>
-      {/* Inner shine */}
-      <div className="absolute inset-0 rounded-full bg-gradient-to-b from-white/10 to-transparent pointer-events-none" />
-
+    <span className={`relative px-3 py-1 rounded-full text-[10px] font-helvetica-bold uppercase tracking-wider border backdrop-blur-md flex items-center gap-1.5 ${styles[type]}`}>
       <span className="relative z-10 flex items-center gap-1.5">
         {type === 'locked' && <Lock size={10} />}
         {children}

@@ -359,11 +359,11 @@ const App: React.FC = () => {
         <div className="p-8 relative">
           <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
           <h1
-            className="text-2xl font-bold tracking-wider cursor-pointer group"
+            className="text-2xl font-helvetica-bold tracking-wider cursor-pointer group"
             onClick={() => setCurrentView('LANDING')}
           >
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-400 group-hover:from-yellow-300 group-hover:to-yellow-400 transition-all">AMINI</span>
-            <span className="font-light text-white/80 group-hover:text-white transition-colors">ACADEMY</span>
+            <span className="text-[#D4AF37] group-hover:brightness-110 transition-all">AMINI</span>
+            <span className="font-helvetica-light text-white/70 group-hover:text-white transition-colors ml-1">ACADEMY</span>
           </h1>
         </div>
 
@@ -380,7 +380,7 @@ const App: React.FC = () => {
           {/* Admin Navigation */}
           {user?.role === UserRole.ADMIN && (
             <>
-              <div className="text-[10px] uppercase tracking-[0.2em] text-zinc-500 font-semibold px-4 pt-4 pb-2">Admin Portal</div>
+              <div className="text-[10px] uppercase tracking-[0.2em] text-zinc-500 font-helvetica-bold px-4 pt-4 pb-2">Admin Portal</div>
 
               <SidebarItem
                 icon={<Layout size={20} />}
@@ -394,7 +394,7 @@ const App: React.FC = () => {
                 label="User Approvals"
                 active={currentView === 'ADMIN' && adminSection === 'USERS'}
                 onClick={() => { if (currentView !== 'ADMIN') setCurrentView('ADMIN'); setAdminSection('USERS'); }}
-                badge={<span className="ml-auto px-2.5 py-0.5 text-[10px] rounded-full bg-red-500/20 text-red-400 font-bold border border-red-500/30 shadow-[0_0_10px_rgba(239,68,68,0.2)]">ACTION</span>}
+                badge={<span className="ml-auto px-2.5 py-0.5 text-[10px] rounded-full bg-red-500/20 text-red-400 font-helvetica-bold border border-red-500/30 shadow-[0_0_10px_rgba(239,68,68,0.2)]">ACTION</span>}
               />
 
               <SidebarItem
@@ -428,13 +428,12 @@ const App: React.FC = () => {
           <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
           <div className="flex items-center gap-3 mb-4">
             <div className="relative">
-              <div className="w-11 h-11 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-500 flex items-center justify-center font-bold text-black shadow-[0_0_20px_rgba(250,204,21,0.25)]">
+              <div className="w-11 h-11 rounded-xl border border-[#D4AF37]/40 bg-[#D4AF37]/5 flex items-center justify-center font-helvetica-bold text-[#D4AF37] shadow-[0_0_15px_rgba(212,175,55,0.1)]">
                 {user?.name?.charAt(0) || 'U'}
               </div>
-              <div className="absolute -inset-0.5 rounded-full bg-gradient-to-br from-yellow-400/50 to-transparent blur-sm -z-10" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-white">{user?.name || 'User'}</p>
+              <p className="text-sm font-helvetica-bold text-white">{user?.name || 'User'}</p>
               <p className="text-xs text-zinc-500 truncate w-32">{user?.ministry || 'Ministry'}</p>
             </div>
           </div>
@@ -454,45 +453,62 @@ const App: React.FC = () => {
     </div>
   );
 
-  const SidebarItem = ({ icon, label, active, onClick, badge }: any) => (
-    <button
-      onClick={onClick}
-      className={`
+  const SidebarItem = ({ icon, label, active, onClick, badge }: any) => {
+    const [isCharging, setIsCharging] = useState(false);
+
+    const handleClick = () => {
+      if (!active) {
+        setIsCharging(true);
+        setTimeout(() => {
+          setIsCharging(false);
+          onClick();
+        }, 400); // Cool Charge duration
+      } else {
+        onClick();
+      }
+    };
+
+    return (
+      <button
+        onClick={handleClick}
+        className={`
         relative w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 overflow-hidden
         ${active
-          ? 'text-black'
-          : 'text-zinc-400 hover:text-white hover:bg-white/[0.04]'
-        }
+            ? 'text-[#D4AF37] border border-[#D4AF37]/40 bg-[#D4AF37]/5'
+            : 'text-zinc-500 hover:text-white hover:bg-white/[0.03]'
+          }
+        ${isCharging ? 'scale-[0.98]' : 'scale-100'}
       `}
-    >
-      {/* Active background */}
-      {active && (
-        <>
-          <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 via-yellow-400 to-yellow-300" />
-          <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent" />
-          <div className="absolute inset-x-0 top-0 h-px bg-white/40" />
-          <div className="absolute -inset-1 bg-yellow-400/20 blur-xl -z-10" />
-        </>
-      )}
+      >
+        {/* Cool Charge Effect Background */}
+        {isCharging && (
+          <div className="absolute inset-0 bg-white/[0.05] animate-pulse" />
+        )}
 
-      <span className="relative z-10">{icon}</span>
-      <span className="relative z-10 font-medium">{label}</span>
-      {badge && <span className="relative z-10">{badge}</span>}
-    </button>
-  );
+        {/* Charge bar sweep */}
+        {isCharging && (
+          <div className="absolute bottom-0 left-0 h-[2px] bg-[#D4AF37] animate-expand-x" style={{ width: '100%' }} />
+        )}
+
+        <span className="relative z-10">{icon}</span>
+        <span className={`relative z-10 font-helvetica ${active ? 'font-helvetica-bold' : ''}`}>{label}</span>
+        {badge && <span className="relative z-10 ml-auto">{badge}</span>}
+      </button>
+    );
+  };
 
   // --- Views ---
 
   const LandingView = () => (
     <div className="min-h-screen flex flex-col relative z-10">
       <header className="px-6 py-6 flex justify-between items-center max-w-7xl mx-auto w-full">
-        <div className="text-2xl font-bold tracking-wider">BAJAN-X<span className="text-yellow-400">UNI</span></div>
+        <div className="text-2xl font-helvetica-bold tracking-wider">BAJAN-X<span className="text-[#D4AF37]">UNI</span></div>
         <PrimaryButton onClick={() => setCurrentView('AUTH')}>Log In / Sign Up</PrimaryButton>
       </header>
 
       <main className="flex-1 flex flex-col justify-center items-center text-center px-4 mt-12 md:mt-0">
         <Badge type="success">Government Initiative</Badge>
-        <h1 className="text-5xl md:text-7xl font-bold mt-6 mb-6 leading-tight">
+        <h1 className="text-5xl md:text-7xl font-helvetica-bold mt-6 mb-6 leading-tight">
           Master the Tools of <br />
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-white to-zinc-400 animate-pulse">
             Digital Governance
@@ -514,10 +530,10 @@ const App: React.FC = () => {
             { title: "ChatBB Support", desc: "AI customer service tools", time: "1h" },
           ].map((card, idx) => (
             <GlassCard key={idx} className="bg-white/5 backdrop-blur-sm border-white/5">
-              <div className="h-10 w-10 rounded-full bg-yellow-400/20 flex items-center justify-center mb-4 text-yellow-400">
+              <div className="h-10 w-10 rounded-full bg-yellow-400/20 flex items-center justify-center mb-4 text-[#D4AF37]">
                 <BookOpen size={20} />
               </div>
-              <h3 className="text-lg font-semibold mb-2">{card.title}</h3>
+              <h3 className="text-lg font-helvetica-bold mb-2">{card.title}</h3>
               <p className="text-zinc-400 text-sm mb-4">{card.desc}</p>
               <div className="text-xs text-zinc-500 font-mono">{card.time} estimate</div>
             </GlassCard>
@@ -599,9 +615,9 @@ const App: React.FC = () => {
         <div className="min-h-screen flex items-center justify-center relative z-10 p-4">
           <GlassCard className="max-w-md w-full p-8 md:p-10 text-center">
             <div className="w-20 h-20 rounded-full bg-yellow-400/20 flex items-center justify-center mx-auto mb-6">
-              <Clock size={40} className="text-yellow-400" />
+              <Clock size={40} className="text-[#D4AF37]" />
             </div>
-            <h2 className="text-2xl font-bold mb-4">Registration Submitted</h2>
+            <h2 className="text-2xl font-helvetica-bold mb-4">Registration Submitted</h2>
             <p className="text-zinc-400 mb-6">
               Your account is pending approval from an administrator.
               You will be able to log in once your account has been approved.
@@ -653,7 +669,7 @@ const App: React.FC = () => {
             </button>
           </div>
 
-          <h2 className="text-3xl font-bold mb-2 text-center">
+          <h2 className="text-3xl font-helvetica-bold mb-2 text-center">
             {authMode === 'login' ? 'Welcome Back' : 'Join Amini Academy'}
           </h2>
           <p className="text-zinc-400 text-center mb-8">
@@ -738,7 +754,7 @@ const App: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setFormData({ ...formData, role: UserRole.LEARNER })}
-                      className={`p-3 rounded-xl border text-sm transition-all duration-300 ${formData.role === UserRole.LEARNER ? 'bg-yellow-400/20 border-yellow-400 text-yellow-400 shadow-[0_0_15px_rgba(250,204,21,0.2)]' : 'border-white/10 hover:bg-white/5 text-zinc-400'}`}
+                      className={`p-3 rounded-xl border text-sm transition-all duration-300 ${formData.role === UserRole.LEARNER ? 'bg-yellow-400/20 border-yellow-400 text-[#D4AF37] shadow-[0_0_15px_rgba(250,204,21,0.2)]' : 'border-white/10 hover:bg-white/5 text-zinc-400'}`}
                     >
                       Learner
                     </button>
@@ -865,7 +881,7 @@ const App: React.FC = () => {
       <div className="md:ml-64 h-screen overflow-y-auto relative z-10">
         {/* Mobile Header */}
         <div className="md:hidden p-4 flex justify-between items-center bg-[#0c0c0e] border-b border-white/[0.04] sticky top-0 z-40">
-          <span className="font-bold">Amini Academy</span>
+          <span className="font-helvetica-bold">Amini Academy</span>
           <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
             {mobileMenuOpen ? <X /> : <Menu />}
           </button>
@@ -875,7 +891,7 @@ const App: React.FC = () => {
           {/* Header Section - Enhanced Liquid Glass */}
           <div className="flex flex-col md:flex-row justify-between items-end gap-6 animate-fade-in">
             <div>
-              <h2 className="text-4xl font-bold mb-2">Welcome, {user?.name?.split(' ')[0]}</h2>
+              <h2 className="text-4xl font-helvetica-bold mb-2">Welcome, {user?.name?.split(' ')[0]}</h2>
               <div className="flex gap-2">
                 {user?.role === UserRole.SUPERUSER && <Badge type="warning">Ministry Champion</Badge>}
                 <span className="text-zinc-400">Ready to upskill?</span>
@@ -888,7 +904,7 @@ const App: React.FC = () => {
               <div className="relative group">
                 <div className="absolute -inset-0.5 bg-gradient-to-r from-yellow-400/20 to-yellow-500/10 rounded-2xl blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 <div className="relative bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-xl border border-white/10 rounded-2xl p-4 text-center min-w-[80px]">
-                  <div className="text-3xl font-bold text-yellow-400">{lessonsCompleted}</div>
+                  <div className="text-3xl font-helvetica-bold text-[#D4AF37]">{lessonsCompleted}</div>
                   <div className="text-[10px] text-zinc-500 uppercase tracking-widest">Lessons</div>
                 </div>
               </div>
@@ -899,7 +915,7 @@ const App: React.FC = () => {
               <div className="relative group">
                 <div className="absolute -inset-0.5 bg-gradient-to-r from-white/20 to-white/5 rounded-2xl blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 <div className="relative bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-xl border border-white/10 rounded-2xl p-4 text-center min-w-[80px]">
-                  <div className="text-3xl font-bold text-white">{completedCourses}<span className="text-lg text-zinc-500">/{enrolledCount || courses.length}</span></div>
+                  <div className="text-3xl font-helvetica-bold text-white">{completedCourses}<span className="text-lg text-zinc-500">/{enrolledCount || courses.length}</span></div>
                   <div className="text-[10px] text-zinc-500 uppercase tracking-widest">Courses</div>
                 </div>
               </div>
@@ -910,7 +926,7 @@ const App: React.FC = () => {
               <div className="relative group">
                 <div className="absolute -inset-0.5 bg-gradient-to-r from-green-400/20 to-green-500/10 rounded-2xl blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 <div className="relative bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-xl border border-white/10 rounded-2xl p-4 text-center min-w-[80px]">
-                  <div className="text-3xl font-bold text-green-400">{avgQuizScore}%</div>
+                  <div className="text-3xl font-helvetica-bold text-green-400">{avgQuizScore}%</div>
                   <div className="text-[10px] text-zinc-500 uppercase tracking-widest">Quiz Avg</div>
                 </div>
               </div>
@@ -946,7 +962,7 @@ const App: React.FC = () => {
                       </defs>
                     </svg>
                     <div className="absolute inset-0 flex items-center justify-center flex-col">
-                      <span className="text-sm font-bold text-white">{totalProgress}%</span>
+                      <span className="text-sm font-helvetica-bold text-white">{totalProgress}%</span>
                     </div>
                   </div>
                 </div>
@@ -960,11 +976,11 @@ const App: React.FC = () => {
             <div className="relative rounded-3xl overflow-hidden backdrop-blur-2xl bg-gradient-to-r from-white/[0.06] via-white/[0.03] to-white/[0.06] border border-white/10 p-6">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h3 className="text-lg font-bold text-white">Bajan-X Program Overall Progress</h3>
+                  <h3 className="text-lg font-helvetica-bold text-white">Bajan-X Program Overall Progress</h3>
                   <p className="text-sm text-zinc-400">Complete all 8 modules to earn your certification</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-2xl font-bold text-yellow-400">{totalProgress}%</span>
+                  <span className="text-2xl font-helvetica-bold text-[#D4AF37]">{totalProgress}%</span>
                   <span className="text-zinc-500">complete</span>
                 </div>
               </div>
@@ -972,7 +988,7 @@ const App: React.FC = () => {
               {/* Progress Bar */}
               <div className="relative h-3 bg-white/5 rounded-full overflow-hidden">
                 <div
-                  className="absolute inset-y-0 left-0 bg-gradient-to-r from-yellow-400 via-yellow-500 to-green-400 rounded-full shadow-[0_0_15px_rgba(250,204,21,0.5)] transition-all duration-1000"
+                  className="absolute inset-y-0 left-0 bg-[#D4AF37] rounded-full shadow-[0_0_15px_rgba(250,204,21,0.5)] transition-all duration-1000"
                   style={{ width: `${totalProgress}%` }}
                 />
                 {/* Milestone markers */}
@@ -992,13 +1008,13 @@ const App: React.FC = () => {
                   const isCompleted = totalProgress >= moduleProgress;
                   return (
                     <div key={module} className="flex flex-col items-center">
-                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold transition-all duration-300 ${isCompleted
-                        ? 'bg-yellow-400 text-black shadow-[0_0_10px_rgba(250,204,21,0.4)]'
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-helvetica-bold transition-all duration-300 ${isCompleted
+                        ? 'bg-[#D4AF37] shadow-[0_0_15px_rgba(212,175,55,0.4)]'
                         : 'bg-white/10 text-zinc-500'
                         }`}>
                         {isCompleted ? <CheckCircle size={12} /> : idx + 1}
                       </div>
-                      <span className={`text-[10px] mt-1 ${isCompleted ? 'text-yellow-400' : 'text-zinc-600'}`}>{module}</span>
+                      <span className={`text-[10px] mt-1 ${isCompleted ? 'text-[#D4AF37]' : 'text-zinc-600'}`}>{module}</span>
                     </div>
                   );
                 })}
@@ -1011,7 +1027,7 @@ const App: React.FC = () => {
             <GlassCard className="bg-gradient-to-br from-zinc-800/30 to-black border-yellow-500/30">
               <div className="flex justify-between items-start mb-4">
                 <div>
-                  <h3 className="text-lg font-bold text-white flex items-center gap-2"><Users size={18} className="text-yellow-400" /> Ministry Insights</h3>
+                  <h3 className="text-lg font-helvetica-bold text-white flex items-center gap-2"><Users size={18} className="text-[#D4AF37]" /> Ministry Insights</h3>
                   <p className="text-sm text-zinc-400">Track your team's progress in {user.ministry}</p>
                 </div>
                 <PrimaryButton className="py-1 px-4 text-xs h-8">Invite Colleagues</PrimaryButton>
@@ -1019,15 +1035,15 @@ const App: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-zinc-900/50 p-3 rounded-xl border border-white/5">
                   <div className="text-xs text-zinc-500">Active Learners</div>
-                  <div className="text-xl font-bold">24</div>
+                  <div className="text-xl font-helvetica-bold">24</div>
                 </div>
                 <div className="bg-zinc-900/50 p-3 rounded-xl border border-white/5">
                   <div className="text-xs text-zinc-500">Certified</div>
-                  <div className="text-xl font-bold text-yellow-400">8</div>
+                  <div className="text-xl font-helvetica-bold text-[#D4AF37]">8</div>
                 </div>
                 <div className="bg-zinc-900/50 p-3 rounded-xl border border-white/5">
                   <div className="text-xs text-zinc-500">Completion Rate</div>
-                  <div className="text-xl font-bold text-white">33%</div>
+                  <div className="text-xl font-helvetica-bold text-white">33%</div>
                 </div>
               </div>
             </GlassCard>
@@ -1050,15 +1066,15 @@ const App: React.FC = () => {
               return (
                 <div key={level} className="animate-fade-in">
                   <div className="flex items-center gap-3 mb-4">
-                    <div className={`p-2 rounded-lg ${isPathUnlocked ? 'bg-yellow-400/20 text-yellow-400' : 'bg-zinc-800/50 text-zinc-600'}`}>
+                    <div className={`p-2 rounded-lg ${isPathUnlocked ? 'bg-yellow-400/20 text-[#D4AF37]' : 'bg-zinc-800/50 text-zinc-600'}`}>
                       {isPathUnlocked ? <BookOpen size={20} /> : <Lock size={20} />}
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center gap-3">
-                        <h3 className={`text-2xl font-bold ${!isPathUnlocked && 'text-zinc-600'}`}>{levelTitle}</h3>
+                        <h3 className={`text-2xl font-helvetica-bold ${!isPathUnlocked && 'text-zinc-600'}`}>{levelTitle}</h3>
                         <span className={`text-xs px-2 py-0.5 rounded-full ${level === 'Beginner' ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
-                          level === 'Intermediate' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' :
-                            'bg-purple-500/20 text-purple-400 border border-purple-500/30'
+                          level === 'Intermediate' ? 'bg-yellow-500/20 text-[#D4AF37] border border-yellow-500/30' :
+                            'bg-purple-500/20 border-purple-400/30 text-purple-400'
                           }`}>{levelCourses.length} course{levelCourses.length !== 1 ? 's' : ''}</span>
                         {!isPathUnlocked && (
                           <span className="text-xs px-3 py-1 rounded-full bg-zinc-800 text-zinc-500 border border-zinc-700">
@@ -1088,7 +1104,7 @@ const App: React.FC = () => {
                           onClick={() => courseUnlocked && handleStartCourse(course)}
                         >
                           {/* Card Background with Glassmorphism */}
-                          <div className="absolute inset-0 bg-gradient-to-br from-zinc-900/90 via-zinc-900/80 to-black/90 backdrop-blur-xl border border-white/10 rounded-3xl group-hover:border-yellow-400/30 transition-colors duration-500" />
+                          <div className="absolute inset-0 bg-gradient-to-br from-zinc-900/90 via-zinc-900/80 to-black/90 backdrop-blur-xl border border-white/10 rounded-3xl group-hover:border-[#D4AF37]/50 transition-colors duration-500" />
 
                           {/* Ambient Glow Effect */}
                           <div className="absolute -inset-px bg-gradient-to-br from-yellow-400/0 via-transparent to-yellow-400/0 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 blur-xl" />
@@ -1114,7 +1130,7 @@ const App: React.FC = () => {
                               {/* Course Order Badge */}
                               {courseUnlocked && (
                                 <div className="absolute top-3 left-3">
-                                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-black/60 backdrop-blur-md border border-white/10 text-white text-sm font-bold">
+                                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-black/60 backdrop-blur-md border border-white/10 text-white text-sm font-helvetica-bold">
                                     {courseIndex + 1}
                                   </div>
                                 </div>
@@ -1122,10 +1138,10 @@ const App: React.FC = () => {
 
                               {/* Level Badge */}
                               <div className="absolute top-3 right-3">
-                                <div className={`px-3 py-1.5 rounded-full text-xs font-semibold backdrop-blur-md border ${course.level === 'Beginner'
+                                <div className={`px-3 py-1.5 rounded-full text-xs font-helvetica-bold backdrop-blur-md border ${course.level === 'Beginner'
                                   ? 'bg-emerald-500/20 border-emerald-400/30 text-emerald-400'
                                   : course.level === 'Intermediate'
-                                    ? 'bg-yellow-500/20 border-yellow-400/30 text-yellow-400'
+                                    ? 'bg-yellow-500/20 border-[#D4AF37]/50 text-[#D4AF37]'
                                     : 'bg-purple-500/20 border-purple-400/30 text-purple-400'
                                   }`}>
                                   {course.level}
@@ -1168,7 +1184,7 @@ const App: React.FC = () => {
                                       </defs>
                                     </svg>
                                     <div className="absolute inset-0 flex items-center justify-center">
-                                      <span className="text-xs font-bold text-white">{Math.round(course.progress)}%</span>
+                                      <span className="text-xs font-helvetica-bold text-white">{Math.round(course.progress)}%</span>
                                     </div>
                                   </div>
                                 </div>
@@ -1178,8 +1194,8 @@ const App: React.FC = () => {
                             {/* Content Section */}
                             <div className="relative p-5">
                               {/* Title */}
-                              <h4 className={`text-lg font-bold mb-2 leading-tight transition-colors duration-300 ${courseUnlocked
-                                ? 'text-white group-hover:text-yellow-400'
+                              <h4 className={`text-lg font-helvetica-bold mb-2 leading-tight transition-colors duration-300 ${courseUnlocked
+                                ? 'text-white group-hover:text-[#D4AF37]'
                                 : 'text-zinc-500'
                                 }`}>
                                 {course.title}
@@ -1205,7 +1221,7 @@ const App: React.FC = () => {
                                     });
                                   }}
                                   className={`text-xs font-medium mb-3 ${courseUnlocked
-                                    ? 'text-yellow-400/80 hover:text-yellow-400'
+                                    ? 'text-[#D4AF37]/80 hover:text-[#D4AF37]'
                                     : 'text-zinc-600'
                                     } transition-colors`}
                                 >
@@ -1225,7 +1241,7 @@ const App: React.FC = () => {
                                   {lessonCount} lessons
                                 </span>
                                 {course.progress > 0 && courseUnlocked && (
-                                  <span className="flex items-center gap-1.5 text-yellow-400">
+                                  <span className="flex items-center gap-1.5 text-[#D4AF37]">
                                     <CheckCircle size={14} />
                                     {completedLessons}/{lessonCount}
                                   </span>
@@ -1248,9 +1264,9 @@ const App: React.FC = () => {
                                         <span className="text-xs text-zinc-500">Ready to start</span>
                                       )}
                                     </div>
-                                    <span className={`flex items-center gap-1 text-sm font-semibold transition-all duration-300 ${course.progress > 0
-                                      ? 'text-yellow-400 group-hover:text-yellow-300'
-                                      : 'text-white group-hover:text-yellow-400'
+                                    <span className={`flex items-center gap-1 text-sm font-helvetica-bold transition-all duration-300 ${course.progress > 0
+                                      ? 'text-[#D4AF37] group-hover:text-yellow-300'
+                                      : 'text-white group-hover:text-[#D4AF37]'
                                       } group-hover:translate-x-1`}>
                                       {course.progress > 0 ? 'Continue' : 'Start Course'}
                                       <ChevronRight size={16} className="transition-transform group-hover:translate-x-0.5" />
@@ -1493,8 +1509,8 @@ const App: React.FC = () => {
         {/* Active indicator glow */}
         {isActive && (
           <>
-            <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-yellow-400 via-yellow-500 to-yellow-400 shadow-[0_0_10px_rgba(250,204,21,0.5)]" />
-            <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/5 to-transparent" />
+            <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#D4AF37] shadow-[0_0_10px_rgba(250,204,21,0.5)]" />
+            <div className="absolute inset-0 bg-[#D4AF37]/5" />
           </>
         )}
 
@@ -1515,7 +1531,7 @@ const App: React.FC = () => {
           <div className={`
             relative flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300
             ${isCompleted
-              ? 'bg-gradient-to-br from-yellow-400 to-yellow-500 shadow-[0_0_20px_rgba(250,204,21,0.4)]'
+              ? 'bg-[#D4AF37] shadow-[0_0_20px_rgba(250,204,21,0.4)]'
               : isActive
                 ? 'bg-yellow-400/20 border-2 border-yellow-400/50'
                 : 'bg-white/5 border border-white/10'
@@ -1524,7 +1540,7 @@ const App: React.FC = () => {
             {isCompleted ? (
               <CheckCircle size={18} className="text-black" />
             ) : (
-              <span className={`text-sm font-bold ${isActive ? 'text-yellow-400' : 'text-zinc-500'}`}>
+              <span className={`text-sm font-helvetica-bold ${isActive ? 'text-[#D4AF37]' : 'text-zinc-500'}`}>
                 {String(idx + 1).padStart(2, '0')}
               </span>
             )}
@@ -1538,15 +1554,15 @@ const App: React.FC = () => {
           {/* Content */}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
-              {lesson.type === 'video' && <Video size={12} className={isActive ? 'text-yellow-400' : 'text-zinc-500'} />}
-              {lesson.type === 'quiz' && <HelpCircle size={12} className={isActive ? 'text-yellow-400' : 'text-zinc-500'} />}
-              {(lesson.type === 'pdf' || lesson.type === 'presentation') && <FileText size={12} className={isActive ? 'text-yellow-400' : 'text-zinc-500'} />}
-              <span className={`text-[10px] uppercase tracking-wider font-medium ${isActive ? 'text-yellow-400/80' : 'text-zinc-600'}`}>
+              {lesson.type === 'video' && <Video size={12} className={isActive ? 'text-[#D4AF37]' : 'text-zinc-500'} />}
+              {lesson.type === 'quiz' && <HelpCircle size={12} className={isActive ? 'text-[#D4AF37]' : 'text-zinc-500'} />}
+              {(lesson.type === 'pdf' || lesson.type === 'presentation') && <FileText size={12} className={isActive ? 'text-[#D4AF37]' : 'text-zinc-500'} />}
+              <span className={`text-[10px] uppercase tracking-wider font-medium ${isActive ? 'text-[#D4AF37]/80' : 'text-zinc-600'}`}>
                 {lesson.type}
               </span>
             </div>
 
-            <h4 className={`font-semibold text-sm leading-tight mb-1 transition-colors ${isActive ? 'text-white' : isCompleted ? 'text-zinc-300' : 'text-zinc-400'
+            <h4 className={`font-helvetica-bold text-sm leading-tight mb-1 transition-colors ${isActive ? 'text-white' : isCompleted ? 'text-zinc-300' : 'text-zinc-400'
               } ${!isLocked && 'group-hover/item:text-white'}`}>
               {lesson.title}
             </h4>
@@ -1554,7 +1570,7 @@ const App: React.FC = () => {
             <div className="flex items-center gap-3 text-[11px]">
               <span className="text-zinc-500">{lesson.durationMin} min</span>
               {isCompleted && (
-                <span className="text-yellow-400/80 flex items-center gap-1">
+                <span className="text-[#D4AF37]/80 flex items-center gap-1">
                   <CheckCircle size={10} /> Done
                 </span>
               )}
@@ -1563,7 +1579,7 @@ const App: React.FC = () => {
 
           {/* Arrow indicator */}
           {!isLocked && !isCompleted && (
-            <ChevronRight size={16} className={`flex-shrink-0 transition-all duration-300 ${isActive ? 'text-yellow-400 translate-x-0 opacity-100' : 'text-zinc-600 -translate-x-2 opacity-0 group-hover/item:translate-x-0 group-hover/item:opacity-100'
+            <ChevronRight size={16} className={`flex-shrink-0 transition-all duration-300 ${isActive ? 'text-[#D4AF37] translate-x-0 opacity-100' : 'text-zinc-600 -translate-x-2 opacity-0 group-hover/item:translate-x-0 group-hover/item:opacity-100'
               }`} />
           )}
         </div>
@@ -1592,7 +1608,7 @@ const App: React.FC = () => {
               </div>
 
               <div className="hidden md:block">
-                <h1 className="font-bold text-lg text-white truncate max-w-md">{activeCourse?.title}</h1>
+                <h1 className="font-helvetica-bold text-lg text-white truncate max-w-md">{activeCourse?.title}</h1>
               </div>
             </div>
 
@@ -1600,7 +1616,7 @@ const App: React.FC = () => {
               {/* Progress indicator */}
               <div className="flex items-center gap-4">
                 <div className="text-right hidden sm:block">
-                  <div className="text-sm font-bold text-white">{completedCount}/{totalCount}</div>
+                  <div className="text-sm font-helvetica-bold text-white">{completedCount}/{totalCount}</div>
                   <div className="text-[10px] text-zinc-500 uppercase tracking-wider">Lessons</div>
                 </div>
                 <div className="relative w-14 h-14">
@@ -1628,7 +1644,7 @@ const App: React.FC = () => {
                     </defs>
                   </svg>
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-xs font-bold text-yellow-400">{progressPercent}%</span>
+                    <span className="text-xs font-helvetica-bold text-[#D4AF37]">{progressPercent}%</span>
                   </div>
                 </div>
               </div>
@@ -1652,7 +1668,7 @@ const App: React.FC = () => {
                 <div className="p-6 border-b border-white/10">
                   <div className="flex items-center justify-between mb-4">
                     <div className={`transition-all duration-200 ${playerSidebarCollapsed ? 'opacity-0 -translate-x-10 scale-90' : 'opacity-100 translate-x-0 scale-100'} overflow-hidden`} style={{ transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)' }}>
-                      <h2 className="text-sm font-bold text-white uppercase tracking-wider">Curriculum</h2>
+                      <h2 className="text-sm font-helvetica-bold text-white uppercase tracking-wider">Curriculum</h2>
                       <p className="text-[11px] text-zinc-500 mt-1">{totalCount} lessons • {activeCourse?.totalDuration}</p>
                     </div>
                     <button
@@ -1667,7 +1683,7 @@ const App: React.FC = () => {
                   {!playerSidebarCollapsed && (
                     <div className="relative h-1.5 bg-white/5 rounded-full overflow-hidden">
                       <div
-                        className="absolute inset-y-0 left-0 bg-gradient-to-r from-yellow-400 to-yellow-500 rounded-full shadow-[0_0_10px_rgba(250,204,21,0.5)] transition-all duration-700"
+                        className="absolute inset-y-0 left-0 bg-[#D4AF37] rounded-full shadow-[0_0_10px_rgba(250,204,21,0.5)] transition-all duration-700"
                         style={{ width: `${progressPercent}%` }}
                       />
                     </div>
@@ -1689,11 +1705,11 @@ const App: React.FC = () => {
                           className={`
                             w-12 h-12 rounded-xl flex items-center justify-center mx-auto transition-all
                             ${isActive
-                              ? 'bg-yellow-400/20 border border-yellow-400/40 text-yellow-400'
+                              ? 'bg-yellow-400/20 border border-yellow-400/40 text-[#D4AF37]'
                               : isLocked
                                 ? 'bg-white/5 border border-white/5 opacity-40'
                                 : lesson.isCompleted
-                                  ? 'bg-yellow-400/10 text-yellow-400'
+                                  ? 'bg-yellow-400/10 text-[#D4AF37]'
                                   : 'bg-white/5 border border-white/10 text-zinc-500 hover:bg-white/10'
                             }
                           `}
@@ -1732,14 +1748,14 @@ const App: React.FC = () => {
                   {/* Lesson Header */}
                   <div className="text-center mb-4">
                     <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 mb-4">
-                      {activeLesson.type === 'video' && <Video size={14} className="text-yellow-400" />}
-                      {activeLesson.type === 'quiz' && <HelpCircle size={14} className="text-yellow-400" />}
-                      {(activeLesson.type === 'pdf' || activeLesson.type === 'presentation') && <FileText size={14} className="text-yellow-400" />}
+                      {activeLesson.type === 'video' && <Video size={14} className="text-[#D4AF37]" />}
+                      {activeLesson.type === 'quiz' && <HelpCircle size={14} className="text-[#D4AF37]" />}
+                      {(activeLesson.type === 'pdf' || activeLesson.type === 'presentation') && <FileText size={14} className="text-[#D4AF37]" />}
                       <span className="text-xs uppercase tracking-wider text-zinc-400">{activeLesson.type} Lesson</span>
                       <span className="text-zinc-600">•</span>
                       <span className="text-xs text-zinc-500">{activeLesson.durationMin} min</span>
                     </div>
-                    <h2 className="text-3xl md:text-4xl font-bold text-white mb-2">{activeLesson.title}</h2>
+                    <h2 className="text-3xl md:text-4xl font-helvetica-bold text-white mb-2">{activeLesson.title}</h2>
                   </div>
 
                   {/* 1. Video Player - Hyper Liquid Glass with Real Progress Tracking */}
@@ -1784,10 +1800,10 @@ const App: React.FC = () => {
                         </div>
 
                         <div className="relative z-10">
-                          <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-yellow-400/20 to-yellow-500/10 border border-yellow-400/30 flex items-center justify-center mb-8 mx-auto shadow-[0_0_40px_rgba(250,204,21,0.2)]">
-                            <FileText size={48} className="text-yellow-400 drop-shadow-[0_0_15px_rgba(250,204,21,0.5)]" />
+                          <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-yellow-400/20 to-yellow-500/10 border border-[#D4AF37]/50 flex items-center justify-center mb-8 mx-auto shadow-[0_0_40px_rgba(250,204,21,0.2)]">
+                            <FileText size={48} className="text-[#D4AF37] drop-shadow-[0_0_15px_rgba(250,204,21,0.5)]" />
                           </div>
-                          <h3 className="text-2xl font-bold text-white mb-3">{activeLesson.fileName || 'Document'}</h3>
+                          <h3 className="text-2xl font-helvetica-bold text-white mb-3">{activeLesson.fileName || 'Document'}</h3>
                           <p className="text-zinc-400 mb-8 max-w-md">
                             {activeLesson.type === 'presentation'
                               ? `Review this presentation (${activeLesson.pageCount || 'N/A'} slides) to continue.`
@@ -1809,11 +1825,11 @@ const App: React.FC = () => {
                       <div className="min-h-[500px] flex flex-col justify-center p-10">
                         {quizState === 'INTRO' && (
                           <div className="text-center space-y-8">
-                            <div className="w-28 h-28 rounded-3xl bg-gradient-to-br from-yellow-400/20 to-yellow-500/10 border border-yellow-400/30 mx-auto flex items-center justify-center shadow-[0_0_50px_rgba(250,204,21,0.2)]">
-                              <HelpCircle size={56} className="text-yellow-400 drop-shadow-[0_0_20px_rgba(250,204,21,0.5)]" />
+                            <div className="w-28 h-28 rounded-3xl bg-gradient-to-br from-yellow-400/20 to-yellow-500/10 border border-[#D4AF37]/50 mx-auto flex items-center justify-center shadow-[0_0_50px_rgba(250,204,21,0.2)]">
+                              <HelpCircle size={56} className="text-[#D4AF37] drop-shadow-[0_0_20px_rgba(250,204,21,0.5)]" />
                             </div>
                             <div>
-                              <h2 className="text-3xl font-bold text-white mb-3">Knowledge Check</h2>
+                              <h2 className="text-3xl font-helvetica-bold text-white mb-3">Knowledge Check</h2>
                               <p className="text-zinc-400 text-lg">Test your understanding with {activeLesson.quiz.length} questions</p>
                             </div>
                             <PrimaryButton onClick={() => setQuizState('QUESTION')} className="px-10 py-4 text-lg">
@@ -1838,7 +1854,7 @@ const App: React.FC = () => {
                               </div>
                             </div>
 
-                            <h3 className="text-2xl font-bold text-white mb-8 leading-relaxed">
+                            <h3 className="text-2xl font-helvetica-bold text-white mb-8 leading-relaxed">
                               {activeLesson.quiz[currentQIdx].question}
                             </h3>
 
@@ -1857,7 +1873,7 @@ const App: React.FC = () => {
                                 >
                                   <div className="flex items-center gap-4">
                                     <div className={`
-                                      w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold transition-all
+                                      w-10 h-10 rounded-xl flex items-center justify-center text-sm font-helvetica-bold transition-all
                                       ${quizAnswers[currentQIdx] === idx
                                         ? 'bg-yellow-400 text-black shadow-[0_0_15px_rgba(250,204,21,0.4)]'
                                         : 'bg-white/10 text-zinc-400 group-hover/opt:bg-white/20'
@@ -1902,7 +1918,7 @@ const App: React.FC = () => {
                                 )}
                               </div>
                               <div>
-                                <h2 className={`text-3xl font-bold mb-4 ${passed ? 'text-green-400' : 'text-red-400'}`}>
+                                <h2 className={`text-3xl font-helvetica-bold mb-4 ${passed ? 'text-green-400' : 'text-red-400'}`}>
                                   {passed ? 'Quiz Passed!' : 'Quiz Not Passed'}
                                 </h2>
                                 <div className={`text-7xl font-black bg-clip-text text-transparent bg-gradient-to-r mb-3 ${passed
@@ -1912,13 +1928,13 @@ const App: React.FC = () => {
                                   {scorePercent}%
                                 </div>
                                 <p className="text-zinc-400 text-lg">
-                                  You answered <span className={passed ? 'text-green-400' : 'text-red-400'} style={{ fontWeight: 'bold' }}>{quizScore}</span> out of <span className="text-white font-bold">{activeLesson.quiz.length}</span> correctly
+                                  You answered <span className={passed ? 'text-green-400' : 'text-red-400'} style={{ fontWeight: 'bold' }}>{quizScore}</span> out of <span className="text-white font-helvetica-bold">{activeLesson.quiz.length}</span> correctly
                                 </p>
                                 <p className="text-zinc-500 text-sm mt-2">
                                   Passing score: {PASSING_SCORE}%
                                 </p>
                                 {!passed && (
-                                  <p className="text-yellow-400/80 text-sm mt-4 px-4 py-2 rounded-lg bg-yellow-400/10 border border-yellow-400/20 inline-block">
+                                  <p className="text-[#D4AF37]/80 text-sm mt-4 px-4 py-2 rounded-lg bg-yellow-400/10 border border-yellow-400/20 inline-block">
                                     You need to score at least {PASSING_SCORE}% to complete this lesson
                                   </p>
                                 )}
@@ -1957,22 +1973,22 @@ const App: React.FC = () => {
                               <CheckCircle size={28} className="text-green-400" />
                             ) : activeLesson.type === 'video' ? (
                               <div className="relative">
-                                <PlayCircle size={28} className={videoWatchedPercent >= 80 ? 'text-green-400' : 'text-yellow-400'} />
+                                <PlayCircle size={28} className={videoWatchedPercent >= 80 ? 'text-green-400' : 'text-[#D4AF37]'} />
                                 {videoWatchedPercent > 0 && videoWatchedPercent < 80 && (
-                                  <span className="absolute -top-1 -right-1 text-[10px] bg-yellow-400 text-black px-1 rounded font-bold">{videoWatchedPercent}%</span>
+                                  <span className="absolute -top-1 -right-1 text-[10px] bg-yellow-400 text-black px-1 rounded font-helvetica-bold">{videoWatchedPercent}%</span>
                                 )}
                               </div>
                             ) : (
-                              <FileText size={28} className="text-yellow-400" />
+                              <FileText size={28} className="text-[#D4AF37]" />
                             )}
                           </div>
                           <div>
-                            <h4 className="font-bold text-white text-lg">{activeLesson.title}</h4>
+                            <h4 className="font-helvetica-bold text-white text-lg">{activeLesson.title}</h4>
                             <p className="text-sm text-zinc-400">
                               {activeLesson.durationMin} min • {activeLesson.isCompleted ? (
                                 <span className="text-green-400 flex items-center gap-1"><CheckCircle size={12} /> Completed</span>
                               ) : activeLesson.type === 'video' ? (
-                                <span className={videoWatchedPercent >= 80 ? 'text-green-400' : 'text-yellow-400'}>
+                                <span className={videoWatchedPercent >= 80 ? 'text-green-400' : 'text-[#D4AF37]'}>
                                   {videoWatchedPercent >= 80 ? 'Ready to complete' : `${videoWatchedPercent}% watched (80% required)`}
                                 </span>
                               ) : 'In Progress'}
@@ -1983,14 +1999,14 @@ const App: React.FC = () => {
                         <div className="flex items-center gap-4">
                           {/* Document download requirement */}
                           {(activeLesson.type === 'pdf' || activeLesson.type === 'presentation') && !activeLesson.isCompleted && !isDownloaded && (
-                            <div className="text-sm text-yellow-400/80 flex items-center gap-2 px-4 py-2 rounded-lg bg-yellow-400/10 border border-yellow-400/20">
+                            <div className="text-sm text-[#D4AF37]/80 flex items-center gap-2 px-4 py-2 rounded-lg bg-yellow-400/10 border border-yellow-400/20">
                               <Download size={14} /> Download required
                             </div>
                           )}
 
                           {/* Video progress requirement */}
                           {activeLesson.type === 'video' && !activeLesson.isCompleted && videoWatchedPercent < 80 && (
-                            <div className="text-sm text-yellow-400/80 flex items-center gap-2 px-4 py-2 rounded-lg bg-yellow-400/10 border border-yellow-400/20">
+                            <div className="text-sm text-[#D4AF37]/80 flex items-center gap-2 px-4 py-2 rounded-lg bg-yellow-400/10 border border-yellow-400/20">
                               <PlayCircle size={14} /> Watch 80% to complete
                             </div>
                           )}
@@ -2024,7 +2040,7 @@ const App: React.FC = () => {
                   <div className="w-32 h-32 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center mb-8">
                     <BookOpen size={64} className="text-zinc-600" />
                   </div>
-                  <h3 className="text-2xl font-bold text-zinc-300 mb-3">Select a Lesson</h3>
+                  <h3 className="text-2xl font-helvetica-bold text-zinc-300 mb-3">Select a Lesson</h3>
                   <p className="text-zinc-500 max-w-sm">Choose a lesson from the curriculum to begin your learning journey.</p>
                 </div>
               )}
@@ -2037,7 +2053,7 @@ const App: React.FC = () => {
           <div className="bg-[#0a0a0b] border-t border-white/[0.05] p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-yellow-400/20 flex items-center justify-center text-yellow-400 font-bold">
+                <div className="w-10 h-10 rounded-xl bg-yellow-400/20 flex items-center justify-center text-[#D4AF37] font-helvetica-bold">
                   {(activeCourse?.lessons.findIndex(l => l.id === activeLesson?.id) || 0) + 1}
                 </div>
                 <div>
@@ -2432,7 +2448,7 @@ const App: React.FC = () => {
           <div className="h-16 flex-shrink-0 bg-[linear-gradient(180deg,#121214_0%,#0a0a0b_100%)] border-b border-white/[0.05] flex items-center justify-between px-6 z-30">
             <div className="flex items-center gap-4">
               <IconButton icon={<ArrowLeft size={20} />} onClick={() => setViewMode('DASHBOARD')} />
-              <h2 className="font-bold text-lg text-white">Course Editor</h2>
+              <h2 className="font-helvetica-bold text-lg text-white">Course Editor</h2>
               <div className="h-4 w-px bg-white/10"></div>
               <span className="text-zinc-400 text-sm">{editingCourse.title}</span>
             </div>
@@ -2458,13 +2474,13 @@ const App: React.FC = () => {
               <div className="flex border-b border-white/5">
                 <button
                   onClick={() => setEditorTab('DETAILS')}
-                  className={`flex-1 py-4 text-sm font-medium transition-colors ${editorTab === 'DETAILS' ? 'text-yellow-400 border-b-2 border-yellow-400 bg-yellow-400/5' : 'text-zinc-400 hover:text-white'}`}
+                  className={`flex-1 py-4 text-sm font-medium transition-colors ${editorTab === 'DETAILS' ? 'text-[#D4AF37] border-b-2 border-yellow-400 bg-yellow-400/5' : 'text-zinc-400 hover:text-white'}`}
                 >
                   Details
                 </button>
                 <button
                   onClick={() => setEditorTab('CURRICULUM')}
-                  className={`flex-1 py-4 text-sm font-medium transition-colors ${editorTab === 'CURRICULUM' ? 'text-yellow-400 border-b-2 border-yellow-400 bg-yellow-400/5' : 'text-zinc-400 hover:text-white'}`}
+                  className={`flex-1 py-4 text-sm font-medium transition-colors ${editorTab === 'CURRICULUM' ? 'text-[#D4AF37] border-b-2 border-yellow-400 bg-yellow-400/5' : 'text-zinc-400 hover:text-white'}`}
                 >
                   Curriculum
                 </button>
@@ -2473,7 +2489,7 @@ const App: React.FC = () => {
               {editorTab === 'DETAILS' ? (
                 <div className="p-6 space-y-6 overflow-y-auto">
                   <div>
-                    <label className="text-xs text-zinc-500 font-bold uppercase mb-2 block">Course Thumbnail</label>
+                    <label className="text-xs text-zinc-500 font-helvetica-bold uppercase mb-2 block">Course Thumbnail</label>
                     {/* Current thumbnail preview */}
                     {editingCourse.thumbnail && (
                       <div className="aspect-video rounded-xl bg-zinc-800 overflow-hidden mb-3 relative group border border-white/10">
@@ -2544,7 +2560,7 @@ const App: React.FC = () => {
                     </div>
                   </div>
                   <div>
-                    <label className="text-xs text-zinc-500 font-bold uppercase mb-2 block">Title</label>
+                    <label className="text-xs text-zinc-500 font-helvetica-bold uppercase mb-2 block">Title</label>
                     <input
                       value={editingCourse.title}
                       onChange={e => setEditingCourse({ ...editingCourse, title: e.target.value })}
@@ -2552,7 +2568,7 @@ const App: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="text-xs text-zinc-500 font-bold uppercase mb-2 block">Description</label>
+                    <label className="text-xs text-zinc-500 font-helvetica-bold uppercase mb-2 block">Description</label>
                     <textarea
                       value={editingCourse.description}
                       onChange={e => setEditingCourse({ ...editingCourse, description: e.target.value })}
@@ -2560,7 +2576,7 @@ const App: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="text-xs text-zinc-500 font-bold uppercase mb-2 block">Course Level</label>
+                    <label className="text-xs text-zinc-500 font-helvetica-bold uppercase mb-2 block">Course Level</label>
                     <div className="grid grid-cols-3 gap-2">
                       {(['Beginner', 'Intermediate', 'Advanced'] as const).map(level => (
                         <button
@@ -2582,7 +2598,7 @@ const App: React.FC = () => {
                     </p>
                   </div>
                   <div>
-                    <label className="text-xs text-zinc-500 font-bold uppercase mb-2 block">Estimated Duration</label>
+                    <label className="text-xs text-zinc-500 font-helvetica-bold uppercase mb-2 block">Estimated Duration</label>
                     <input
                       value={editingCourse.totalDuration || ''}
                       onChange={e => setEditingCourse({ ...editingCourse, totalDuration: e.target.value })}
@@ -2593,13 +2609,13 @@ const App: React.FC = () => {
 
                   {/* Deadline and Mandatory Settings */}
                   <div className="pt-4 border-t border-white/10">
-                    <h4 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
-                      <Calendar size={16} className="text-yellow-400" />
+                    <h4 className="text-sm font-helvetica-bold text-white mb-3 flex items-center gap-2">
+                      <Calendar size={16} className="text-[#D4AF37]" />
                       Deadline & Requirements
                     </h4>
                     <div className="space-y-3">
                       <div>
-                        <label className="text-xs text-zinc-500 font-bold uppercase mb-2 block">Completion Deadline</label>
+                        <label className="text-xs text-zinc-500 font-helvetica-bold uppercase mb-2 block">Completion Deadline</label>
                         <input
                           type="datetime-local"
                           value={editingCourse.deadline ? new Date(editingCourse.deadline).toISOString().slice(0, 16) : ''}
@@ -2662,7 +2678,7 @@ const App: React.FC = () => {
                         }}
                         onClick={() => setActiveLessonId(lesson.id)}
                         className={`group p-3 rounded-xl border transition-all cursor-pointer flex items-center gap-2 ${activeLessonId === lesson.id
-                          ? 'bg-yellow-400/10 border-yellow-400/30 shadow-[0_0_15px_rgba(250,204,21,0.1)]'
+                          ? 'bg-yellow-400/10 border-[#D4AF37]/50 shadow-[0_0_15px_rgba(250,204,21,0.1)]'
                           : 'bg-white/5 border-transparent hover:border-white/10'
                           }`}
                       >
@@ -2715,7 +2731,7 @@ const App: React.FC = () => {
                         <button
                           key={type}
                           onClick={() => setNewLessonType(type)}
-                          className={`flex-1 py-1 rounded text-[10px] uppercase font-bold transition-all ${newLessonType === type ? 'bg-yellow-400 text-black' : 'bg-zinc-800 text-zinc-500 hover:bg-zinc-700'}`}
+                          className={`flex-1 py-1 rounded text-[10px] uppercase font-helvetica-bold transition-all ${newLessonType === type ? 'bg-yellow-400 text-black' : 'bg-zinc-800 text-zinc-500 hover:bg-zinc-700'}`}
                         >
                           {type === 'presentation' ? 'PPT' : type}
                         </button>
@@ -2737,7 +2753,7 @@ const App: React.FC = () => {
                   </div>
 
                   <input
-                    className="text-3xl font-bold bg-transparent border-none outline-none text-white placeholder-zinc-600 w-full"
+                    className="text-3xl font-helvetica-bold bg-transparent border-none outline-none text-white placeholder-zinc-600 w-full"
                     placeholder="Lesson Title"
                     value={activeLesson.title}
                     onChange={(e) => updateLesson(activeLesson.id, { title: e.target.value })}
@@ -2754,7 +2770,7 @@ const App: React.FC = () => {
                         <div className="grid grid-cols-2 gap-4">
                           {/* Option 1: URL */}
                           <div className="space-y-2">
-                            <div className="text-xs text-zinc-500 uppercase font-bold">From URL (YouTube/Vimeo)</div>
+                            <div className="text-xs text-zinc-500 uppercase font-helvetica-bold">From URL (YouTube/Vimeo)</div>
                             <input
                               className="w-full bg-zinc-900/50 border border-white/10 rounded-xl p-3 outline-none focus:border-yellow-400 text-sm"
                               placeholder="https://youtube.com/watch?v=..."
@@ -2764,7 +2780,7 @@ const App: React.FC = () => {
                           </div>
                           {/* Option 2: Upload */}
                           <div className="space-y-2">
-                            <div className="text-xs text-zinc-500 uppercase font-bold">Upload from Computer</div>
+                            <div className="text-xs text-zinc-500 uppercase font-helvetica-bold">Upload from Computer</div>
                             <FileDropZone
                               label="Upload Video"
                               accept="video/mp4,video/webm,video/ogg,.mp4,.webm,.ogg"
@@ -2886,7 +2902,7 @@ const App: React.FC = () => {
                             value={activeLesson.durationMin}
                             readOnly
                           />
-                          <p className="text-[10px] text-yellow-400 mt-1">Auto-calculated: 2 min / page</p>
+                          <p className="text-[10px] text-[#D4AF37] mt-1">Auto-calculated: 2 min / page</p>
                         </div>
                       </div>
                     </GlassCard>
@@ -2899,9 +2915,9 @@ const App: React.FC = () => {
                       <GlassCard className="!bg-yellow-400/5 !border-yellow-400/20">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
-                            <Target size={20} className="text-yellow-400" />
+                            <Target size={20} className="text-[#D4AF37]" />
                             <div>
-                              <label className="text-sm font-bold text-white block">Passing Score</label>
+                              <label className="text-sm font-helvetica-bold text-white block">Passing Score</label>
                               <p className="text-xs text-zinc-500">Minimum % required to complete this quiz</p>
                             </div>
                           </div>
@@ -2932,7 +2948,7 @@ const App: React.FC = () => {
                             <X size={16} />
                           </button>
                           <div className="mb-4">
-                            <label className="text-xs font-bold text-zinc-500 uppercase mb-1 block">Question {qIdx + 1}</label>
+                            <label className="text-xs font-helvetica-bold text-zinc-500 uppercase mb-1 block">Question {qIdx + 1}</label>
                             <input
                               className="w-full bg-zinc-900 border-b border-white/10 p-2 outline-none focus:border-yellow-400"
                               value={q.question}
@@ -2955,7 +2971,7 @@ const App: React.FC = () => {
                                     newQuiz[qIdx].correctAnswer = oIdx;
                                     updateLesson(activeLesson.id, { quiz: newQuiz });
                                   }}
-                                  className="text-yellow-400 accent-yellow-400"
+                                  className="text-[#D4AF37] accent-yellow-400"
                                 />
                                 <input
                                   className="flex-1 bg-transparent border border-white/5 rounded px-2 py-1 text-sm focus:border-white/20 outline-none"
@@ -2978,7 +2994,7 @@ const App: React.FC = () => {
                             const newQuiz = [...(activeLesson.quiz || []), { id: `q-${Date.now()}`, question: '', options: ['Option A', 'Option B'], correctAnswer: 0 }];
                             updateLesson(activeLesson.id, { quiz: newQuiz });
                           }}
-                          className="w-full py-4 border-2 border-dashed border-white/10 rounded-2xl text-zinc-500 hover:text-yellow-400 hover:border-yellow-400/30 hover:bg-yellow-400/5 transition-all flex items-center justify-center gap-2"
+                          className="w-full py-4 border-2 border-dashed border-white/10 rounded-2xl text-zinc-500 hover:text-[#D4AF37] hover:border-[#D4AF37]/50 hover:bg-yellow-400/5 transition-all flex items-center justify-center gap-2"
                         >
                           <Plus size={20} /> Add Question
                         </button>
@@ -3019,7 +3035,7 @@ const App: React.FC = () => {
           {/* Header */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
             <div>
-              <h2 className="text-3xl font-bold">User Management</h2>
+              <h2 className="text-3xl font-helvetica-bold">User Management</h2>
               <p className="text-zinc-400 mt-1">Approve, manage, and monitor user accounts</p>
             </div>
             <div className="flex items-center gap-2 text-sm">
@@ -3045,11 +3061,11 @@ const App: React.FC = () => {
                   <div className="flex items-center justify-between mb-8">
                     <div className="flex items-center gap-4">
                       <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-yellow-400/30 to-yellow-500/10 border border-yellow-400/40 flex items-center justify-center shadow-[0_0_30px_rgba(250,204,21,0.2)]">
-                        <Clock size={28} className="text-yellow-400 drop-shadow-[0_0_10px_rgba(250,204,21,0.5)]" />
+                        <Clock size={28} className="text-[#D4AF37] drop-shadow-[0_0_10px_rgba(250,204,21,0.5)]" />
                       </div>
                       <div>
-                        <h3 className="text-2xl font-bold text-white">Pending Approvals</h3>
-                        <p className="text-sm text-yellow-400/80">{pendingUsers.length} user{pendingUsers.length > 1 ? 's' : ''} awaiting your review</p>
+                        <h3 className="text-2xl font-helvetica-bold text-white">Pending Approvals</h3>
+                        <p className="text-sm text-[#D4AF37]/80">{pendingUsers.length} user{pendingUsers.length > 1 ? 's' : ''} awaiting your review</p>
                       </div>
                     </div>
                   </div>
@@ -3058,7 +3074,7 @@ const App: React.FC = () => {
                     {pendingUsers.map((pendingUser, idx) => (
                       <div
                         key={pendingUser.id}
-                        className="group/card relative overflow-hidden rounded-2xl bg-gradient-to-r from-white/[0.06] to-white/[0.02] border border-white/10 hover:border-yellow-400/30 transition-all duration-500 p-5"
+                        className="group/card relative overflow-hidden rounded-2xl bg-gradient-to-r from-white/[0.06] to-white/[0.02] border border-white/10 hover:border-[#D4AF37]/50 transition-all duration-500 p-5"
                         style={{ animationDelay: `${idx * 100}ms` }}
                       >
                         {/* Hover glow effect */}
@@ -3068,11 +3084,11 @@ const App: React.FC = () => {
 
                         <div className="relative z-10 flex items-center justify-between">
                           <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-zinc-700 to-zinc-800 border border-white/10 flex items-center justify-center font-bold text-lg text-white shadow-lg">
+                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-zinc-700 to-zinc-800 border border-white/10 flex items-center justify-center font-helvetica-bold text-lg text-white shadow-lg">
                               {pendingUser.name.charAt(0).toUpperCase()}
                             </div>
                             <div>
-                              <div className="font-semibold text-white text-lg">{pendingUser.name}</div>
+                              <div className="font-helvetica-bold text-white text-lg">{pendingUser.name}</div>
                               <div className="text-sm text-zinc-400">{pendingUser.email}</div>
                               <div className="flex items-center gap-3 mt-1">
                                 <span className="text-xs text-zinc-500">{pendingUser.ministry}</span>
@@ -3122,7 +3138,7 @@ const App: React.FC = () => {
               <div className="w-20 h-20 rounded-2xl bg-green-500/10 border border-green-500/20 flex items-center justify-center mx-auto mb-6">
                 <CheckCircle size={40} className="text-green-400" />
               </div>
-              <h3 className="text-xl font-bold text-white mb-2">All Caught Up!</h3>
+              <h3 className="text-xl font-helvetica-bold text-white mb-2">All Caught Up!</h3>
               <p className="text-zinc-400">No pending user approvals at this time.</p>
             </GlassCard>
           )}
@@ -3158,12 +3174,12 @@ const App: React.FC = () => {
           {/* All Users List */}
           <GlassCard className="p-0 overflow-hidden">
             <div className="p-6 border-b border-white/10">
-              <h3 className="text-lg font-bold">All Users ({filteredUsers.length})</h3>
+              <h3 className="text-lg font-helvetica-bold">All Users ({filteredUsers.length})</h3>
             </div>
 
             {loadingUsers ? (
               <div className="p-12 text-center">
-                <Loader2 size={32} className="animate-spin text-yellow-400 mx-auto" />
+                <Loader2 size={32} className="animate-spin text-[#D4AF37] mx-auto" />
                 <p className="text-zinc-500 mt-4">Loading users...</p>
               </div>
             ) : (
@@ -3171,7 +3187,7 @@ const App: React.FC = () => {
                 {filteredUsers.map(u => (
                   <div key={u.id} className="p-4 hover:bg-white/[0.02] transition-colors flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${u.is_approved ? 'bg-yellow-400 text-black' : 'bg-zinc-700 text-zinc-400'
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center font-helvetica-bold ${u.is_approved ? 'bg-yellow-400 text-black' : 'bg-zinc-700 text-zinc-400'
                         }`}>
                         {u.name?.charAt(0).toUpperCase() || '?'}
                       </div>
@@ -3179,7 +3195,7 @@ const App: React.FC = () => {
                         <div className="font-medium text-white flex items-center gap-2">
                           {u.name}
                           {!u.is_approved && (
-                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-yellow-400/20 text-yellow-400">PENDING</span>
+                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-yellow-400/20 text-[#D4AF37]">PENDING</span>
                           )}
                           {!u.is_active && (
                             <span className="text-[10px] px-2 py-0.5 rounded-full bg-red-400/20 text-red-400">INACTIVE</span>
@@ -3224,7 +3240,7 @@ const App: React.FC = () => {
           <div className={adminSection === 'OVERVIEW' ? 'space-y-8' : 'hidden'}>
             <div className="flex justify-between items-end">
               <div>
-                <h2 className="text-3xl font-bold">Admin Command Center</h2>
+                <h2 className="text-3xl font-helvetica-bold">Admin Command Center</h2>
                 <p className="text-zinc-400 mt-1">Overview of academy performance and content</p>
               </div>
               <PrimaryButton onClick={handleCreateCourse} className="text-sm shadow-lg shadow-yellow-400/20">
@@ -3237,25 +3253,25 @@ const App: React.FC = () => {
               <GlassCard className="relative overflow-hidden group">
                 <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><Users size={64} /></div>
                 <div className="text-zinc-400 text-sm font-medium uppercase tracking-wider mb-2">Total Learners</div>
-                <div className="text-4xl font-bold text-white mb-1">{fullStats?.totalLearners?.toLocaleString() || '—'}</div>
-                <div className="text-yellow-400 text-xs flex items-center gap-1"><div className="w-1.5 h-1.5 rounded-full bg-yellow-400"></div> {fullStats?.totalEnrollments || 0} enrollments</div>
+                <div className="text-4xl font-helvetica-bold text-white mb-1">{fullStats?.totalLearners?.toLocaleString() || '—'}</div>
+                <div className="text-[#D4AF37] text-xs flex items-center gap-1"><div className="w-1.5 h-1.5 rounded-full bg-yellow-400"></div> {fullStats?.totalEnrollments || 0} enrollments</div>
               </GlassCard>
               <GlassCard className="relative overflow-hidden group">
                 <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><BookOpen size={64} /></div>
                 <div className="text-zinc-400 text-sm font-medium uppercase tracking-wider mb-2">Content Library</div>
-                <div className="text-4xl font-bold text-white mb-1">{fullStats?.totalLessons || totalLessons}</div>
+                <div className="text-4xl font-helvetica-bold text-white mb-1">{fullStats?.totalLessons || totalLessons}</div>
                 <div className="text-zinc-400 text-xs">Across {fullStats?.totalCourses || courses.length} courses</div>
               </GlassCard>
               <GlassCard className="relative overflow-hidden group">
                 <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><CheckCircle size={64} /></div>
                 <div className="text-zinc-400 text-sm font-medium uppercase tracking-wider mb-2">Completion Rate</div>
-                <div className="text-4xl font-bold text-white mb-1">{fullStats?.completionRate ?? '—'}%</div>
-                <div className="text-yellow-400 text-xs">Avg. per enrollment</div>
+                <div className="text-4xl font-helvetica-bold text-white mb-1">{fullStats?.completionRate ?? '—'}%</div>
+                <div className="text-[#D4AF37] text-xs">Avg. per enrollment</div>
               </GlassCard>
               <GlassCard className="relative overflow-hidden group">
                 <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><Target size={64} /></div>
                 <div className="text-zinc-400 text-sm font-medium uppercase tracking-wider mb-2">Quiz Pass Rate</div>
-                <div className="text-4xl font-bold text-white mb-1">{fullStats?.quizPassRate ?? '—'}%</div>
+                <div className="text-4xl font-helvetica-bold text-white mb-1">{fullStats?.quizPassRate ?? '—'}%</div>
                 <div className="text-zinc-400 text-xs">Avg score: {fullStats?.averageQuizScore ?? '—'}%</div>
               </GlassCard>
             </div>
@@ -3265,13 +3281,13 @@ const App: React.FC = () => {
               <GlassCard className="relative overflow-hidden group">
                 <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><MonitorPlay size={64} /></div>
                 <div className="text-zinc-400 text-sm font-medium uppercase tracking-wider mb-2">Total Study Hours</div>
-                <div className="text-4xl font-bold text-white mb-1">{fullStats?.totalStudyHours ? (fullStats.totalStudyHours >= 1000 ? `${(fullStats.totalStudyHours / 1000).toFixed(1)}k` : fullStats.totalStudyHours) : '—'}</div>
+                <div className="text-4xl font-helvetica-bold text-white mb-1">{fullStats?.totalStudyHours ? (fullStats.totalStudyHours >= 1000 ? `${(fullStats.totalStudyHours / 1000).toFixed(1)}k` : fullStats.totalStudyHours) : '—'}</div>
                 <div className="text-white text-xs">Total learning time logged</div>
               </GlassCard>
               <GlassCard className={`relative overflow-hidden group ${(fullStats?.overdueEnrollments || 0) > 0 ? 'border-red-500/30' : ''}`}>
                 <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><AlertTriangle size={64} /></div>
                 <div className="text-zinc-400 text-sm font-medium uppercase tracking-wider mb-2">Overdue Enrollments</div>
-                <div className={`text-4xl font-bold mb-1 ${(fullStats?.overdueEnrollments || 0) > 0 ? 'text-red-400' : 'text-green-400'}`}>
+                <div className={`text-4xl font-helvetica-bold mb-1 ${(fullStats?.overdueEnrollments || 0) > 0 ? 'text-red-400' : 'text-green-400'}`}>
                   {fullStats?.overdueEnrollments ?? 0}
                 </div>
                 <div className={`text-xs ${(fullStats?.overdueEnrollments || 0) > 0 ? 'text-red-400/80' : 'text-green-400/80'}`}>
@@ -3306,9 +3322,9 @@ const App: React.FC = () => {
                       </div>
                       <div>
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="text-xs px-2 py-0.5 rounded-full bg-red-500/30 text-red-400 font-bold uppercase tracking-wider animate-pulse">Action Required</span>
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-red-500/30 text-red-400 font-helvetica-bold uppercase tracking-wider animate-pulse">Action Required</span>
                         </div>
-                        <h3 className="text-2xl font-bold text-white">{pendingUsers.length} Pending User{pendingUsers.length > 1 ? 's' : ''}</h3>
+                        <h3 className="text-2xl font-helvetica-bold text-white">{pendingUsers.length} Pending User{pendingUsers.length > 1 ? 's' : ''}</h3>
                         <p className="text-sm text-zinc-400 mt-1">Click here to approve or reject registration requests</p>
                       </div>
                     </div>
@@ -3317,8 +3333,8 @@ const App: React.FC = () => {
                         <span className="text-xs text-zinc-500">Oldest</span>
                         <span className="text-sm text-white font-medium">{pendingUsers.length > 0 ? new Date(pendingUsers[0].created_at).toLocaleDateString('fr-FR') : '-'}</span>
                       </div>
-                      <div className="w-12 h-12 rounded-xl bg-yellow-400/20 border border-yellow-400/30 flex items-center justify-center group-hover:bg-yellow-400/30 transition-all">
-                        <ChevronRight size={24} className="text-yellow-400 group-hover:translate-x-1 transition-transform" />
+                      <div className="w-12 h-12 rounded-xl bg-yellow-400/20 border border-[#D4AF37]/50 flex items-center justify-center group-hover:bg-yellow-400/30 transition-all">
+                        <ChevronRight size={24} className="text-[#D4AF37] group-hover:translate-x-1 transition-transform" />
                       </div>
                     </div>
                   </div>
@@ -3337,7 +3353,7 @@ const App: React.FC = () => {
                         <AlertTriangle size={24} className="text-red-400" />
                       </div>
                       <div>
-                        <h3 className="text-lg font-bold text-white">{overdueLearners.length} Overdue Enrollment{overdueLearners.length > 1 ? 's' : ''}</h3>
+                        <h3 className="text-lg font-helvetica-bold text-white">{overdueLearners.length} Overdue Enrollment{overdueLearners.length > 1 ? 's' : ''}</h3>
                         <p className="text-sm text-zinc-400">Learners past their training deadline</p>
                       </div>
                     </div>
@@ -3349,7 +3365,7 @@ const App: React.FC = () => {
                     {overdueLearners.slice(0, 5).map((learner, idx) => (
                       <div key={idx} className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/10">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-red-500/20 to-orange-500/10 flex items-center justify-center text-xs font-bold text-red-400">
+                          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-red-500/20 to-orange-500/10 flex items-center justify-center text-xs font-helvetica-bold text-red-400">
                             {learner.daysOverdue}d
                           </div>
                           <div>
@@ -3379,7 +3395,7 @@ const App: React.FC = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <GlassCard className="lg:col-span-2 p-8">
                 <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-xl font-bold">Ministry Engagement</h3>
+                  <h3 className="text-xl font-helvetica-bold">Ministry Engagement</h3>
                   <div className="flex gap-2">
                     <button className="px-3 py-1 text-xs rounded-full bg-white/10 text-white">Weekly</button>
                     <button className="px-3 py-1 text-xs rounded-full hover:bg-white/5 text-zinc-400">Monthly</button>
@@ -3407,7 +3423,7 @@ const App: React.FC = () => {
               </GlassCard>
 
               <GlassCard className="p-8">
-                <h3 className="text-xl font-bold mb-6">Content Types</h3>
+                <h3 className="text-xl font-helvetica-bold mb-6">Content Types</h3>
                 <div className="h-64 w-full relative">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
@@ -3430,7 +3446,7 @@ const App: React.FC = () => {
                     </PieChart>
                   </ResponsiveContainer>
                   <div className="absolute inset-0 flex items-center justify-center flex-col pointer-events-none">
-                    <span className="text-3xl font-bold text-white">100%</span>
+                    <span className="text-3xl font-helvetica-bold text-white">100%</span>
                     <span className="text-xs text-zinc-400">Balanced</span>
                   </div>
                 </div>
@@ -3445,7 +3461,7 @@ const App: React.FC = () => {
             {/* Manage Courses (Enhanced List) */}
             <div className="space-y-6">
               <div className="flex items-center justify-between">
-                <h3 className="text-xl font-bold">Manage Courses</h3>
+                <h3 className="text-xl font-helvetica-bold">Manage Courses</h3>
                 <span className="text-sm text-zinc-400">
                   {courses.length} course{courses.length !== 1 ? 's' : ''} total
                 </span>
@@ -3459,7 +3475,7 @@ const App: React.FC = () => {
                     <div className="p-6 flex-1 min-w-0">
                       <div className="flex justify-between items-start">
                         <div>
-                          <h4 className="text-xl font-bold text-white mb-1">{course.title}</h4>
+                          <h4 className="text-xl font-helvetica-bold text-white mb-1">{course.title}</h4>
                           <p className="text-sm text-zinc-400 mb-3" title={course.description}>{course.description}</p>
                           <div className="flex gap-3 text-xs">
                             <Badge>{course.level}</Badge>
@@ -3490,11 +3506,11 @@ const App: React.FC = () => {
           <div className={adminSection === 'COURSES' ? '' : 'hidden'}>
             <div className="flex justify-between items-end mb-8">
               <div>
-                <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-zinc-400">Course Manager</h2>
+                <h2 className="text-3xl font-helvetica-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-zinc-400">Course Manager</h2>
                 <p className="text-zinc-400 mt-2 flex items-center gap-4">
                   <span>{courses.length} course{courses.length !== 1 ? 's' : ''}</span>
                   <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-green-400"></span><span className="text-green-400">{courses.filter(c => c.level === 'Beginner').length}</span> Beginner</span>
-                  <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-yellow-400"></span><span className="text-yellow-400">{courses.filter(c => c.level === 'Intermediate').length}</span> Intermediate</span>
+                  <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-yellow-400"></span><span className="text-[#D4AF37]">{courses.filter(c => c.level === 'Intermediate').length}</span> Intermediate</span>
                   <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-purple-400"></span><span className="text-purple-400">{courses.filter(c => c.level === 'Advanced').length}</span> Advanced</span>
                 </p>
               </div>
@@ -3512,8 +3528,8 @@ const App: React.FC = () => {
                 return (
                   <div key={level} className="space-y-5">
                     <div className="flex items-center gap-4">
-                      <div className={`px-4 py-1.5 rounded-full text-sm font-bold ${level === 'Beginner' ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
-                        level === 'Intermediate' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' :
+                      <div className={`px-4 py-1.5 rounded-full text-sm font-helvetica-bold ${level === 'Beginner' ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
+                        level === 'Intermediate' ? 'bg-yellow-500/20 text-[#D4AF37] border border-yellow-500/30' :
                           'bg-purple-500/20 text-purple-400 border border-purple-500/30'
                         }`}>{level}</div>
                       <div className="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent"></div>
@@ -3571,12 +3587,12 @@ const App: React.FC = () => {
                               <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 via-zinc-900/50 to-transparent"></div>
 
                               {/* Order Badge */}
-                              <div className="absolute top-3 left-3 w-8 h-8 rounded-full bg-black/60 backdrop-blur-sm border border-white/20 flex items-center justify-center text-sm font-bold text-white">
+                              <div className="absolute top-3 left-3 w-8 h-8 rounded-full bg-black/60 backdrop-blur-sm border border-white/20 flex items-center justify-center text-sm font-helvetica-bold text-white">
                                 {index + 1}
                               </div>
 
                               {/* Level Badge */}
-                              <div className={`absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-bold backdrop-blur-sm ${level === 'Beginner' ? 'bg-green-500/30 text-green-300 border border-green-500/50' :
+                              <div className={`absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-helvetica-bold backdrop-blur-sm ${level === 'Beginner' ? 'bg-green-500/30 text-green-300 border border-green-500/50' :
                                 level === 'Intermediate' ? 'bg-yellow-500/30 text-yellow-300 border border-yellow-500/50' :
                                   'bg-purple-500/30 text-purple-300 border border-purple-500/50'
                                 }`}>{level}</div>
@@ -3615,12 +3631,12 @@ const App: React.FC = () => {
                                   }}
                                   onBlur={saveEditingCourseTitle}
                                   autoFocus
-                                  className="text-lg font-bold text-white mb-2 bg-transparent border-b-2 border-yellow-400 outline-none w-full pb-1"
+                                  className="text-lg font-helvetica-bold text-white mb-2 bg-transparent border-b-2 border-yellow-400 outline-none w-full pb-1"
                                   onClick={(e) => e.stopPropagation()}
                                 />
                               ) : (
                                 <h4
-                                  className="text-lg font-bold text-white mb-2 cursor-text hover:text-yellow-400 transition-colors line-clamp-1"
+                                  className="text-lg font-helvetica-bold text-white mb-2 cursor-text hover:text-[#D4AF37] transition-colors line-clamp-1"
                                   onClick={(e) => { e.stopPropagation(); startEditingCourseTitle(course); }}
                                   title="Click to edit title"
                                 >
@@ -3635,7 +3651,7 @@ const App: React.FC = () => {
                               <div className="flex gap-2">
                                 <button
                                   onClick={(e) => { e.stopPropagation(); handleEditCourse(course); }}
-                                  className="flex-1 py-2.5 px-4 rounded-xl bg-yellow-400 text-black text-sm font-bold hover:bg-yellow-300 transition-colors flex items-center justify-center gap-2"
+                                  className="flex-1 py-2.5 px-4 rounded-xl bg-yellow-400 text-black text-sm font-helvetica-bold hover:bg-yellow-300 transition-colors flex items-center justify-center gap-2"
                                 >
                                   <Pencil size={14} /> Edit Course
                                 </button>
@@ -3661,18 +3677,18 @@ const App: React.FC = () => {
           {/* Analytics Section */}
           <div className={adminSection === 'ANALYTICS' ? 'space-y-6' : 'hidden'}>
             <div>
-              <h2 className="text-3xl font-bold">Analytics Dashboard</h2>
+              <h2 className="text-3xl font-helvetica-bold">Analytics Dashboard</h2>
               <p className="text-zinc-400 mt-1">Detailed insights into platform engagement</p>
             </div>
 
             {/* Ministry Progress Tracking - Enhanced with per-course breakdown */}
             <GlassCard className="p-6">
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-bold">Ministry Training Progress</h3>
+                <h3 className="text-xl font-helvetica-bold">Ministry Training Progress</h3>
                 {selectedMinistry && (
                   <button
                     onClick={() => setSelectedMinistry(null)}
-                    className="text-sm text-yellow-400 hover:text-yellow-300 flex items-center gap-1"
+                    className="text-sm text-[#D4AF37] hover:text-yellow-300 flex items-center gap-1"
                   >
                     <ArrowLeft size={14} /> Back to all ministries
                   </button>
@@ -3685,10 +3701,10 @@ const App: React.FC = () => {
                     <button
                       key={idx}
                       onClick={() => setSelectedMinistry(ministry.name)}
-                      className="p-4 rounded-xl bg-white/5 border border-white/10 hover:border-yellow-400/30 hover:bg-white/10 transition-all text-left group"
+                      className="p-4 rounded-xl bg-white/5 border border-white/10 hover:border-[#D4AF37]/50 hover:bg-white/10 transition-all text-left group"
                     >
                       <div className="flex justify-between items-start mb-2">
-                        <div className="text-sm font-medium text-white truncate group-hover:text-yellow-400 transition-colors">{ministry.name}</div>
+                        <div className="text-sm font-medium text-white truncate group-hover:text-[#D4AF37] transition-colors">{ministry.name}</div>
                         <div className="flex gap-2">
                           {ministry.overdueCount > 0 && (
                             <Badge type="default" className="!bg-red-500/20 !text-red-400 !border-red-500/30">
@@ -3700,7 +3716,7 @@ const App: React.FC = () => {
                           </Badge>
                         </div>
                       </div>
-                      <div className="text-2xl font-bold text-yellow-400 mb-1">{ministry.totalLearners}</div>
+                      <div className="text-2xl font-helvetica-bold text-[#D4AF37] mb-1">{ministry.totalLearners}</div>
                       <div className="text-xs text-zinc-500 mb-3">learners enrolled</div>
                       <div className="flex justify-between text-xs text-zinc-400 mb-1">
                         <span>Courses Completed</span>
@@ -3712,7 +3728,7 @@ const App: React.FC = () => {
                       </div>
                       <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-gradient-to-r from-yellow-400 to-yellow-500 rounded-full"
+                          className="h-full bg-[#D4AF37] rounded-full"
                           style={{ width: `${ministry.totalLearners > 0 ? Math.min(100, (ministry.coursesCompleted / ministry.totalLearners) * 100) : 0}%` }}
                         />
                       </div>
@@ -3749,15 +3765,15 @@ const App: React.FC = () => {
                           </div>
                           <div className="grid grid-cols-3 gap-4 text-center">
                             <div>
-                              <div className="text-lg font-bold text-green-400">{stat.completedCount}</div>
+                              <div className="text-lg font-helvetica-bold text-green-400">{stat.completedCount}</div>
                               <div className="text-xs text-zinc-500">Completed</div>
                             </div>
                             <div>
-                              <div className="text-lg font-bold text-yellow-400">{stat.enrolledCount - stat.completedCount}</div>
+                              <div className="text-lg font-helvetica-bold text-[#D4AF37]">{stat.enrolledCount - stat.completedCount}</div>
                               <div className="text-xs text-zinc-500">In Progress</div>
                             </div>
                             <div>
-                              <div className="text-lg font-bold text-white">{stat.avgScore}%</div>
+                              <div className="text-lg font-helvetica-bold text-white">{stat.avgScore}%</div>
                               <div className="text-xs text-zinc-500">Avg Score</div>
                             </div>
                           </div>
@@ -3780,7 +3796,7 @@ const App: React.FC = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <GlassCard className="lg:col-span-2 p-8">
                 <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-xl font-bold">Ministry Engagement</h3>
+                  <h3 className="text-xl font-helvetica-bold">Ministry Engagement</h3>
                 </div>
                 <div className="h-64 w-full">
                   <ResponsiveContainer width="100%" height="100%">
@@ -3804,7 +3820,7 @@ const App: React.FC = () => {
               </GlassCard>
 
               <GlassCard className="p-8">
-                <h3 className="text-xl font-bold mb-6">Content Types</h3>
+                <h3 className="text-xl font-helvetica-bold mb-6">Content Types</h3>
                 <div className="h-64 w-full relative">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
@@ -3827,7 +3843,7 @@ const App: React.FC = () => {
                     </PieChart>
                   </ResponsiveContainer>
                   <div className="absolute inset-0 flex items-center justify-center flex-col pointer-events-none">
-                    <span className="text-3xl font-bold text-white">{fullStats?.totalLessons || '—'}</span>
+                    <span className="text-3xl font-helvetica-bold text-white">{fullStats?.totalLessons || '—'}</span>
                     <span className="text-xs text-zinc-400">Total Lessons</span>
                   </div>
                 </div>
@@ -3855,15 +3871,15 @@ const App: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="font-sans text-slate-50 min-h-screen flex items-center justify-center bg-[#0a0a0b]">
-        <Loader2 className="animate-spin text-yellow-400" size={48} />
+      <div className="font-helvetica text-slate-50 min-h-screen flex items-center justify-center bg-[#0a0a0b]">
+        <Loader2 className="animate-spin text-[#D4AF37]" size={48} />
       </div>
     );
   }
 
   return (
     <ToastProvider>
-      <div className="font-sans text-slate-50 selection:bg-yellow-400/30 h-screen overflow-hidden">
+      <div className="font-helvetica text-slate-50 selection:bg-yellow-400/30 h-screen overflow-hidden">
         <LiquidBackground />
 
         {/* Sidebar for authenticated views except player */}

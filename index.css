@@ -1,4 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap');
+/* Fallback for Helvetica-like feel */
 
 @tailwind base;
 @tailwind components;
@@ -6,16 +7,39 @@
 
 @layer base {
   body {
-    @apply bg-zinc-950 text-white font-sans antialiased overflow-x-hidden;
+    @apply bg-zinc-950 text-white antialiased overflow-x-hidden;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     background-color: #050505;
   }
 
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-display tracking-tight;
+  .font-helvetica-light {
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-weight: 300;
+  }
+
+  .font-helvetica {
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-weight: 400;
+  }
+
+  .font-helvetica-bold {
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-weight: 700;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply tracking-tight;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-weight: 700;
   }
 
   ::selection {
-    @apply bg-yellow-500/30 text-yellow-300;
+    @apply bg-yellow-600/30 text-yellow-300;
   }
 
   /* Custom Scrollbar - Liquid Gold */
@@ -40,17 +64,44 @@
 
 @layer components {
   .glass-panel {
-    @apply bg-[#16161a]/90 backdrop-blur-xl border border-white/[0.06] shadow-2xl;
+    @apply bg-[#0a0a0b]/90 backdrop-blur-xl border border-white/[0.05] shadow-2xl;
   }
-  
-  .text-gradient-gold {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 via-yellow-200 to-yellow-500;
+
+  .text-gold {
+    color: #D4AF37;
+  }
+
+  .border-gold {
+    border-color: #D4AF37;
+  }
+
+  /* Gold Frame Button Primitive */
+  .btn-gold-frame {
+    @apply border border-[#D4AF37] bg-[#0a0a0b] text-[#D4AF37] transition-all duration-300;
+  }
+
+  .btn-gold-frame:hover {
+    @apply bg-[#D4AF37] text-black shadow-[0_0_20px_rgba(212, 175, 55, 0.4)];
   }
 }
 
 /* Global utility classes for animations that might not be in Tailwind keys */
-.delay-100 { animation-delay: 100ms; }
-.delay-200 { animation-delay: 200ms; }
-.delay-300 { animation-delay: 300ms; }
-.delay-500 { animation-delay: 500ms; }
-.delay-700 { animation-delay: 700ms; }
+.delay-100 {
+  animation-delay: 100ms;
+}
+
+.delay-200 {
+  animation-delay: 200ms;
+}
+
+.delay-300 {
+  animation-delay: 300ms;
+}
+
+.delay-500 {
+  animation-delay: 500ms;
+}
+
+.delay-700 {
+  animation-delay: 700ms;
+}
