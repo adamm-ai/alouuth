@@ -2183,90 +2183,6 @@ const App: React.FC = () => {
     const [selectedMinistry, setSelectedMinistry] = useState<string | null>(null);
     const [ministryCourseStats, setMinistryCourseStats] = useState<any[]>([]);
 
-    // Drag and drop state - using ref to avoid stale closures
-    const draggedCourseRef = React.useRef<Course | null>(null);
-    const [dragOverId, setDragOverId] = useState<string | null>(null);
-    const [, forceUpdate] = useState(0);
-
-    // Drag handlers at component level to avoid closure issues
-    const handleCourseDragStart = (e: React.DragEvent<HTMLDivElement>, course: Course) => {
-      draggedCourseRef.current = course;
-      setDraggedCourseId(course.id);
-      e.dataTransfer.effectAllowed = 'move';
-      e.dataTransfer.setData('text/plain', course.id);
-      const target = e.currentTarget;
-      requestAnimationFrame(() => {
-        target.style.opacity = '0.4';
-      });
-    };
-
-    const handleCourseDragEnd = (e: React.DragEvent<HTMLDivElement>) => {
-      e.currentTarget.style.opacity = '1';
-      draggedCourseRef.current = null;
-      setDraggedCourseId(null);
-      setDragOverId(null);
-    };
-
-    const handleCourseDragOver = (e: React.DragEvent<HTMLDivElement>, courseId: string) => {
-      e.preventDefault();
-      e.dataTransfer.dropEffect = 'move';
-      if (draggedCourseRef.current && draggedCourseRef.current.id !== courseId) {
-        setDragOverId(courseId);
-      }
-    };
-
-    const handleCourseDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
-      // Only clear if we're leaving the card entirely
-      const rect = e.currentTarget.getBoundingClientRect();
-      const x = e.clientX;
-      const y = e.clientY;
-      if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) {
-        setDragOverId(null);
-      }
-    };
-
-    const handleCourseDrop = async (e: React.DragEvent<HTMLDivElement>, targetCourse: Course) => {
-      e.preventDefault();
-      e.stopPropagation();
-
-      const dragged = draggedCourseRef.current;
-      setDragOverId(null);
-
-      if (!dragged || dragged.id === targetCourse.id || dragged.level !== targetCourse.level) {
-        return;
-      }
-
-      const level = targetCourse.level;
-      const levelCourses = courses.filter(c => c.level === level).sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0));
-
-      const fromIndex = levelCourses.findIndex(c => c.id === dragged.id);
-      const toIndex = levelCourses.findIndex(c => c.id === targetCourse.id);
-
-      if (fromIndex === -1 || toIndex === -1) return;
-
-      // Reorder array
-      const reordered = [...levelCourses];
-      const [moved] = reordered.splice(fromIndex, 1);
-      reordered.splice(toIndex, 0, moved);
-
-      // Update with new orderIndex
-      const updated = reordered.map((c, i) => ({ ...c, orderIndex: i }));
-      const otherCourses = courses.filter(c => c.level !== level);
-      const newCourses = sortCourses([...otherCourses, ...updated]);
-
-      setCourses(newCourses);
-
-      // Reset drag state
-      draggedCourseRef.current = null;
-      setDraggedCourseId(null);
-
-      // Sync to backend
-      try {
-        await dataService.reorderCourses(level, updated.map(c => c.id));
-      } catch (err) {
-        console.error('Reorder failed:', err);
-      }
-    };
 
 
     // Track if data has been loaded (to prevent re-fetching)
@@ -3714,19 +3630,54 @@ const App: React.FC = () => {
                             <div
                               key={course.id}
                               draggable
-                              onDragStart={(e) => handleCourseDragStart(e, course)}
-                              onDragEnd={handleCourseDragEnd}
-                              onDragOver={(e) => handleCourseDragOver(e, course.id)}
-                              onDragLeave={handleCourseDragLeave}
-                              onDrop={(e) => handleCourseDrop(e, course)}
-                              className={`group relative rounded-2xl cursor-grab active:cursor-grabbing transition-all duration-150 ${
-                                dragOverId === course.id ? 'scale-[1.02] ring-2 ring-[#D4AF37] ring-offset-2 ring-offset-zinc-900' : ''
-                              }`}
+                              onDragStart={(e) => {
+                                e.dataTransfer.setData('courseId', course.id);
+                                e.dataTransfer.setData('level', level);
+                                e.dataTransfer.effectAllowed = 'move';
+                              }}
+                              onDragOver={(e) => {
+                                e.preventDefault();
+                                e.currentTarget.style.outline = '2px solid #D4AF37';
+                              }}
+                              onDragLeave={(e) => {
+                                e.currentTarget.style.outline = 'none';
+                              }}
+                              onDrop={async (e) => {
+                                e.preventDefault();
+                                e.currentTarget.style.outline = 'none';
+
+                                const draggedId = e.dataTransfer.getData('courseId');
+                                const draggedLevel = e.dataTransfer.getData('level');
+
+                                if (!draggedId || draggedId === course.id || draggedLevel !== level) return;
+
+                                // Get fresh data from courses state
+                                const currentLevelCourses = courses.filter(c => c.level === level).sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0));
+                                const fromIndex = currentLevelCourses.findIndex(c => c.id === draggedId);
+                                const toIndex = currentLevelCourses.findIndex(c => c.id === course.id);
+
+                                if (fromIndex === -1 || toIndex === -1 || fromIndex === toIndex) return;
+
+                                // Reorder
+                                const reordered = [...currentLevelCourses];
+                                const [moved] = reordered.splice(fromIndex, 1);
+                                reordered.splice(toIndex, 0, moved);
+
+                                // Update orderIndex
+                                const updated = reordered.map((c, i) => ({ ...c, orderIndex: i }));
+                                const otherCourses = courses.filter(c => c.level !== level);
+                                setCourses(sortCourses([...otherCourses, ...updated]));
+
+                                // Sync to backend
+                                try {
+                                  await dataService.reorderCourses(level, updated.map(c => c.id));
+                                } catch (err) {
+                                  console.error('Reorder failed:', err);
+                                }
+                              }}
+                              className="group relative rounded-2xl cursor-grab active:cursor-grabbing"
                             >
-                              {/* Card */}
-                              <div className={`relative rounded-2xl border overflow-hidden bg-zinc-900/90 transition-all duration-150 ${
-                                dragOverId === course.id ? 'border-[#D4AF37]' : 'border-white/10 hover:border-white/25'
-                              }`}>
+                              <div className="relative rounded-2xl border border-white/10 hover:border-white/25 overflow-hidden bg-zinc-900/90">
                                 <div className="relative aspect-video overflow-hidden">
                                   <img
                                     src={course.thumbnail || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=800'}
@@ -3735,42 +3686,33 @@ const App: React.FC = () => {
                                     draggable={false}
                                   />
                                   <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 via-zinc-900/40 to-transparent pointer-events-none" />
-
-                                  {/* Order Badge */}
-                                  <div className="absolute top-3 left-3 w-8 h-8 rounded-full bg-black/70 backdrop-blur-sm border border-white/20 flex items-center justify-center text-sm font-helvetica-bold text-white">
+                                  <div className="absolute top-3 left-3 w-8 h-8 rounded-full bg-black/70 border border-white/20 flex items-center justify-center text-sm font-helvetica-bold text-white">
                                     {index + 1}
                                   </div>
-
-                                  {/* Level Badge */}
-                                  <div className={`absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-helvetica-bold backdrop-blur-sm ${
+                                  <div className={`absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-helvetica-bold ${
                                     level === 'Beginner' ? 'bg-green-500/30 text-green-300 border border-green-500/50' :
                                     level === 'Intermediate' ? 'bg-yellow-500/30 text-yellow-300 border border-yellow-500/50' :
                                     'bg-purple-500/30 text-purple-300 border border-purple-500/50'
                                   }`}>{level}</div>
-
-                                  {/* Drag Handle */}
                                   <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <div className="p-4 rounded-full bg-[#D4AF37] text-black shadow-xl">
+                                    <div className="p-4 rounded-full bg-[#D4AF37] text-black">
                                       <GripVertical size={28} />
                                     </div>
                                   </div>
                                 </div>
-
                                 <div className="p-5">
                                   <h4 className="text-lg font-helvetica-bold text-white mb-2 line-clamp-1">{course.title}</h4>
                                   <p className="text-sm text-zinc-400 mb-4 line-clamp-2">{course.description || 'No description'}</p>
                                   <div className="flex gap-2">
                                     <button
-                                      onClick={(e) => { e.stopPropagation(); handleEditCourse(course); }}
-                                      onDragStart={(e) => e.stopPropagation()}
+                                      onClick={() => handleEditCourse(course)}
                                       draggable={false}
                                       className="flex-1 py-2.5 px-4 rounded-xl bg-[#D4AF37] text-black text-sm font-helvetica-bold hover:bg-yellow-400 transition-colors flex items-center justify-center gap-2"
                                     >
                                       <Pencil size={14} /> Edit
                                     </button>
                                     <button
-                                      onClick={(e) => { e.stopPropagation(); deleteCourse(course.id); }}
-                                      onDragStart={(e) => e.stopPropagation()}
+                                      onClick={() => deleteCourse(course.id)}
                                       draggable={false}
                                       className="p-2.5 rounded-xl border border-red-500/30 text-red-400 hover:bg-red-500/20 transition-colors"
                                     >
