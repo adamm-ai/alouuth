@@ -43,7 +43,7 @@ import {
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from 'recharts';
 import { LiquidBackground } from './components/LiquidBackground';
 import { GlassCard, PrimaryButton, SecondaryButton, ProgressBar, Badge, FileDropZone, IconButton, ToastProvider, useToast, LiquidVideoFrame } from './components/UIComponents';
-import { AnimatePresence, Reorder } from 'framer-motion';
+import { AnimatePresence, Reorder, motion } from 'framer-motion';
 import { PageTransition } from './components/PageTransition';
 import { dataService } from './services/dataService';
 import { authAPI, setAuthToken, getAuthToken, PendingUser, adminAPI } from './services/api';
@@ -3250,11 +3250,24 @@ const App: React.FC = () => {
 
     // --- Main Admin Dashboard ---
     return (
-      <div className={`md:ml-64 h-screen overflow-y-auto relative z-10 liquid-scroll transition-all duration-500 ${draggedCourseId ? 'bg-black/40' : ''}`}>
-        {draggedCourseId && (
-          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-[2px] pointer-events-none animate-fade-in" />
-        )}
-        <div className={`p-6 md:p-10 max-w-7xl mx-auto space-y-8 pb-20 relative z-[60] ${draggedCourseId ? 'scale-[0.99] origin-center' : 'scale-100'} transition-transform duration-500`}>
+      <div className={`md:ml-64 h-screen overflow-y-auto relative z-10 liquid-scroll transition-all duration-700 ${draggedCourseId ? 'bg-[#050505]' : 'bg-transparent'}`}>
+        <AnimatePresence>
+          {draggedCourseId && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.8, ease: "easeInOut" }}
+              className="fixed inset-0 z-50 pointer-events-none"
+            >
+              {/* Luxury Vignette */}
+              <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/20 to-black/60 backdrop-blur-[1px]" />
+              <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-black/40" />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <div className={`p-6 md:p-10 max-w-7xl mx-auto space-y-8 pb-20 relative z-[60] transition-all duration-700 ${draggedCourseId ? 'scale-[0.98] blur-[0.5px]' : 'scale-100 blur-0'}`}>
 
           <PageTransition viewKey={adminSection}>
             {adminSection === 'USERS' && <UserManagementSection />}
@@ -3613,14 +3626,17 @@ const App: React.FC = () => {
                               value={course}
                               onDragStart={() => setDraggedCourseId(course.id)}
                               onDragEnd={() => setDraggedCourseId(null)}
-                              className={`group relative rounded-2xl transition-all duration-300 ${draggedCourseId === course.id ? 'z-[100]' : 'z-10'}`}
+                              className={`group relative rounded-2xl transition-all duration-500 ${draggedCourseId && draggedCourseId !== course.id ? 'opacity-30 blur-[2px]' : 'opacity-100'} ${draggedCourseId === course.id ? 'z-[100]' : 'z-10'}`}
                               initial={false}
-                              dragTransition={{ bounceStiffness: 600, bounceDamping: 20 }}
+                              dragTransition={{ bounceStiffness: 300, bounceDamping: 30 }}
+                              dragDelay={150}
+                              dragElastic={0.1}
                               whileDrag={{
-                                scale: 1.05,
-                                rotate: 1,
-                                boxShadow: "0 20px 50px rgba(0,0,0,0.5), 0 0 30px rgba(212, 175, 55, 0.2)"
+                                scale: 1.02,
+                                rotate: 0.5,
+                                boxShadow: "0 40px 80px rgba(0,0,0,0.6), 0 0 40px rgba(212, 175, 55, 0.15)"
                               }}
+                              transition={{ type: "spring", stiffness: 300, damping: 35 }}
                             >
                               {/* Ambient Glow */}
                               <div className={`absolute -inset-1 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl ${level === 'Beginner' ? 'bg-green-500/20' :
