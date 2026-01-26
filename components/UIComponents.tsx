@@ -118,19 +118,19 @@ export const GlassCard: React.FC<{ children: React.ReactNode; className?: string
     onClick={!disabled ? onClick : undefined}
     className={`
       relative rounded-3xl p-6 transition-all duration-500 overflow-hidden
-      bg-gradient-to-br from-white/[0.07] via-white/[0.03] to-transparent
-      backdrop-blur-xl border border-white/[0.08]
-      shadow-[0_8px_32px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.05)]
+      bg-[linear-gradient(180deg,rgba(22,22,26,0.97)_0%,rgba(14,14,18,0.98)_50%,rgba(10,10,12,0.99)_100%)]
+      backdrop-blur-xl border border-white/[0.06]
+      shadow-[0_8px_40px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.04)]
       ${disabled ? 'opacity-50 cursor-not-allowed grayscale' : ''}
-      ${onClick && !disabled ? 'cursor-pointer hover:-translate-y-1.5 hover:shadow-[0_20px_50px_rgba(0,0,0,0.4),0_0_40px_rgba(250,204,21,0.1)] hover:border-yellow-400/30' : ''}
+      ${onClick && !disabled ? 'cursor-pointer hover:-translate-y-1.5 hover:shadow-[0_20px_50px_rgba(0,0,0,0.6),0_0_40px_rgba(250,204,21,0.08)] hover:border-yellow-400/20' : ''}
       ${className}
     `}
   >
     {/* Top highlight for glass effect */}
-    <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+    <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
-    {/* Subtle inner glow */}
-    <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none opacity-50" />
+    {/* Subtle inner glow at top */}
+    <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-white/[0.03] to-transparent pointer-events-none" />
 
     <div className="relative z-10">{children}</div>
   </div>
@@ -249,17 +249,17 @@ export const Badge: React.FC<{ children: React.ReactNode; type?: 'default' | 'su
 // Liquid Video Frame Component - Premium content container
 export const LiquidVideoFrame: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className = '' }) => (
   <div className={`relative rounded-3xl overflow-hidden ${className}`}>
-    {/* Outer glow ring */}
-    <div className="absolute -inset-[2px] rounded-3xl bg-gradient-to-br from-yellow-400/40 via-transparent to-white/20 blur-sm" />
+    {/* Subtle outer glow */}
+    <div className="absolute -inset-[2px] rounded-3xl bg-gradient-to-br from-yellow-400/20 via-transparent to-white/10 blur-md opacity-60" />
 
-    {/* Main border gradient */}
-    <div className="absolute -inset-[1px] rounded-3xl bg-gradient-to-br from-yellow-400/50 via-yellow-400/10 to-white/30" />
+    {/* Solid background */}
+    <div className="absolute inset-0 rounded-3xl bg-[linear-gradient(180deg,#161618_0%,#0e0e10_50%,#0a0a0c_100%)]" />
 
-    {/* Glass background */}
-    <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-zinc-900/95 via-zinc-900/90 to-black/95 backdrop-blur-xl" />
+    {/* Border */}
+    <div className="absolute inset-0 rounded-3xl border border-white/[0.06]" />
 
     {/* Top shine */}
-    <div className="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-white/10 to-transparent rounded-t-3xl pointer-events-none" />
+    <div className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-white/[0.05] to-transparent rounded-t-3xl pointer-events-none" />
 
     {/* Content */}
     <div className="relative z-10 rounded-3xl overflow-hidden">

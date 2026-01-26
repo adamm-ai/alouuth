@@ -57,22 +57,19 @@ type AdminSection = 'OVERVIEW' | 'USERS' | 'COURSES' | 'ANALYTICS';
 const LiquidVideoFrame = ({ children }: { children: React.ReactNode }) => (
   <div className="relative group">
     {/* Outer glow ring - subtle ambient light */}
-    <div className="absolute -inset-1 rounded-[28px] bg-gradient-to-br from-yellow-400/25 via-yellow-500/10 to-white/15 blur-xl opacity-50 group-hover:opacity-80 transition-all duration-700" />
+    <div className="absolute -inset-1 rounded-[28px] bg-gradient-to-br from-yellow-400/20 via-yellow-500/5 to-white/10 blur-xl opacity-40 group-hover:opacity-70 transition-all duration-700" />
 
-    {/* Secondary glow layer for depth */}
-    <div className="absolute -inset-0.5 rounded-[26px] bg-gradient-to-br from-yellow-400/40 via-transparent to-white/25 blur-md opacity-70" />
-
-    {/* Main glass container */}
-    <div className="relative rounded-3xl overflow-hidden backdrop-blur-2xl bg-gradient-to-br from-white/[0.1] via-white/[0.04] to-black/20 border border-white/15 shadow-[0_8px_40px_rgba(0,0,0,0.5),0_0_0_1px_rgba(255,255,255,0.05)_inset,0_1px_0_rgba(255,255,255,0.1)_inset]">
+    {/* Main solid container */}
+    <div className="relative rounded-3xl overflow-hidden bg-[linear-gradient(180deg,#161618_0%,#0e0e10_50%,#0a0a0c_100%)] border border-white/[0.08] shadow-[0_8px_50px_rgba(0,0,0,0.7),0_0_0_1px_rgba(255,255,255,0.03)_inset,0_1px_0_rgba(255,255,255,0.06)_inset]">
       {/* Top shine highlight */}
-      <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-white/12 via-white/5 to-transparent pointer-events-none" />
+      <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-white/[0.06] to-transparent pointer-events-none" />
 
       {/* Edge highlight - left */}
-      <div className="absolute left-0 top-0 bottom-0 w-px bg-gradient-to-b from-white/20 via-white/5 to-transparent pointer-events-none" />
+      <div className="absolute left-0 top-0 bottom-0 w-px bg-gradient-to-b from-white/10 via-white/[0.03] to-transparent pointer-events-none" />
 
-      {/* Animated liquid shine on hover */}
+      {/* Animated shine on hover */}
       <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/8 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out" />
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.04] to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out" />
       </div>
 
       {/* Content */}
@@ -80,14 +77,13 @@ const LiquidVideoFrame = ({ children }: { children: React.ReactNode }) => (
         {children}
       </div>
 
-      {/* Bottom reflection/shadow */}
-      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black/50 via-black/20 to-transparent pointer-events-none" />
+      {/* Bottom shadow */}
+      <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
     </div>
 
-    {/* Floating accent particles */}
-    <div className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-yellow-400/50 rounded-full blur-sm animate-float" style={{animationDelay: '0s'}} />
-    <div className="absolute -bottom-1 -left-1 w-2.5 h-2.5 bg-white/40 rounded-full blur-sm animate-float" style={{animationDelay: '1.5s'}} />
-    <div className="absolute top-1/2 -right-1 w-2 h-2 bg-yellow-300/30 rounded-full blur-sm animate-float" style={{animationDelay: '0.7s'}} />
+    {/* Subtle floating accents */}
+    <div className="absolute -top-1 -right-1 w-2 h-2 bg-yellow-400/40 rounded-full blur-sm animate-float" style={{animationDelay: '0s'}} />
+    <div className="absolute -bottom-0.5 -left-0.5 w-1.5 h-1.5 bg-white/30 rounded-full blur-sm animate-float" style={{animationDelay: '1.5s'}} />
   </div>
 );
 
@@ -370,10 +366,10 @@ const App: React.FC = () => {
 
   const Sidebar = () => (
     <div className={`fixed inset-y-0 left-0 z-50 w-64 transform ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 transition-transform duration-300 ease-in-out`}>
-      {/* Subtle glow behind sidebar */}
-      <div className="absolute inset-y-0 right-0 w-px bg-gradient-to-b from-transparent via-yellow-400/20 to-transparent" />
+      {/* Subtle glow accent on edge */}
+      <div className="absolute inset-y-0 right-0 w-px bg-gradient-to-b from-transparent via-yellow-400/10 to-transparent" />
 
-      <div className="h-full flex flex-col backdrop-blur-2xl bg-gradient-to-b from-zinc-900/95 via-black/95 to-zinc-900/95 border-r border-white/[0.06]">
+      <div className="h-full flex flex-col bg-[linear-gradient(180deg,#141416_0%,#0a0a0b_50%,#080809_100%)] border-r border-white/[0.04]">
         {/* Logo section with premium treatment */}
         <div className="p-8 relative">
           <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
@@ -885,7 +881,7 @@ const App: React.FC = () => {
     return (
       <div className="md:ml-64 h-screen overflow-y-auto relative z-10">
         {/* Mobile Header */}
-        <div className="md:hidden p-4 flex justify-between items-center glass-panel sticky top-0 z-40 backdrop-blur-xl">
+        <div className="md:hidden p-4 flex justify-between items-center bg-[#0c0c0e] border-b border-white/[0.04] sticky top-0 z-40">
           <span className="font-bold">Amini Academy</span>
           <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
             {mobileMenuOpen ? <X /> : <Menu />}
@@ -1615,7 +1611,7 @@ const App: React.FC = () => {
         {/* Top Nav - Hyper Glass */}
         <div className="relative z-30 sticky top-0">
           <div className="absolute inset-0 bg-gradient-to-b from-black via-black/80 to-transparent" />
-          <div className="relative h-20 flex items-center justify-between px-6 border-b border-white/10 backdrop-blur-2xl bg-black/40">
+          <div className="relative h-20 flex items-center justify-between px-6 border-b border-white/[0.06] bg-[linear-gradient(180deg,#101012_0%,#0a0a0b_100%)]">
             <div className="flex items-center gap-5">
               <button
                 onClick={() => setCurrentView('DASHBOARD')}
@@ -1682,7 +1678,7 @@ const App: React.FC = () => {
           `}>
             <div className="h-full relative">
               {/* Glass background */}
-              <div className="absolute inset-0 bg-gradient-to-b from-white/[0.04] to-transparent backdrop-blur-2xl border-r border-white/10" />
+              <div className="absolute inset-0 bg-[linear-gradient(180deg,#131315_0%,#0a0a0b_100%)] border-r border-white/[0.05]" />
 
               {/* Content */}
               <div className="relative h-full flex flex-col">
@@ -2205,7 +2201,7 @@ const App: React.FC = () => {
 
         {/* Mobile lesson selector */}
         <div className="md:hidden fixed bottom-0 left-0 right-0 z-40">
-          <div className="bg-black/90 backdrop-blur-xl border-t border-white/10 p-4">
+          <div className="bg-[#0a0a0b] border-t border-white/[0.05] p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-yellow-400/20 flex items-center justify-center text-yellow-400 font-bold">
@@ -2600,7 +2596,7 @@ const App: React.FC = () => {
       return (
         <div className="md:ml-64 h-screen overflow-hidden relative z-10 bg-black flex flex-col">
            {/* Editor Header */}
-           <div className="h-16 flex-shrink-0 glass-panel border-b border-white/10 flex items-center justify-between px-6 z-30 backdrop-blur-xl">
+           <div className="h-16 flex-shrink-0 bg-[linear-gradient(180deg,#121214_0%,#0a0a0b_100%)] border-b border-white/[0.05] flex items-center justify-between px-6 z-30">
              <div className="flex items-center gap-4">
                 <IconButton icon={<ArrowLeft size={20} />} onClick={() => setViewMode('DASHBOARD')} />
                 <h2 className="font-bold text-lg text-white">Course Editor</h2>
@@ -2625,7 +2621,7 @@ const App: React.FC = () => {
 
            <div className="flex flex-1 overflow-hidden">
               {/* Left Sidebar: Structure */}
-              <div className="w-80 glass-panel border-r border-white/10 flex flex-col">
+              <div className="w-80 bg-[linear-gradient(180deg,#131315_0%,#0a0a0b_100%)] border-r border-white/[0.05] flex flex-col">
                  <div className="flex border-b border-white/5">
                    <button 
                     onClick={() => setEditorTab('DETAILS')}

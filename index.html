@@ -68,71 +68,86 @@
       }
 
       /* ============================================
-         GLASS PANEL SYSTEM
+         GLASS PANEL SYSTEM - Premium Opaque Glass
          ============================================ */
 
-      /* Base Glass Panel */
+      /* Base Glass Panel - Solid frosted glass */
       .glass-panel {
         background: linear-gradient(
-          135deg,
-          rgba(15, 15, 15, 0.8) 0%,
-          rgba(10, 10, 10, 0.7) 50%,
-          rgba(5, 5, 5, 0.8) 100%
-        );
-        backdrop-filter: blur(20px) saturate(150%);
-        -webkit-backdrop-filter: blur(20px) saturate(150%);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        box-shadow:
-          0 4px 24px rgba(0, 0, 0, 0.4),
-          0 1px 0 rgba(255, 255, 255, 0.05) inset,
-          0 -1px 0 rgba(0, 0, 0, 0.3) inset;
-      }
-
-      /* Ultra Premium Glass - For hero elements */
-      .glass-ultra {
-        background: linear-gradient(
-          135deg,
-          rgba(255, 255, 255, 0.1) 0%,
-          rgba(255, 255, 255, 0.05) 25%,
-          rgba(255, 255, 255, 0.02) 50%,
-          rgba(255, 255, 255, 0.05) 75%,
-          rgba(255, 255, 255, 0.08) 100%
+          180deg,
+          rgba(18, 18, 20, 0.98) 0%,
+          rgba(12, 12, 14, 0.98) 50%,
+          rgba(8, 8, 10, 0.99) 100%
         );
         backdrop-filter: blur(40px) saturate(180%);
         -webkit-backdrop-filter: blur(40px) saturate(180%);
-        border: 1px solid rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.06);
         box-shadow:
-          0 8px 32px rgba(0, 0, 0, 0.4),
-          0 0 0 1px rgba(255, 255, 255, 0.05) inset,
-          0 1px 0 rgba(255, 255, 255, 0.1) inset,
-          0 -1px 0 rgba(0, 0, 0, 0.1) inset;
+          0 4px 30px rgba(0, 0, 0, 0.5),
+          0 1px 0 rgba(255, 255, 255, 0.04) inset,
+          0 -1px 0 rgba(0, 0, 0, 0.5) inset;
       }
 
-      /* Gold Accent Glass */
+      /* Ultra Premium Glass - Hero elements with depth */
+      .glass-ultra {
+        background: linear-gradient(
+          180deg,
+          rgba(22, 22, 26, 0.97) 0%,
+          rgba(14, 14, 18, 0.98) 50%,
+          rgba(10, 10, 12, 0.99) 100%
+        );
+        backdrop-filter: blur(60px) saturate(200%);
+        -webkit-backdrop-filter: blur(60px) saturate(200%);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow:
+          0 8px 40px rgba(0, 0, 0, 0.6),
+          0 0 0 1px rgba(255, 255, 255, 0.03) inset,
+          0 1px 0 rgba(255, 255, 255, 0.06) inset,
+          0 -1px 0 rgba(0, 0, 0, 0.4) inset;
+      }
+
+      /* Gold Accent Glass - Premium gold tint */
       .glass-gold {
         background: linear-gradient(
-          135deg,
-          rgba(250, 204, 21, 0.12) 0%,
-          rgba(250, 204, 21, 0.05) 30%,
-          rgba(255, 255, 255, 0.02) 60%,
-          rgba(250, 204, 21, 0.08) 100%
+          180deg,
+          rgba(20, 18, 12, 0.97) 0%,
+          rgba(14, 12, 8, 0.98) 50%,
+          rgba(10, 8, 6, 0.99) 100%
         );
-        backdrop-filter: blur(24px) saturate(150%);
-        -webkit-backdrop-filter: blur(24px) saturate(150%);
-        border: 1px solid rgba(250, 204, 21, 0.2);
+        backdrop-filter: blur(40px) saturate(180%);
+        -webkit-backdrop-filter: blur(40px) saturate(180%);
+        border: 1px solid rgba(250, 204, 21, 0.15);
         box-shadow:
-          0 0 40px rgba(250, 204, 21, 0.08),
-          0 4px 24px rgba(0, 0, 0, 0.3),
-          0 1px 0 rgba(250, 204, 21, 0.1) inset;
+          0 0 60px rgba(250, 204, 21, 0.04),
+          0 4px 30px rgba(0, 0, 0, 0.5),
+          0 1px 0 rgba(250, 204, 21, 0.08) inset;
       }
 
-      /* Subtle Glass - For cards and containers */
+      /* Subtle Glass - Cards with solid backing */
       .glass-subtle {
-        background: rgba(255, 255, 255, 0.03);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.06);
-        box-shadow: 0 2px 16px rgba(0, 0, 0, 0.2);
+        background: linear-gradient(
+          180deg,
+          rgba(20, 20, 22, 0.95) 0%,
+          rgba(16, 16, 18, 0.96) 100%
+        );
+        backdrop-filter: blur(20px) saturate(150%);
+        -webkit-backdrop-filter: blur(20px) saturate(150%);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+      }
+
+      /* Solid Panel - Fully opaque premium dark */
+      .glass-solid {
+        background: linear-gradient(
+          180deg,
+          #141416 0%,
+          #0c0c0e 50%,
+          #080809 100%
+        );
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        box-shadow:
+          0 4px 30px rgba(0, 0, 0, 0.6),
+          0 1px 0 rgba(255, 255, 255, 0.03) inset;
       }
 
       /* ============================================
