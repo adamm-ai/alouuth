@@ -1639,9 +1639,9 @@ const App: React.FC = () => {
         <div className="flex-1 flex flex-col md:flex-row overflow-hidden relative z-10">
           {/* Sidebar Curriculum - Hyper Liquid Glass */}
           <div className={`
-            transition-all duration-200 ease-in-out hidden md:flex flex-col
+            transition-[width,transform] duration-200 hidden md:flex flex-col
             ${playerSidebarCollapsed ? 'w-20' : 'w-96'}
-          `}>
+          `} style={{ transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)' }}>
             <div className="h-full relative">
               {/* Solid background - no gradient */}
               <div className="absolute inset-0 bg-[#0a0a0b] border-r border-white/[0.05]" />
@@ -1651,7 +1651,7 @@ const App: React.FC = () => {
                 {/* Header */}
                 <div className="p-6 border-b border-white/10">
                   <div className="flex items-center justify-between mb-4">
-                    <div className={`transition-all duration-200 ${playerSidebarCollapsed ? 'opacity-0 w-0 scale-90' : 'opacity-100 w-auto scale-100'} overflow-hidden`}>
+                    <div className={`transition-all duration-200 ${playerSidebarCollapsed ? 'opacity-0 -translate-x-10 scale-90' : 'opacity-100 translate-x-0 scale-100'} overflow-hidden`} style={{ transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)' }}>
                       <h2 className="text-sm font-bold text-white uppercase tracking-wider">Curriculum</h2>
                       <p className="text-[11px] text-zinc-500 mt-1">{totalCount} lessons • {activeCourse?.totalDuration}</p>
                     </div>
@@ -1726,8 +1726,8 @@ const App: React.FC = () => {
               {activeLesson ? (
                 <div className={`
                     ${playerSidebarCollapsed ? 'max-w-screen-xl lg:px-12' : 'max-w-5xl'}
-                    w-full space-y-10 transition-all duration-300 ease-in-out
-                  `}>
+                    w-full space-y-10 transition-all duration-200
+                  `} style={{ transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)' }}>
 
                   {/* Lesson Header */}
                   <div className="text-center mb-4">
