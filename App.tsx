@@ -2936,31 +2936,8 @@ const App: React.FC = () => {
                         />
                       </div>
 
-                      {/* Preview */}
-                      <div className="aspect-video bg-black rounded-xl border border-white/10 flex items-center justify-center text-zinc-500 overflow-hidden">
-                        {activeLesson.videoUrl ? (
-                          isYouTubeUrl(activeLesson.videoUrl) ? (
-                            <iframe
-                              src={`https://www.youtube.com/embed/${getYouTubeVideoId(activeLesson.videoUrl)}`}
-                              className="w-full h-full"
-                              allowFullScreen
-                            />
-                          ) : (
-                            <iframe src={activeLesson.videoUrl} className="w-full h-full" allowFullScreen />
-                          )
-                        ) : activeLesson.fileUrl ? (
-                          <video
-                            src={activeLesson.fileUrl}
-                            controls
-                            className="w-full h-full"
-                          />
-                        ) : (
-                          <div className="text-center">
-                            <MonitorPlay size={48} className="mx-auto mb-2 opacity-50" />
-                            <p>Enter a URL or upload a video to preview</p>
-                          </div>
-                        )}
-                      </div>
+
+
                     </GlassCard>
                   )}
 
@@ -3128,7 +3105,7 @@ const App: React.FC = () => {
               )}
             </div>
           </div>
-        </div>
+        </div >
       );
     }
 
