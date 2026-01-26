@@ -2161,6 +2161,7 @@ const App: React.FC = () => {
     const [processingUser, setProcessingUser] = useState<string | null>(null);
     const [userSearchQuery, setUserSearchQuery] = useState('');
     const [userFilterRole, setUserFilterRole] = useState<string>('ALL');
+    const containerRef = React.useRef<HTMLDivElement>(null);
 
     // Track deleted lessons for backend sync
     const [deletedLessonIds, setDeletedLessonIds] = useState<string[]>([]);
@@ -3635,14 +3636,8 @@ const App: React.FC = () => {
                         </div>
 
                         <LayoutGroup id={`level-${level}`}>
-                          <Reorder.Group
-                            axis="y"
-                            values={levelCourses}
-                            onReorder={(newOrder) => {
-                              const otherLevelCourses = localCourses.filter(c => c.level !== level);
-                              const updatedWithIndex = newOrder.map((c, i) => ({ ...c, orderIndex: i }));
-                              setLocalCourses(sortCourses([...otherLevelCourses, ...updatedWithIndex]));
-                            }}
+                          <div
+                            ref={containerRef}
                             className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 relative p-4 rounded-3xl"
                           >
                             {draggedCourseId && (
@@ -3653,10 +3648,12 @@ const App: React.FC = () => {
                               />
                             )}
                             {levelCourses.map((course, index) => (
-                              <Reorder.Item
+                              <motion.div
                                 key={course.id}
-                                value={course}
-                                layout="position"
+                                layout
+                                drag
+                                dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
+                                dragElastic={1}
                                 onDragStart={() => setDraggedCourseId(course.id)}
                                 onDragEnd={async () => {
                                   setDraggedCourseId(null);
@@ -3671,6 +3668,39 @@ const App: React.FC = () => {
                                     console.error('Reorder sync failed', err);
                                   }
                                 }}
+                                onDrag={(_, info) => {
+                                  if (!containerRef.current) return;
+
+                                  // Simplified Liquid Grid Math
+                                  // 1. Get container dimensions
+                                  const rect = containerRef.current.getBoundingClientRect();
+                                  const cols = window.innerWidth >= 1280 ? 3 : window.innerWidth >= 768 ? 2 : 1;
+
+                                  // 2. Calculate relative pointer position
+                                  const x = info.point.x - rect.left;
+                                  const y = info.point.y - rect.top;
+
+                                  // 3. Determine target col/row
+                                  const cellWidth = rect.width / cols;
+                                  // Estimate cell height (approximate is fine for thresholding)
+                                  const cellHeight = 300;
+
+                                  const col = Math.floor(x / cellWidth);
+                                  const row = Math.floor(y / cellHeight);
+
+                                  const targetIndex = Math.max(0, Math.min(levelCourses.length - 1, row * cols + col));
+
+                                  if (targetIndex !== index) {
+                                    // SWAP LOCALLY
+                                    const otherLevelCourses = localCourses.filter(c => c.level !== level);
+                                    const reordered = [...levelCourses];
+                                    const [movedItem] = reordered.splice(index, 1);
+                                    reordered.splice(targetIndex, 0, movedItem);
+
+                                    const updated = reordered.map((item, i) => ({ ...item, orderIndex: i }));
+                                    setLocalCourses(sortCourses([...otherLevelCourses, ...updated]));
+                                  }
+                                }}
                                 className={`group relative rounded-2xl transition-shadow duration-300 ${draggedCourseId === course.id ? 'z-[100]' : 'z-10'}`}
                                 whileDrag={{
                                   scale: 1.05,
@@ -3678,7 +3708,7 @@ const App: React.FC = () => {
                                   zIndex: 100,
                                   boxShadow: "0 40px 80px rgba(0,0,0,0.6), 0 0 40px rgba(212, 175, 55, 0.15)",
                                 }}
-                                transition={{ type: "spring", stiffness: 80, damping: 20, mass: 1.5 }}
+                                transition={{ type: "spring", stiffness: 300, damping: 30 }}
                               >
                                 {/* Card Body */}
                                 <div className={`relative glass-panel rounded-2xl border ${draggedCourseId === course.id ? 'border-yellow-400/50' : 'border-white/10'} group-hover:border-white/20 overflow-hidden backdrop-blur-xl bg-zinc-900/80 pointer-events-auto`}>
@@ -3715,9 +3745,9 @@ const App: React.FC = () => {
                                     </div>
                                   </div>
                                 </div>
-                              </Reorder.Item>
+                              </motion.div>
                             ))}
-                          </Reorder.Group>
+                          </div>
                         </LayoutGroup>
 
                       </div>
