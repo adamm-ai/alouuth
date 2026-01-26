@@ -117,23 +117,65 @@ const App: React.FC = () => {
         // Validate token by fetching user data
         const fetchedUser = await dataService.getUser();
         setUser(fetchedUser);
-        // Redirect to appropriate view based on role
-        if (fetchedUser.role === 'ADMIN' || fetchedUser.role === 'SUPERUSER') {
-          setCurrentView('ADMIN');
+
+        // --- NEW: Persistent View State Restore ---
+        const savedView = localStorage.getItem('amini_active_view') as View | null;
+        const savedCourseId = localStorage.getItem('amini_active_course_id');
+        const savedLessonId = localStorage.getItem('amini_active_lesson_id');
+
+        if (savedView) {
+          if (savedView === 'COURSE_PLAYER' && savedCourseId) {
+            // If they were in the player, we need to load courses first to find the active course
+            const fetchedCourses = await dataService.getCourses();
+            setCourses(sortCourses(fetchedCourses));
+            setDataLoaded(true); // Mark as loaded so loadData doesn't run again
+
+            const targetCourse = fetchedCourses.find(c => c.id === savedCourseId);
+            if (targetCourse) {
+              setActiveCourse(targetCourse);
+              const targetLesson = targetCourse.lessons.find(l => l.id === savedLessonId);
+              setActiveLesson(targetLesson || targetCourse.lessons[0]);
+              setCurrentView('COURSE_PLAYER');
+            } else {
+              setCurrentView('DASHBOARD');
+            }
+          } else if (savedView === 'ADMIN' && (fetchedUser.role === 'ADMIN' || fetchedUser.role === 'SUPERUSER')) {
+            setCurrentView('ADMIN');
+          } else if (savedView === 'DASHBOARD') {
+            setCurrentView('DASHBOARD');
+          } else {
+            // Default based on role
+            setCurrentView(fetchedUser.role === 'ADMIN' || fetchedUser.role === 'SUPERUSER' ? 'ADMIN' : 'DASHBOARD');
+          }
         } else {
-          setCurrentView('DASHBOARD');
+          // No saved view, default based on role
+          setCurrentView(fetchedUser.role === 'ADMIN' || fetchedUser.role === 'SUPERUSER' ? 'ADMIN' : 'DASHBOARD');
         }
       } catch (error) {
         // Token is invalid or expired, clear it
         console.error('Session restoration failed:', error);
         setAuthToken(null);
         setCurrentView('LANDING');
+      } finally {
         setIsLoading(false);
       }
     };
 
     restoreSession();
   }, []); // Run once on mount
+
+  // --- NEW: Persistent View State Persistence ---
+  useEffect(() => {
+    if (user && currentView !== 'LANDING' && currentView !== 'AUTH') {
+      localStorage.setItem('amini_active_view', currentView);
+      if (activeCourse) {
+        localStorage.setItem('amini_active_course_id', activeCourse.id);
+      }
+      if (activeLesson) {
+        localStorage.setItem('amini_active_lesson_id', activeLesson.id);
+      }
+    }
+  }, [currentView, activeCourse, activeLesson, user]);
 
   // Track if initial data has been loaded
   const [dataLoaded, setDataLoaded] = useState(false);
@@ -3593,7 +3635,16 @@ const App: React.FC = () => {
                         </div>
 
                         <LayoutGroup id={`level-${level}`}>
-                          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 relative p-4 rounded-3xl">
+                          <Reorder.Group
+                            axis="y"
+                            values={levelCourses}
+                            onReorder={(newOrder) => {
+                              const otherLevelCourses = localCourses.filter(c => c.level !== level);
+                              const updatedWithIndex = newOrder.map((c, i) => ({ ...c, orderIndex: i }));
+                              setLocalCourses(sortCourses([...otherLevelCourses, ...updatedWithIndex]));
+                            }}
+                            className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 relative p-4 rounded-3xl"
+                          >
                             {draggedCourseId && (
                               <motion.div
                                 initial={{ opacity: 0 }}
@@ -3602,13 +3653,10 @@ const App: React.FC = () => {
                               />
                             )}
                             {levelCourses.map((course, index) => (
-                              <motion.div
+                              <Reorder.Item
                                 key={course.id}
+                                value={course}
                                 layout="position"
-                                drag
-                                dragDelay={70}
-                                dragElastic={0.05}
-                                dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
                                 onDragStart={() => setDraggedCourseId(course.id)}
                                 onDragEnd={async () => {
                                   setDraggedCourseId(null);
@@ -3616,38 +3664,11 @@ const App: React.FC = () => {
                                   setCourses([...localCourses]);
                                   // Sync final state to backend
                                   try {
-                                    const updatedLevelItems = localCourses.filter(c => c.level === level).map((c, idx) => ({
-                                      ...c,
-                                      orderIndex: idx
-                                    }));
+                                    const updatedLevelItems = localCourses.filter(c => c.level === level);
                                     const orderedIds = updatedLevelItems.map(c => c.id);
                                     await dataService.reorderCourses(level, orderedIds);
                                   } catch (err) {
                                     console.error('Reorder sync failed', err);
-                                  }
-                                }}
-                                onDrag={(_, info) => {
-                                  // Threshold-based swapping
-                                  const thresholdX = 140;
-                                  const thresholdY = 80;
-                                  const { x, y } = info.offset;
-
-                                  if (Math.abs(x) > thresholdX || Math.abs(y) > thresholdY) {
-                                    const colChange = Math.round(x / 300);
-                                    const rowChange = Math.round(y / 250);
-                                    const cols = window.innerWidth >= 1280 ? 3 : window.innerWidth >= 768 ? 2 : 1;
-                                    const targetIndex = index + colChange + (rowChange * cols);
-
-                                    if (targetIndex >= 0 && targetIndex < levelCourses.length && targetIndex !== index) {
-                                      // SWAP LOCALLY (Does not trigger parent App re-render)
-                                      const otherLevelCourses = localCourses.filter(c => c.level !== level);
-                                      const reordered = [...levelCourses];
-                                      const [movedItem] = reordered.splice(index, 1);
-                                      reordered.splice(targetIndex, 0, movedItem);
-
-                                      const updated = reordered.map((item, i) => ({ ...item, orderIndex: i }));
-                                      setLocalCourses(sortCourses([...otherLevelCourses, ...updated]));
-                                    }
                                   }
                                 }}
                                 className={`group relative rounded-2xl transition-shadow duration-300 ${draggedCourseId === course.id ? 'z-[100]' : 'z-10'}`}
@@ -3694,9 +3715,9 @@ const App: React.FC = () => {
                                     </div>
                                   </div>
                                 </div>
-                              </motion.div>
+                              </Reorder.Item>
                             ))}
-                          </div>
+                          </Reorder.Group>
                         </LayoutGroup>
 
                       </div>
