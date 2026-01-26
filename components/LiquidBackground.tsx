@@ -26,16 +26,17 @@ export const LiquidBackground: React.FC = () => {
 
     let width = window.innerWidth;
     let height = window.innerHeight;
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    // 8K Optimization: Uncap DPI, allow up to 4x for ultra-crisp lines
+    const dpr = Math.min(window.devicePixelRatio || 1, 4);
 
-    // Configuration for "World Class" Feel
     const config = {
-      gridSpacing: 50, // Space between points
-      noiseScale: 0.0015, // How "zoomed in" the noise is (lower = smoother flow)
-      timeSpeed: 0.0003, // Speed of animation
-      distortionStrength: 30, // How far points drift
-      connectionDistance: 110, // Max distance to draw lines
-      baseColor: { h: 38, s: 90, l: 50 }, // Gold/Amber base
+      gridSpacing: 40, // Increased density (was 50)
+      noiseScale: 0.001, // Smoother, larger curves
+      timeSpeed: 0.0002, // Slower, more majestic movement
+      distortionStrength: 25,
+      connectionDistance: 90,
+      // Gold/Amber shifted to a more "light beam" feel
+      baseColor: '250, 200, 20',
     };
 
     const resize = () => {
@@ -75,9 +76,13 @@ export const LiquidBackground: React.FC = () => {
       timeRef.current += config.timeSpeed;
       const time = timeRef.current;
 
-      // Clear with very subtle trail effect for "liquid" feel? No, clean abstract looks slicker.
       ctx.fillStyle = '#000000';
       ctx.fillRect(0, 0, width, height);
+
+      // Ultra-Slick Mode: Additive Blending
+      // This makes overlapping lines add up in brightness, creating glowing intersections
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.lineWidth = 0.2; // Razor thin lines
 
       const points = pointsRef.current;
 
@@ -86,21 +91,15 @@ export const LiquidBackground: React.FC = () => {
         const noiseX = noise3D(p.originX * config.noiseScale, p.originY * config.noiseScale, time);
         const noiseY = noise3D(p.originX * config.noiseScale, p.originY * config.noiseScale + 100, time);
 
-        // Circular organic drift
         p.x = p.originX + noiseX * config.distortionStrength;
         p.y = p.originY + noiseY * config.distortionStrength;
       });
 
-      // Draw Connections (Triangulation / Mesh feel)
-      // Optimized: Only check neighbors in grid would be faster, but for < 1000 points O(N^2) with distance check is acceptable on modern GPUs/CPUs.
-      // Actually, standard N^2 is too heavy for 1000+ points on 60fps.
-      // Let's rely on the grid structure for implicit connections to keep it performant and "slick".
-      // Connecting primarily to immediate grid neighbors creates a nice mesh.
-
+      // Draw Grid Connections
       const cols = Math.ceil(width / config.gridSpacing) + 2;
       const rows = Math.ceil(height / config.gridSpacing) + 2;
 
-      ctx.lineWidth = 0.5; // Very thin lines
+      const r = 250, g = 200, b = 20;
 
       for (let i = 0; i < cols; i++) {
         for (let j = 0; j < rows; j++) {
@@ -108,56 +107,41 @@ export const LiquidBackground: React.FC = () => {
           const p = points[idx];
           if (!p) continue;
 
-          // Connect to right
+          // Right connection
           if (i < cols - 1) {
             const rightIdx = (i + 1) * rows + j;
             const neighbor = points[rightIdx];
-            drawConnection(ctx, p, neighbor);
+            drawLine(ctx, p, neighbor, r, g, b);
           }
 
-          // Connect to bottom
+          // Bottom connection
           if (j < rows - 1) {
             const bottomIdx = i * rows + (j + 1);
             const neighbor = points[bottomIdx];
-            drawConnection(ctx, p, neighbor);
+            drawLine(ctx, p, neighbor, r, g, b);
           }
 
-          // Connect diagonal (optional, adds structural density)
-          if (i < cols - 1 && j < rows - 1) {
-            const diagIdx = (i + 1) * rows + (j + 1);
-            const neighbor = points[diagIdx];
-            drawConnection(ctx, p, neighbor, 0.5); // Fainter diagonal
-          }
+          // No diagonal connections = cleaner, wireframe look
         }
       }
 
+      ctx.globalCompositeOperation = 'source-over'; // Reset for next frame clear
       animationRef.current = requestAnimationFrame(animate);
     };
 
-    const drawConnection = (ctx: CanvasRenderingContext2D, p1: Point, p2: Point, opacityMultiplier = 1) => {
+    const drawLine = (ctx: CanvasRenderingContext2D, p1: Point, p2: Point, r: number, g: number, b: number) => {
       const dist = Math.hypot(p2.x - p1.x, p2.y - p1.y);
-      const maxDist = config.connectionDistance * 1.5; // Allow some stretch
+      const maxDist = config.connectionDistance * 1.3;
 
-      // Alpha taking distance into account - stretch leads to break
+      if (dist > maxDist) return;
+
       let alpha = 1 - (dist / maxDist);
-      alpha = Math.max(0, alpha);
-      alpha = Math.pow(alpha, 2); // Non-linear fade
+      alpha = Math.pow(alpha, 3); // Stronger falloff for sharper start/end points
 
-      if (alpha <= 0.01) return;
+      if (alpha < 0.02) return;
 
-      // Gradient Stroke - Wealthy Gold
-      const gradient = ctx.createLinearGradient(p1.x, p1.y, p2.x, p2.y);
-      const colorStops = [
-        `rgba(250, 200, 20, ${alpha * 0.15 * opacityMultiplier})`, // Amber/Gold low opacity
-        `rgba(255, 240, 200, ${alpha * 0.08 * opacityMultiplier})`, // Cream highlight
-        `rgba(250, 200, 20, ${alpha * 0.15 * opacityMultiplier})`
-      ];
-
-      gradient.addColorStop(0, colorStops[0]);
-      gradient.addColorStop(0.5, colorStops[1]);
-      gradient.addColorStop(1, colorStops[2]);
-
-      ctx.strokeStyle = gradient;
+      // Solid color with alpha is much faster than gradients
+      ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${alpha * 0.4})`; // Lower base opacity, reliant on 'lighter' blend to pop
       ctx.beginPath();
       ctx.moveTo(p1.x, p1.y);
       ctx.lineTo(p2.x, p2.y);
@@ -177,23 +161,16 @@ export const LiquidBackground: React.FC = () => {
   }, []);
 
   return (
-    <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden bg-black">
+    <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden bg-black/95">
       <canvas ref={canvasRef} className="absolute inset-0" />
 
-      {/* Cinematic Vignette */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.4)_70%,#000000_100%)]" />
+      {/* Cinematic Vignette - Smoother */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.6)_80%,#000000_100%)]" />
 
-      {/* Noise Texture */}
-      <div
-        className="absolute inset-0 opacity-[0.035] mix-blend-overlay"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`
-        }}
+      {/* Subtle TextureOverlay */}
+      <div className="absolute inset-0 opacity-[0.02] pointer-events-none mix-blend-overlay"
+        style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}
       />
-
-      {/* Ambient Gold Glows (Subtler) */}
-      <div className="absolute top-[-10%] left-[20%] w-[40vw] h-[40vw] bg-yellow-600/[0.04] blur-[150px] rounded-full animate-pulse-glow" />
-      <div className="absolute bottom-[-10%] right-[20%] w-[30vw] h-[30vw] bg-amber-700/[0.03] blur-[120px] rounded-full animate-pulse-glow" style={{ animationDelay: '2s' }} />
     </div>
   );
 };
