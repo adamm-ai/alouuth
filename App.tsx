@@ -128,7 +128,6 @@ const App: React.FC = () => {
         console.error('Session restoration failed:', error);
         setAuthToken(null);
         setCurrentView('LANDING');
-      } finally {
         setIsLoading(false);
       }
     };
@@ -170,7 +169,8 @@ const App: React.FC = () => {
       } catch (error) {
         console.error("Failed to load data", error);
       } finally {
-        setIsLoading(false);
+        // Small delay to ensure view state has propagated before revealing
+        setTimeout(() => setIsLoading(false), 50);
       }
     };
     loadData();
@@ -3923,7 +3923,7 @@ const App: React.FC = () => {
 
   return (
     <ToastProvider>
-      <div className="font-helvetica text-slate-50 selection:bg-yellow-400/30 h-screen overflow-hidden">
+      <div className="font-helvetica text-slate-50 selection:bg-yellow-400/30 h-screen overflow-hidden animate-page-entrance">
         <LiquidBackground />
 
         {/* Sidebar for authenticated views except player */}

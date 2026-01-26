@@ -171,6 +171,7 @@
 
 .animate-radiant {
   animation: radiant-pulse 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, opacity;
 }
 
 .animate-gold-flood {
@@ -185,6 +186,8 @@
 
 .animate-page-entrance {
   animation: page-entrance 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, opacity, filter;
+  backface-visibility: hidden;
 }
 
 .light-sweep {
