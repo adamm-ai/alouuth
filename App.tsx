@@ -3656,7 +3656,7 @@ const App: React.FC = () => {
                                   boxShadow: "0 40px 80px rgba(0,0,0,0.6), 0 0 40px rgba(212, 175, 55, 0.15)",
                                   cursor: 'grabbing'
                                 }}
-                                transition={{ type: "spring", stiffness: 120, damping: 20, mass: 1 }}
+                                transition={{ type: "spring", stiffness: 80, damping: 20, mass: 1.5 }}
                               >
                                 {/* Ambient Glow */}
                                 <div className={`absolute -inset-1 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl ${level === 'Beginner' ? 'bg-green-500/20' :
