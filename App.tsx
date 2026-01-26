@@ -2161,7 +2161,12 @@ const App: React.FC = () => {
     const [processingUser, setProcessingUser] = useState<string | null>(null);
     const [userSearchQuery, setUserSearchQuery] = useState('');
     const [userFilterRole, setUserFilterRole] = useState<string>('ALL');
-    const containerRef = React.useRef<HTMLDivElement>(null);
+    // Fix: Use separate refs for each level grid to get correct container bounds
+    const containerRefs = React.useRef<Record<string, HTMLDivElement | null>>({
+      Beginner: null,
+      Intermediate: null,
+      Advanced: null
+    });
 
     // Track deleted lessons for backend sync
     const [deletedLessonIds, setDeletedLessonIds] = useState<string[]>([]);
@@ -2184,14 +2189,16 @@ const App: React.FC = () => {
     const [selectedMinistry, setSelectedMinistry] = useState<string | null>(null);
     const [ministryCourseStats, setMinistryCourseStats] = useState<any[]>([]);
 
-    // --- NEW: Reorder Buffer ---
-    // This allows liquid reordering without triggering global App re-renders during drag
+    // --- DRAG REORDER SYSTEM ---
+    // Use ref for synchronous order tracking during drag (React state is async and causes stale closures)
+    const dragOrderRef = React.useRef<Course[]>([]);
     const [localCourses, setLocalCourses] = useState<Course[]>(courses);
 
+    // Sync local courses with global courses when not dragging
     useEffect(() => {
-      // Sync local courses with global courses when global changes (but don't interrupt active drag)
       if (!draggedCourseId) {
         setLocalCourses([...courses]);
+        dragOrderRef.current = [...courses];
       }
     }, [courses, draggedCourseId]);
 
@@ -3637,7 +3644,7 @@ const App: React.FC = () => {
 
                         <LayoutGroup id={`level-${level}`}>
                           <div
-                            ref={containerRef}
+                            ref={(el) => { containerRefs.current[level] = el; }}
                             className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 relative p-4 rounded-3xl"
                           >
                             {draggedCourseId && (
@@ -3654,14 +3661,21 @@ const App: React.FC = () => {
                                 drag
                                 dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
                                 dragElastic={1}
-                                onDragStart={() => setDraggedCourseId(course.id)}
+                                onDragStart={() => {
+                                  // Initialize ref with current state when drag starts
+                                  dragOrderRef.current = [...localCourses];
+                                  setDraggedCourseId(course.id);
+                                }}
                                 onDragEnd={async () => {
+                                  // Commit ref's final order to both local and global state
+                                  const finalOrder = [...dragOrderRef.current];
+                                  setLocalCourses(finalOrder);
+                                  setCourses(finalOrder);
                                   setDraggedCourseId(null);
-                                  // COMMIT LOCAL STATE TO GLOBAL STATE
-                                  setCourses([...localCourses]);
+
                                   // Sync final state to backend
                                   try {
-                                    const updatedLevelItems = localCourses.filter(c => c.level === level);
+                                    const updatedLevelItems = finalOrder.filter(c => c.level === level);
                                     const orderedIds = updatedLevelItems.map(c => c.id);
                                     await dataService.reorderCourses(level, orderedIds);
                                   } catch (err) {
@@ -3669,37 +3683,42 @@ const App: React.FC = () => {
                                   }
                                 }}
                                 onDrag={(_, info) => {
-                                  if (!containerRef.current) return;
+                                  const container = containerRefs.current[level];
+                                  if (!container) return;
 
-                                  // Simplified Liquid Grid Math
-                                  // 1. Get container dimensions
-                                  const rect = containerRef.current.getBoundingClientRect();
+                                  // Get current order from ref (synchronous, never stale)
+                                  const currentOrder = dragOrderRef.current;
+                                  const currentLevelCourses = currentOrder.filter(c => c.level === level);
+
+                                  // Calculate grid position
+                                  const rect = container.getBoundingClientRect();
                                   const cols = window.innerWidth >= 1280 ? 3 : window.innerWidth >= 768 ? 2 : 1;
-
-                                  // 2. Calculate relative pointer position
                                   const x = info.point.x - rect.left;
                                   const y = info.point.y - rect.top;
-
-                                  // 3. Determine target col/row
                                   const cellWidth = rect.width / cols;
-                                  // Estimate cell height (approximate is fine for thresholding)
-                                  const cellHeight = 300;
+                                  const firstChild = container.firstElementChild?.nextElementSibling as HTMLElement | null;
+                                  const cellHeight = firstChild?.offsetHeight ? firstChild.offsetHeight + 24 : 320;
 
-                                  const col = Math.floor(x / cellWidth);
-                                  const row = Math.floor(y / cellHeight);
+                                  const col = Math.max(0, Math.min(cols - 1, Math.floor(x / cellWidth)));
+                                  const row = Math.max(0, Math.floor(y / cellHeight));
+                                  const targetIndex = Math.max(0, Math.min(currentLevelCourses.length - 1, row * cols + col));
 
-                                  const targetIndex = Math.max(0, Math.min(levelCourses.length - 1, row * cols + col));
+                                  // Find current index of dragged item in the ref's order
+                                  const currentIndex = currentLevelCourses.findIndex(c => c.id === course.id);
+                                  if (currentIndex === -1 || targetIndex === currentIndex) return;
 
-                                  if (targetIndex !== index) {
-                                    // SWAP LOCALLY
-                                    const otherLevelCourses = localCourses.filter(c => c.level !== level);
-                                    const reordered = [...levelCourses];
-                                    const [movedItem] = reordered.splice(index, 1);
-                                    reordered.splice(targetIndex, 0, movedItem);
+                                  // Reorder in the ref (synchronous update)
+                                  const otherLevelCourses = currentOrder.filter(c => c.level !== level);
+                                  const reordered = [...currentLevelCourses];
+                                  const [movedItem] = reordered.splice(currentIndex, 1);
+                                  reordered.splice(targetIndex, 0, movedItem);
+                                  const updated = reordered.map((item, i) => ({ ...item, orderIndex: i }));
 
-                                    const updated = reordered.map((item, i) => ({ ...item, orderIndex: i }));
-                                    setLocalCourses(sortCourses([...otherLevelCourses, ...updated]));
-                                  }
+                                  // Update ref synchronously
+                                  dragOrderRef.current = sortCourses([...otherLevelCourses, ...updated]);
+
+                                  // Trigger re-render to show new order
+                                  setLocalCourses([...dragOrderRef.current]);
                                 }}
                                 className={`group relative rounded-2xl transition-shadow duration-300 ${draggedCourseId === course.id ? 'z-[100]' : 'z-10'}`}
                                 whileDrag={{

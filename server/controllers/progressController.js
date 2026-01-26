@@ -13,11 +13,15 @@ async function checkPrerequisites(userId, courseId) {
       WHERE c.id = $1
     `, [courseId]);
   } catch (e) {
-    console.log('Prerequisite column missing in courses table, falling back');
-    courseResult = await pool.query(`
-      SELECT id, level FROM courses
-      WHERE id = $1
-    `, [courseId]);
+    if (e.code === '42703') { // PostgreSQL "column does not exist"
+      console.warn('Prerequisite column missing in courses table, falling back');
+      courseResult = await pool.query(`
+        SELECT id, level FROM courses
+        WHERE id = $1
+      `, [courseId]);
+    } else {
+      throw e;
+    }
   }
 
   if (courseResult.rows.length === 0) {
@@ -93,11 +97,15 @@ export const enrollInCourse = async (req, res) => {
         [courseId]
       );
     } catch (e) {
-      console.log('Deadline or mandatory column missing in courses table, falling back');
-      courseCheck = await pool.query(
-        'SELECT id FROM courses WHERE id = $1',
-        [courseId]
-      );
+      if (e.code === '42703') { // PostgreSQL "column does not exist"
+        console.warn('Deadline or mandatory column missing in courses table, falling back');
+        courseCheck = await pool.query(
+          'SELECT id FROM courses WHERE id = $1',
+          [courseId]
+        );
+      } else {
+        throw e;
+      }
     }
 
     if (courseCheck.rows.length === 0) {
@@ -132,11 +140,15 @@ export const enrollInCourse = async (req, res) => {
         [req.user.id, courseId, course.deadline]
       );
     } catch (e) {
-      console.log('Deadline column missing in enrollments table, enrolling without it');
-      await pool.query(
-        'INSERT INTO enrollments (user_id, course_id) VALUES ($1, $2)',
-        [req.user.id, courseId]
-      );
+      if (e.code === '42703') { // PostgreSQL "column does not exist"
+        console.warn('Deadline column missing in enrollments table, enrolling without it');
+        await pool.query(
+          'INSERT INTO enrollments (user_id, course_id) VALUES ($1, $2)',
+          [req.user.id, courseId]
+        );
+      } else {
+        throw e;
+      }
     }
 
     res.status(201).json({ message: 'Successfully enrolled in course.' });
@@ -214,11 +226,15 @@ export const completeLesson = async (req, res) => {
         [lessonId]
       );
     } catch (e) {
-      console.log('Passing score column missing in lessons table, falling back');
-      lessonResult = await pool.query(
-        'SELECT id, course_id, type FROM lessons WHERE id = $1',
-        [lessonId]
-      );
+      if (e.code === '42703') { // PostgreSQL "column does not exist"
+        console.warn('Passing score column missing in lessons table, falling back');
+        lessonResult = await pool.query(
+          'SELECT id, course_id, type FROM lessons WHERE id = $1',
+          [lessonId]
+        );
+      } else {
+        throw e;
+      }
     }
 
     if (lessonResult.rows.length === 0) {
@@ -251,16 +267,20 @@ export const completeLesson = async (req, res) => {
               last_accessed = CURRENT_TIMESTAMP
           `, [req.user.id, lessonId, lesson.course_id, quizResult.percentage]);
         } catch (e) {
-          console.log('Failed to save passed status, retrying without it');
-          await pool.query(`
-            INSERT INTO lesson_progress (user_id, lesson_id, course_id, status, progress_percent, quiz_score, started_at)
-            VALUES ($1, $2, $3, 'IN_PROGRESS', 0, $4, CURRENT_TIMESTAMP)
-            ON CONFLICT (user_id, lesson_id)
-            DO UPDATE SET
-              quiz_score = $4,
-              quiz_attempts = lesson_progress.quiz_attempts + 1,
-              last_accessed = CURRENT_TIMESTAMP
-          `, [req.user.id, lessonId, lesson.course_id, quizResult.percentage]);
+          if (e.code === '42703') { // PostgreSQL "column does not exist"
+            console.warn('Failed to save passed status, retrying without it');
+            await pool.query(`
+              INSERT INTO lesson_progress (user_id, lesson_id, course_id, status, progress_percent, quiz_score, started_at)
+              VALUES ($1, $2, $3, 'IN_PROGRESS', 0, $4, CURRENT_TIMESTAMP)
+              ON CONFLICT (user_id, lesson_id)
+              DO UPDATE SET
+                quiz_score = $4,
+                quiz_attempts = lesson_progress.quiz_attempts + 1,
+                last_accessed = CURRENT_TIMESTAMP
+            `, [req.user.id, lessonId, lesson.course_id, quizResult.percentage]);
+          } else {
+            throw e;
+          }
         }
 
         return res.json({
@@ -290,19 +310,23 @@ export const completeLesson = async (req, res) => {
           last_accessed = CURRENT_TIMESTAMP
       `, [req.user.id, lessonId, lesson.course_id, scoreToStore, passed]);
     } catch (e) {
-      console.log('Failed to save passed status during completion, retrying without it');
-      await pool.query(`
-        INSERT INTO lesson_progress (user_id, lesson_id, course_id, status, progress_percent, quiz_score, completed_at, started_at)
-        VALUES ($1, $2, $3, 'COMPLETED', 100, $4, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-        ON CONFLICT (user_id, lesson_id)
-        DO UPDATE SET
-          status = 'COMPLETED',
-          progress_percent = 100,
-          quiz_score = COALESCE($4, lesson_progress.quiz_score),
-          quiz_attempts = CASE WHEN $4 IS NOT NULL THEN lesson_progress.quiz_attempts + 1 ELSE lesson_progress.quiz_attempts END,
-          completed_at = CURRENT_TIMESTAMP,
-          last_accessed = CURRENT_TIMESTAMP
-      `, [req.user.id, lessonId, lesson.course_id, scoreToStore]);
+      if (e.code === '42703') { // PostgreSQL "column does not exist"
+        console.warn('Failed to save passed status during completion, retrying without it');
+        await pool.query(`
+          INSERT INTO lesson_progress (user_id, lesson_id, course_id, status, progress_percent, quiz_score, completed_at, started_at)
+          VALUES ($1, $2, $3, 'COMPLETED', 100, $4, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+          ON CONFLICT (user_id, lesson_id)
+          DO UPDATE SET
+            status = 'COMPLETED',
+            progress_percent = 100,
+            quiz_score = COALESCE($4, lesson_progress.quiz_score),
+            quiz_attempts = CASE WHEN $4 IS NOT NULL THEN lesson_progress.quiz_attempts + 1 ELSE lesson_progress.quiz_attempts END,
+            completed_at = CURRENT_TIMESTAMP,
+            last_accessed = CURRENT_TIMESTAMP
+        `, [req.user.id, lessonId, lesson.course_id, scoreToStore]);
+      } else {
+        throw e;
+      }
     }
 
     // Calculate course progress
@@ -489,25 +513,29 @@ export const getDeadlines = async (req, res) => {
           COALESCE(e.deadline, c.deadline) ASC NULLS LAST
       `, [req.user.id]);
     } catch (e) {
-      console.log('Deadline columns missing in getDeadlines, falling back');
-      result = await pool.query(`
-        SELECT
-          e.id as enrollment_id,
-          c.id as course_id,
-          c.title,
-          e.completed_at,
-          e.enrolled_at,
-          CASE
-            WHEN e.completed_at IS NOT NULL THEN 'completed'
-            ELSE 'on_track'
-          END as status
-        FROM enrollments e
-        JOIN courses c ON c.id = e.course_id
-        WHERE e.user_id = $1
-        ORDER BY
-          CASE WHEN e.completed_at IS NOT NULL THEN 1 ELSE 0 END,
-          e.enrolled_at DESC
-      `, [req.user.id]);
+      if (e.code === '42703') { // PostgreSQL "column does not exist"
+        console.warn('Deadline columns missing in getDeadlines, falling back');
+        result = await pool.query(`
+          SELECT
+            e.id as enrollment_id,
+            c.id as course_id,
+            c.title,
+            e.completed_at,
+            e.enrolled_at,
+            CASE
+              WHEN e.completed_at IS NOT NULL THEN 'completed'
+              ELSE 'on_track'
+            END as status
+          FROM enrollments e
+          JOIN courses c ON c.id = e.course_id
+          WHERE e.user_id = $1
+          ORDER BY
+            CASE WHEN e.completed_at IS NOT NULL THEN 1 ELSE 0 END,
+            e.enrolled_at DESC
+        `, [req.user.id]);
+      } else {
+        throw e;
+      }
     }
 
     // Update overdue status in enrollments
@@ -522,7 +550,11 @@ export const getDeadlines = async (req, res) => {
           ))
       `, [req.user.id]);
     } catch (e) {
-      console.log('Deadline or is_overdue column missing during update, skipping');
+      if (e.code === '42703') { // PostgreSQL "column does not exist"
+        console.warn('Deadline or is_overdue column missing during update, skipping');
+      } else {
+        throw e;
+      }
     }
 
     res.json({
@@ -566,19 +598,23 @@ export const getLessonRequirements = async (req, res) => {
         WHERE l.id = $2
       `, [req.user.id, lessonId]);
     } catch (e) {
-      console.log('Passed or passing_score column missing in requirements check, retrying without them');
-      result = await pool.query(`
-        SELECT
-          l.id,
-          l.title,
-          l.type,
-          lp.quiz_score,
-          lp.quiz_attempts,
-          lp.status
-        FROM lessons l
-        LEFT JOIN lesson_progress lp ON lp.lesson_id = l.id AND lp.user_id = $1
-        WHERE l.id = $2
-      `, [req.user.id, lessonId]);
+      if (e.code === '42703') { // PostgreSQL "column does not exist"
+        console.warn('Passed or passing_score column missing in requirements check, retrying without them');
+        result = await pool.query(`
+          SELECT
+            l.id,
+            l.title,
+            l.type,
+            lp.quiz_score,
+            lp.quiz_attempts,
+            lp.status
+          FROM lessons l
+          LEFT JOIN lesson_progress lp ON lp.lesson_id = l.id AND lp.user_id = $1
+          WHERE l.id = $2
+        `, [req.user.id, lessonId]);
+      } else {
+        throw e;
+      }
     }
 
     if (result.rows.length === 0) {
