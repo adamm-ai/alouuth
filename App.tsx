@@ -1787,433 +1787,438 @@ const App: React.FC = () => {
                                 className="absolute top-1/2 -translate-y-1/2 w-5 h-5 bg-yellow-400 rounded-full shadow-[0_0_15px_rgba(250,204,21,0.8)] transition-all duration-300 border-2 border-white"
                                 style={{ left: `calc(${videoWatchedPercent}% - 10px)` }}
                               />
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
                       {/* Video Status Panel - Additional Info */}
-                            <div className="relative rounded-2xl overflow-hidden">
-                              <div className="absolute inset-0 bg-gradient-to-r from-white/[0.04] to-white/[0.02] backdrop-blur-xl border border-white/10" />
-                              <div className="relative p-4 flex items-center justify-between">
-                                <div className="flex items-center gap-4">
-                                  {/* Status Indicator */}
-                                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 ${isVideoPlaying
-                                    ? 'bg-green-500/20 border border-green-500/40 shadow-[0_0_20px_rgba(34,197,94,0.2)]'
+                      <div className="relative rounded-2xl overflow-hidden">
+                        <div className="absolute inset-0 bg-gradient-to-r from-white/[0.04] to-white/[0.02] backdrop-blur-xl border border-white/10" />
+                        <div className="relative p-4 flex items-center justify-between">
+                          <div className="flex items-center gap-4">
+                            {/* Status Indicator */}
+                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 ${isVideoPlaying
+                              ? 'bg-green-500/20 border border-green-500/40 shadow-[0_0_20px_rgba(34,197,94,0.2)]'
+                              : videoWatchedPercent > 0
+                                ? 'bg-yellow-400/20 border border-yellow-400/40'
+                                : 'bg-white/5 border border-white/10'
+                              }`}>
+                              {isVideoPlaying ? (
+                                <div className="flex gap-0.5">
+                                  <div className="w-1 h-5 bg-green-400 rounded animate-pulse"></div>
+                                  <div className="w-1 h-5 bg-green-400 rounded animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+                                  <div className="w-1 h-5 bg-green-400 rounded animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+                                </div>
+                              ) : videoWatchedPercent >= 80 ? (
+                                <CheckCircle size={24} className="text-green-400" />
+                              ) : (
+                                <PlayCircle size={24} className={videoWatchedPercent > 0 ? 'text-yellow-400' : 'text-zinc-400'} />
+                              )}
+                            </div>
+
+                            <div>
+                              <p className="text-sm font-medium text-white">
+                                {isVideoPlaying
+                                  ? 'Tracking your progress...'
+                                  : videoWatchedPercent >= 80
+                                    ? 'You can complete this lesson!'
                                     : videoWatchedPercent > 0
-                                      ? 'bg-yellow-400/20 border border-yellow-400/40'
-                                      : 'bg-white/5 border border-white/10'
-                                    }`}>
-                                    {isVideoPlaying ? (
-                                      <div className="flex gap-0.5">
-                                        <div className="w-1 h-5 bg-green-400 rounded animate-pulse"></div>
-                                        <div className="w-1 h-5 bg-green-400 rounded animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-                                        <div className="w-1 h-5 bg-green-400 rounded animate-pulse" style={{ animationDelay: '0.4s' }}></div>
-                                      </div>
-                                    ) : videoWatchedPercent >= 80 ? (
-                                      <CheckCircle size={24} className="text-green-400" />
-                                    ) : (
-                                      <PlayCircle size={24} className={videoWatchedPercent > 0 ? 'text-yellow-400' : 'text-zinc-400'} />
-                                    )}
-                                  </div>
-
-                                  <div>
-                                    <p className="text-sm font-medium text-white">
-                                      {isVideoPlaying
-                                        ? 'Tracking your progress...'
-                                        : videoWatchedPercent >= 80
-                                          ? 'You can complete this lesson!'
-                                          : videoWatchedPercent > 0
-                                            ? 'Resume watching to continue tracking'
-                                            : 'Play the video to start tracking'}
-                                    </p>
-                                    <p className="text-xs text-zinc-500">
-                                      {isYouTubeUrl(activeLesson.videoUrl || '')
-                                        ? 'YouTube video - progress tracked automatically'
-                                        : 'Uploaded video - progress tracked automatically'}
-                                    </p>
-                                  </div>
-                                </div>
-
-                                {/* Circular Progress Indicator */}
-                                <div className="relative w-14 h-14">
-                                  <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
-                                    <path
-                                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                                      fill="none"
-                                      stroke="rgba(255,255,255,0.1)"
-                                      strokeWidth="2"
-                                    />
-                                    <path
-                                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                                      fill="none"
-                                      stroke={videoWatchedPercent >= 80 ? '#22c55e' : '#FACC15'}
-                                      strokeWidth="2.5"
-                                      strokeDasharray={`${videoWatchedPercent}, 100`}
-                                      strokeLinecap="round"
-                                      className="transition-all duration-300"
-                                      style={{
-                                        filter: `drop-shadow(0 0 6px ${videoWatchedPercent >= 80 ? 'rgba(34,197,94,0.5)' : 'rgba(250,204,21,0.5)'})`
-                                      }}
-                                    />
-                                  </svg>
-                                  <div className="absolute inset-0 flex items-center justify-center">
-                                    <span className={`text-xs font-bold ${videoWatchedPercent >= 80 ? 'text-green-400' : 'text-yellow-400'}`}>
-                                      {videoWatchedPercent}%
-                                    </span>
-                                  </div>
-                                </div>
-                              </div>
+                                      ? 'Resume watching to continue tracking'
+                                      : 'Play the video to start tracking'}
+                              </p>
+                              <p className="text-xs text-zinc-500">
+                                {isYouTubeUrl(activeLesson.videoUrl || '')
+                                  ? 'YouTube video - progress tracked automatically'
+                                  : 'Uploaded video - progress tracked automatically'}
+                              </p>
                             </div>
                           </div>
-                  )}
 
-                          {/* 2. Document View - Hyper Liquid Glass */}
-                          {(activeLesson.type === 'pdf' || activeLesson.type === 'presentation') && (
-                            <LiquidVideoFrame>
-                              <div className="aspect-video flex flex-col items-center justify-center text-center p-10 relative">
-                                {/* Animated background pattern */}
-                                <div className="absolute inset-0 opacity-30">
-                                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(250,204,21,0.1),transparent_50%)]" />
-                                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_70%,rgba(255,255,255,0.05),transparent_50%)]" />
-                                </div>
-
-                                <div className="relative z-10">
-                                  <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-yellow-400/20 to-yellow-500/10 border border-yellow-400/30 flex items-center justify-center mb-8 mx-auto shadow-[0_0_40px_rgba(250,204,21,0.2)]">
-                                    <FileText size={48} className="text-yellow-400 drop-shadow-[0_0_15px_rgba(250,204,21,0.5)]" />
-                                  </div>
-                                  <h3 className="text-2xl font-bold text-white mb-3">{activeLesson.fileName || 'Document'}</h3>
-                                  <p className="text-zinc-400 mb-8 max-w-md">
-                                    {activeLesson.type === 'presentation'
-                                      ? `Review this presentation (${activeLesson.pageCount || 'N/A'} slides) to continue.`
-                                      : `Read this document (${activeLesson.pageCount || 'N/A'} pages) to continue.`
-                                    }
-                                  </p>
-                                  <PrimaryButton onClick={downloadResource} className="flex items-center gap-2">
-                                    {isDownloaded ? <CheckCircle size={18} /> : <Download size={18} />}
-                                    {isDownloaded ? 'Downloaded - Ready to Continue' : 'Download Resource'}
-                                  </PrimaryButton>
-                                </div>
-                              </div>
-                            </LiquidVideoFrame>
-                          )}
-
-                          {/* 3. Quiz Runner - Hyper Liquid Glass */}
-                          {activeLesson.type === 'quiz' && activeLesson.quiz && (
-                            <LiquidVideoFrame>
-                              <div className="min-h-[500px] flex flex-col justify-center p-10">
-                                {quizState === 'INTRO' && (
-                                  <div className="text-center space-y-8">
-                                    <div className="w-28 h-28 rounded-3xl bg-gradient-to-br from-yellow-400/20 to-yellow-500/10 border border-yellow-400/30 mx-auto flex items-center justify-center shadow-[0_0_50px_rgba(250,204,21,0.2)]">
-                                      <HelpCircle size={56} className="text-yellow-400 drop-shadow-[0_0_20px_rgba(250,204,21,0.5)]" />
-                                    </div>
-                                    <div>
-                                      <h2 className="text-3xl font-bold text-white mb-3">Knowledge Check</h2>
-                                      <p className="text-zinc-400 text-lg">Test your understanding with {activeLesson.quiz.length} questions</p>
-                                    </div>
-                                    <PrimaryButton onClick={() => setQuizState('QUESTION')} className="px-10 py-4 text-lg">
-                                      Begin Quiz
-                                    </PrimaryButton>
-                                  </div>
-                                )}
-
-                                {quizState === 'QUESTION' && (
-                                  <div className="max-w-2xl mx-auto w-full animate-fade-in">
-                                    <div className="flex justify-between items-center mb-6">
-                                      <span className="text-sm text-zinc-400 font-mono">
-                                        Question {currentQIdx + 1} of {activeLesson.quiz.length}
-                                      </span>
-                                      <div className="flex items-center gap-2">
-                                        {activeLesson.quiz.map((_, i) => (
-                                          <div key={i} className={`w-2 h-2 rounded-full transition-all ${i < currentQIdx ? 'bg-yellow-400'
-                                            : i === currentQIdx ? 'bg-yellow-400 w-4'
-                                              : 'bg-white/20'
-                                            }`} />
-                                        ))}
-                                      </div>
-                                    </div>
-
-                                    <h3 className="text-2xl font-bold text-white mb-8 leading-relaxed">
-                                      {activeLesson.quiz[currentQIdx].question}
-                                    </h3>
-
-                                    <div className="space-y-3 mb-10">
-                                      {activeLesson.quiz[currentQIdx].options.map((opt, idx) => (
-                                        <button
-                                          key={idx}
-                                          onClick={() => handleQuizAnswer(idx)}
-                                          className={`
-                                    w-full p-5 rounded-2xl text-left border transition-all duration-300 group/opt
-                                    ${quizAnswers[currentQIdx] === idx
-                                              ? 'bg-yellow-400/20 border-yellow-400/50 shadow-[0_0_25px_rgba(250,204,21,0.15),inset_0_1px_0_rgba(255,255,255,0.1)]'
-                                              : 'bg-white/[0.03] border-white/10 hover:bg-white/[0.06] hover:border-white/20'
-                                            }
-                                  `}
-                                        >
-                                          <div className="flex items-center gap-4">
-                                            <div className={`
-                                      w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold transition-all
-                                      ${quizAnswers[currentQIdx] === idx
-                                                ? 'bg-yellow-400 text-black shadow-[0_0_15px_rgba(250,204,21,0.4)]'
-                                                : 'bg-white/10 text-zinc-400 group-hover/opt:bg-white/20'
-                                              }
-                                    `}>
-                                              {String.fromCharCode(65 + idx)}
-                                            </div>
-                                            <span className={`text-lg ${quizAnswers[currentQIdx] === idx ? 'text-white' : 'text-zinc-300'}`}>
-                                              {opt}
-                                            </span>
-                                          </div>
-                                        </button>
-                                      ))}
-                                    </div>
-
-                                    <div className="flex justify-end">
-                                      <PrimaryButton
-                                        onClick={handleNextQuestion}
-                                        disabled={quizAnswers[currentQIdx] === undefined}
-                                        className="px-8"
-                                      >
-                                        {currentQIdx === activeLesson.quiz.length - 1 ? 'See Results' : 'Next Question'}
-                                        <ChevronRight size={18} className="ml-1" />
-                                      </PrimaryButton>
-                                    </div>
-                                  </div>
-                                )}
-
-                                {quizState === 'RESULT' && (() => {
-                                  const scorePercent = Math.round((quizScore / activeLesson.quiz.length) * 100);
-                                  const passed = scorePercent >= PASSING_SCORE;
-                                  return (
-                                    <div className="text-center space-y-8 animate-fade-in">
-                                      <div className={`w-32 h-32 rounded-3xl mx-auto flex items-center justify-center shadow-[0_0_60px_${passed ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}] ${passed
-                                        ? 'bg-gradient-to-br from-green-400/30 to-green-500/10 border border-green-400/40'
-                                        : 'bg-gradient-to-br from-red-400/30 to-red-500/10 border border-red-400/40'
-                                        }`}>
-                                        {passed ? (
-                                          <Trophy size={64} className="text-green-400 drop-shadow-[0_0_25px_rgba(34,197,94,0.6)]" />
-                                        ) : (
-                                          <XCircle size={64} className="text-red-400 drop-shadow-[0_0_25px_rgba(239,68,68,0.6)]" />
-                                        )}
-                                      </div>
-                                      <div>
-                                        <h2 className={`text-3xl font-bold mb-4 ${passed ? 'text-green-400' : 'text-red-400'}`}>
-                                          {passed ? 'Quiz Passed!' : 'Quiz Not Passed'}
-                                        </h2>
-                                        <div className={`text-7xl font-black bg-clip-text text-transparent bg-gradient-to-r mb-3 ${passed
-                                          ? 'from-green-400 via-green-300 to-white'
-                                          : 'from-red-400 via-red-300 to-white'
-                                          }`}>
-                                          {scorePercent}%
-                                        </div>
-                                        <p className="text-zinc-400 text-lg">
-                                          You answered <span className={passed ? 'text-green-400' : 'text-red-400'} style={{ fontWeight: 'bold' }}>{quizScore}</span> out of <span className="text-white font-bold">{activeLesson.quiz.length}</span> correctly
-                                        </p>
-                                        <p className="text-zinc-500 text-sm mt-2">
-                                          Passing score: {PASSING_SCORE}%
-                                        </p>
-                                        {!passed && (
-                                          <p className="text-yellow-400/80 text-sm mt-4 px-4 py-2 rounded-lg bg-yellow-400/10 border border-yellow-400/20 inline-block">
-                                            You need to score at least {PASSING_SCORE}% to complete this lesson
-                                          </p>
-                                        )}
-                                      </div>
-                                      <div className="flex gap-4 justify-center pt-4">
-                                        <SecondaryButton
-                                          onClick={() => { setQuizState('INTRO'); setCurrentQIdx(0); setQuizAnswers([]); setQuizPassed(null); }}
-                                          className="px-8"
-                                        >
-                                          <RefreshCw size={16} className="mr-2" /> {passed ? 'Retry' : 'Try Again'}
-                                        </SecondaryButton>
-                                        {passed && (
-                                          <PrimaryButton onClick={() => handleLessonComplete(quizScore, activeLesson?.quiz?.length)} className="px-8">
-                                            <Award size={16} className="mr-2" /> Complete & Continue
-                                          </PrimaryButton>
-                                        )}
-                                      </div>
-                                    </div>
-                                  );
-                                })()}
-                              </div>
-                            </LiquidVideoFrame>
-                          )}
-
-                          {/* Lesson Footer Controls - Hyper Glass with Progress Requirements */}
-                          {activeLesson.type !== 'quiz' && (
-                            <div className="relative rounded-2xl overflow-hidden">
-                              <div className="absolute inset-0 bg-gradient-to-r from-white/[0.05] to-white/[0.02] backdrop-blur-xl border border-white/10" />
-                              <div className="relative p-6 flex flex-col md:flex-row justify-between items-center gap-6">
-                                <div className="flex items-center gap-4">
-                                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 ${activeLesson.isCompleted || (activeLesson.type === 'video' && videoWatchedPercent >= 80)
-                                    ? 'bg-green-500/20 border border-green-500/30'
-                                    : 'bg-white/5 border border-white/10'
-                                    }`}>
-                                    {activeLesson.isCompleted ? (
-                                      <CheckCircle size={28} className="text-green-400" />
-                                    ) : activeLesson.type === 'video' ? (
-                                      <div className="relative">
-                                        <PlayCircle size={28} className={videoWatchedPercent >= 80 ? 'text-green-400' : 'text-yellow-400'} />
-                                        {videoWatchedPercent > 0 && videoWatchedPercent < 80 && (
-                                          <span className="absolute -top-1 -right-1 text-[10px] bg-yellow-400 text-black px-1 rounded font-bold">{videoWatchedPercent}%</span>
-                                        )}
-                                      </div>
-                                    ) : (
-                                      <FileText size={28} className="text-yellow-400" />
-                                    )}
-                                  </div>
-                                  <div>
-                                    <h4 className="font-bold text-white text-lg">{activeLesson.title}</h4>
-                                    <p className="text-sm text-zinc-400">
-                                      {activeLesson.durationMin} min • {activeLesson.isCompleted ? (
-                                        <span className="text-green-400 flex items-center gap-1"><CheckCircle size={12} /> Completed</span>
-                                      ) : activeLesson.type === 'video' ? (
-                                        <span className={videoWatchedPercent >= 80 ? 'text-green-400' : 'text-yellow-400'}>
-                                          {videoWatchedPercent >= 80 ? 'Ready to complete' : `${videoWatchedPercent}% watched (80% required)`}
-                                        </span>
-                                      ) : 'In Progress'}
-                                    </p>
-                                  </div>
-                                </div>
-
-                                <div className="flex items-center gap-4">
-                                  {/* Document download requirement */}
-                                  {(activeLesson.type === 'pdf' || activeLesson.type === 'presentation') && !activeLesson.isCompleted && !isDownloaded && (
-                                    <div className="text-sm text-yellow-400/80 flex items-center gap-2 px-4 py-2 rounded-lg bg-yellow-400/10 border border-yellow-400/20">
-                                      <Download size={14} /> Download required
-                                    </div>
-                                  )}
-
-                                  {/* Video progress requirement */}
-                                  {activeLesson.type === 'video' && !activeLesson.isCompleted && videoWatchedPercent < 80 && (
-                                    <div className="text-sm text-yellow-400/80 flex items-center gap-2 px-4 py-2 rounded-lg bg-yellow-400/10 border border-yellow-400/20">
-                                      <PlayCircle size={14} /> Watch 80% to complete
-                                    </div>
-                                  )}
-
-                                  <PrimaryButton
-                                    onClick={() => handleLessonComplete()}
-                                    disabled={
-                                      activeLesson.isCompleted ||
-                                      ((activeLesson.type === 'pdf' || activeLesson.type === 'presentation') && !isDownloaded) ||
-                                      (activeLesson.type === 'video' && videoWatchedPercent < 80)
-                                    }
-                                    className={`px-8 ${activeLesson.type === 'video' && videoWatchedPercent >= 80 && !activeLesson.isCompleted
-                                      ? 'bg-green-500 hover:bg-green-400 border-green-400 shadow-[0_0_20px_rgba(34,197,94,0.3)]'
-                                      : ''
-                                      }`}
-                                  >
-                                    {activeLesson.isCompleted ? (
-                                      <><CheckCircle size={18} className="mr-2" /> Completed</>
-                                    ) : (
-                                      <><ChevronRight size={18} className="mr-2" /> Complete & Next</>
-                                    )}
-                                  </PrimaryButton>
-                                </div>
-                              </div>
+                          {/* Circular Progress Indicator */}
+                          <div className="relative w-14 h-14">
+                            <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
+                              <path
+                                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                fill="none"
+                                stroke="rgba(255,255,255,0.1)"
+                                strokeWidth="2"
+                              />
+                              <path
+                                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                fill="none"
+                                stroke={videoWatchedPercent >= 80 ? '#22c55e' : '#FACC15'}
+                                strokeWidth="2.5"
+                                strokeDasharray={`${videoWatchedPercent}, 100`}
+                                strokeLinecap="round"
+                                className="transition-all duration-300"
+                                style={{
+                                  filter: `drop-shadow(0 0 6px ${videoWatchedPercent >= 80 ? 'rgba(34,197,94,0.5)' : 'rgba(250,204,21,0.5)'})`
+                                }}
+                              />
+                            </svg>
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <span className={`text-xs font-bold ${videoWatchedPercent >= 80 ? 'text-green-400' : 'text-yellow-400'}`}>
+                                {videoWatchedPercent}%
+                              </span>
                             </div>
-                          )}
-
-                        </div>
-                        ) : (
-                        <div className="flex flex-col items-center justify-center h-full text-center py-20">
-                          <div className="w-32 h-32 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center mb-8">
-                            <BookOpen size={64} className="text-zinc-600" />
                           </div>
-                          <h3 className="text-2xl font-bold text-zinc-300 mb-3">Select a Lesson</h3>
-                          <p className="text-zinc-500 max-w-sm">Choose a lesson from the curriculum to begin your learning journey.</p>
                         </div>
-              )}
                       </div>
                     </div>
+                  )}
+
+                  {/* 2. Document View - Hyper Liquid Glass */}
+                  {(activeLesson.type === 'pdf' || activeLesson.type === 'presentation') && (
+                    <LiquidVideoFrame>
+                      <div className="aspect-video flex flex-col items-center justify-center text-center p-10 relative">
+                        {/* Animated background pattern */}
+                        <div className="absolute inset-0 opacity-30">
+                          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(250,204,21,0.1),transparent_50%)]" />
+                          <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_70%,rgba(255,255,255,0.05),transparent_50%)]" />
+                        </div>
+
+                        <div className="relative z-10">
+                          <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-yellow-400/20 to-yellow-500/10 border border-yellow-400/30 flex items-center justify-center mb-8 mx-auto shadow-[0_0_40px_rgba(250,204,21,0.2)]">
+                            <FileText size={48} className="text-yellow-400 drop-shadow-[0_0_15px_rgba(250,204,21,0.5)]" />
+                          </div>
+                          <h3 className="text-2xl font-bold text-white mb-3">{activeLesson.fileName || 'Document'}</h3>
+                          <p className="text-zinc-400 mb-8 max-w-md">
+                            {activeLesson.type === 'presentation'
+                              ? `Review this presentation (${activeLesson.pageCount || 'N/A'} slides) to continue.`
+                              : `Read this document (${activeLesson.pageCount || 'N/A'} pages) to continue.`
+                            }
+                          </p>
+                          <PrimaryButton onClick={downloadResource} className="flex items-center gap-2">
+                            {isDownloaded ? <CheckCircle size={18} /> : <Download size={18} />}
+                            {isDownloaded ? 'Downloaded - Ready to Continue' : 'Download Resource'}
+                          </PrimaryButton>
+                        </div>
+                      </div>
+                    </LiquidVideoFrame>
+                  )}
+
+                  {/* 3. Quiz Runner - Hyper Liquid Glass */}
+                  {activeLesson.type === 'quiz' && activeLesson.quiz && (
+                    <LiquidVideoFrame>
+                      <div className="min-h-[500px] flex flex-col justify-center p-10">
+                        {quizState === 'INTRO' && (
+                          <div className="text-center space-y-8">
+                            <div className="w-28 h-28 rounded-3xl bg-gradient-to-br from-yellow-400/20 to-yellow-500/10 border border-yellow-400/30 mx-auto flex items-center justify-center shadow-[0_0_50px_rgba(250,204,21,0.2)]">
+                              <HelpCircle size={56} className="text-yellow-400 drop-shadow-[0_0_20px_rgba(250,204,21,0.5)]" />
+                            </div>
+                            <div>
+                              <h2 className="text-3xl font-bold text-white mb-3">Knowledge Check</h2>
+                              <p className="text-zinc-400 text-lg">Test your understanding with {activeLesson.quiz.length} questions</p>
+                            </div>
+                            <PrimaryButton onClick={() => setQuizState('QUESTION')} className="px-10 py-4 text-lg">
+                              Begin Quiz
+                            </PrimaryButton>
+                          </div>
+                        )}
+
+                        {quizState === 'QUESTION' && (
+                          <div className="max-w-2xl mx-auto w-full animate-fade-in">
+                            <div className="flex justify-between items-center mb-6">
+                              <span className="text-sm text-zinc-400 font-mono">
+                                Question {currentQIdx + 1} of {activeLesson.quiz.length}
+                              </span>
+                              <div className="flex items-center gap-2">
+                                {activeLesson.quiz.map((_, i) => (
+                                  <div key={i} className={`w-2 h-2 rounded-full transition-all ${i < currentQIdx ? 'bg-yellow-400'
+                                    : i === currentQIdx ? 'bg-yellow-400 w-4'
+                                      : 'bg-white/20'
+                                    }`} />
+                                ))}
+                              </div>
+                            </div>
+
+                            <h3 className="text-2xl font-bold text-white mb-8 leading-relaxed">
+                              {activeLesson.quiz[currentQIdx].question}
+                            </h3>
+
+                            <div className="space-y-3 mb-10">
+                              {activeLesson.quiz[currentQIdx].options.map((opt, idx) => (
+                                <button
+                                  key={idx}
+                                  onClick={() => handleQuizAnswer(idx)}
+                                  className={`
+                                    w-full p-5 rounded-2xl text-left border transition-all duration-300 group/opt
+                                    ${quizAnswers[currentQIdx] === idx
+                                      ? 'bg-yellow-400/20 border-yellow-400/50 shadow-[0_0_25px_rgba(250,204,21,0.15),inset_0_1px_0_rgba(255,255,255,0.1)]'
+                                      : 'bg-white/[0.03] border-white/10 hover:bg-white/[0.06] hover:border-white/20'
+                                    }
+                                  `}
+                                >
+                                  <div className="flex items-center gap-4">
+                                    <div className={`
+                                      w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold transition-all
+                                      ${quizAnswers[currentQIdx] === idx
+                                        ? 'bg-yellow-400 text-black shadow-[0_0_15px_rgba(250,204,21,0.4)]'
+                                        : 'bg-white/10 text-zinc-400 group-hover/opt:bg-white/20'
+                                      }
+                                    `}>
+                                      {String.fromCharCode(65 + idx)}
+                                    </div>
+                                    <span className={`text-lg ${quizAnswers[currentQIdx] === idx ? 'text-white' : 'text-zinc-300'}`}>
+                                      {opt}
+                                    </span>
+                                  </div>
+                                </button>
+                              ))}
+                            </div>
+
+                            <div className="flex justify-end">
+                              <PrimaryButton
+                                onClick={handleNextQuestion}
+                                disabled={quizAnswers[currentQIdx] === undefined}
+                                className="px-8"
+                              >
+                                {currentQIdx === activeLesson.quiz.length - 1 ? 'See Results' : 'Next Question'}
+                                <ChevronRight size={18} className="ml-1" />
+                              </PrimaryButton>
+                            </div>
+                          </div>
+                        )}
+
+                        {quizState === 'RESULT' && (() => {
+                          const scorePercent = Math.round((quizScore / activeLesson.quiz.length) * 100);
+                          const passed = scorePercent >= PASSING_SCORE;
+                          return (
+                            <div className="text-center space-y-8 animate-fade-in">
+                              <div className={`w-32 h-32 rounded-3xl mx-auto flex items-center justify-center shadow-[0_0_60px_${passed ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}] ${passed
+                                ? 'bg-gradient-to-br from-green-400/30 to-green-500/10 border border-green-400/40'
+                                : 'bg-gradient-to-br from-red-400/30 to-red-500/10 border border-red-400/40'
+                                }`}>
+                                {passed ? (
+                                  <Trophy size={64} className="text-green-400 drop-shadow-[0_0_25px_rgba(34,197,94,0.6)]" />
+                                ) : (
+                                  <XCircle size={64} className="text-red-400 drop-shadow-[0_0_25px_rgba(239,68,68,0.6)]" />
+                                )}
+                              </div>
+                              <div>
+                                <h2 className={`text-3xl font-bold mb-4 ${passed ? 'text-green-400' : 'text-red-400'}`}>
+                                  {passed ? 'Quiz Passed!' : 'Quiz Not Passed'}
+                                </h2>
+                                <div className={`text-7xl font-black bg-clip-text text-transparent bg-gradient-to-r mb-3 ${passed
+                                  ? 'from-green-400 via-green-300 to-white'
+                                  : 'from-red-400 via-red-300 to-white'
+                                  }`}>
+                                  {scorePercent}%
+                                </div>
+                                <p className="text-zinc-400 text-lg">
+                                  You answered <span className={passed ? 'text-green-400' : 'text-red-400'} style={{ fontWeight: 'bold' }}>{quizScore}</span> out of <span className="text-white font-bold">{activeLesson.quiz.length}</span> correctly
+                                </p>
+                                <p className="text-zinc-500 text-sm mt-2">
+                                  Passing score: {PASSING_SCORE}%
+                                </p>
+                                {!passed && (
+                                  <p className="text-yellow-400/80 text-sm mt-4 px-4 py-2 rounded-lg bg-yellow-400/10 border border-yellow-400/20 inline-block">
+                                    You need to score at least {PASSING_SCORE}% to complete this lesson
+                                  </p>
+                                )}
+                              </div>
+                              <div className="flex gap-4 justify-center pt-4">
+                                <SecondaryButton
+                                  onClick={() => { setQuizState('INTRO'); setCurrentQIdx(0); setQuizAnswers([]); setQuizPassed(null); }}
+                                  className="px-8"
+                                >
+                                  <RefreshCw size={16} className="mr-2" /> {passed ? 'Retry' : 'Try Again'}
+                                </SecondaryButton>
+                                {passed && (
+                                  <PrimaryButton onClick={() => handleLessonComplete(quizScore, activeLesson?.quiz?.length)} className="px-8">
+                                    <Award size={16} className="mr-2" /> Complete & Continue
+                                  </PrimaryButton>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })()}
+                      </div>
+                    </LiquidVideoFrame>
+                  )}
+
+                  {/* Lesson Footer Controls - Hyper Glass with Progress Requirements */}
+                  {activeLesson.type !== 'quiz' && (
+                    <div className="relative rounded-2xl overflow-hidden">
+                      <div className="absolute inset-0 bg-gradient-to-r from-white/[0.05] to-white/[0.02] backdrop-blur-xl border border-white/10" />
+                      <div className="relative p-6 flex flex-col md:flex-row justify-between items-center gap-6">
+                        <div className="flex items-center gap-4">
+                          <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 ${activeLesson.isCompleted || (activeLesson.type === 'video' && videoWatchedPercent >= 80)
+                            ? 'bg-green-500/20 border border-green-500/30'
+                            : 'bg-white/5 border border-white/10'
+                            }`}>
+                            {activeLesson.isCompleted ? (
+                              <CheckCircle size={28} className="text-green-400" />
+                            ) : activeLesson.type === 'video' ? (
+                              <div className="relative">
+                                <PlayCircle size={28} className={videoWatchedPercent >= 80 ? 'text-green-400' : 'text-yellow-400'} />
+                                {videoWatchedPercent > 0 && videoWatchedPercent < 80 && (
+                                  <span className="absolute -top-1 -right-1 text-[10px] bg-yellow-400 text-black px-1 rounded font-bold">{videoWatchedPercent}%</span>
+                                )}
+                              </div>
+                            ) : (
+                              <FileText size={28} className="text-yellow-400" />
+                            )}
+                          </div>
+                          <div>
+                            <h4 className="font-bold text-white text-lg">{activeLesson.title}</h4>
+                            <p className="text-sm text-zinc-400">
+                              {activeLesson.durationMin} min • {activeLesson.isCompleted ? (
+                                <span className="text-green-400 flex items-center gap-1"><CheckCircle size={12} /> Completed</span>
+                              ) : activeLesson.type === 'video' ? (
+                                <span className={videoWatchedPercent >= 80 ? 'text-green-400' : 'text-yellow-400'}>
+                                  {videoWatchedPercent >= 80 ? 'Ready to complete' : `${videoWatchedPercent}% watched (80% required)`}
+                                </span>
+                              ) : 'In Progress'}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-4">
+                          {/* Document download requirement */}
+                          {(activeLesson.type === 'pdf' || activeLesson.type === 'presentation') && !activeLesson.isCompleted && !isDownloaded && (
+                            <div className="text-sm text-yellow-400/80 flex items-center gap-2 px-4 py-2 rounded-lg bg-yellow-400/10 border border-yellow-400/20">
+                              <Download size={14} /> Download required
+                            </div>
+                          )}
+
+                          {/* Video progress requirement */}
+                          {activeLesson.type === 'video' && !activeLesson.isCompleted && videoWatchedPercent < 80 && (
+                            <div className="text-sm text-yellow-400/80 flex items-center gap-2 px-4 py-2 rounded-lg bg-yellow-400/10 border border-yellow-400/20">
+                              <PlayCircle size={14} /> Watch 80% to complete
+                            </div>
+                          )}
+
+                          <PrimaryButton
+                            onClick={() => handleLessonComplete()}
+                            disabled={
+                              activeLesson.isCompleted ||
+                              ((activeLesson.type === 'pdf' || activeLesson.type === 'presentation') && !isDownloaded) ||
+                              (activeLesson.type === 'video' && videoWatchedPercent < 80)
+                            }
+                            className={`px-8 ${activeLesson.type === 'video' && videoWatchedPercent >= 80 && !activeLesson.isCompleted
+                              ? 'bg-green-500 hover:bg-green-400 border-green-400 shadow-[0_0_20px_rgba(34,197,94,0.3)]'
+                              : ''
+                              }`}
+                          >
+                            {activeLesson.isCompleted ? (
+                              <><CheckCircle size={18} className="mr-2" /> Completed</>
+                            ) : (
+                              <><ChevronRight size={18} className="mr-2" /> Complete & Next</>
+                            )}
+                          </PrimaryButton>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center h-full text-center py-20">
+                  <div className="w-32 h-32 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center mb-8">
+                    <BookOpen size={64} className="text-zinc-600" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-zinc-300 mb-3">Select a Lesson</h3>
+                  <p className="text-zinc-500 max-w-sm">Choose a lesson from the curriculum to begin your learning journey.</p>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* Mobile lesson selector */}
-              <div className="md:hidden fixed bottom-0 left-0 right-0 z-40">
-                <div className="bg-[#0a0a0b] border-t border-white/[0.05] p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-yellow-400/20 flex items-center justify-center text-yellow-400 font-bold">
-                        {(activeCourse?.lessons.findIndex(l => l.id === activeLesson?.id) || 0) + 1}
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-white truncate max-w-[300px]" title={activeLesson?.title}>{activeLesson?.title}</p>
-                        <p className="text-xs text-zinc-500">{completedCount}/{totalCount} completed</p>
-                      </div>
-                    </div>
-                    <button className="p-3 rounded-xl bg-white/5 border border-white/10">
-                      <Menu size={20} className="text-zinc-400" />
-                    </button>
-                  </div>
+        <div className="md:hidden fixed bottom-0 left-0 right-0 z-40">
+          <div className="bg-[#0a0a0b] border-t border-white/[0.05] p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-yellow-400/20 flex items-center justify-center text-yellow-400 font-bold">
+                  {(activeCourse?.lessons.findIndex(l => l.id === activeLesson?.id) || 0) + 1}
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-white truncate max-w-[300px]" title={activeLesson?.title}>{activeLesson?.title}</p>
+                  <p className="text-xs text-zinc-500">{completedCount}/{totalCount} completed</p>
                 </div>
               </div>
+              <button className="p-3 rounded-xl bg-white/5 border border-white/10">
+                <Menu size={20} className="text-zinc-400" />
+              </button>
             </div>
-            );
+          </div>
+        </div>
+      </div>
+    );
   };
 
   const AdminView = () => {
     // Toast notifications
-    const {showToast} = useToast();
+    const { showToast } = useToast();
 
-            // Admin State
-            const [viewMode, setViewMode] = useState<'DASHBOARD' | 'EDITOR'>('DASHBOARD');
-            const [editingCourse, setEditingCourse] = useState<Partial<Course> | null>(null);
-            const [editorTab, setEditorTab] = useState<'DETAILS' | 'CURRICULUM'>('DETAILS');
-            const [activeLessonId, setActiveLessonId] = useState<string | null>(null);
-            const [newLessonType, setNewLessonType] = useState<ContentType>('video');
-              const [isSaving, setIsSaving] = useState(false);
-              const [isUploading, setIsUploading] = useState(false);
-              const [uploadProgress, setUploadProgress] = useState(0);
+    // Admin State
+    const [viewMode, setViewMode] = useState<'DASHBOARD' | 'EDITOR'>('DASHBOARD');
+    const [editingCourse, setEditingCourse] = useState<Partial<Course> | null>(null);
+    const [editorTab, setEditorTab] = useState<'DETAILS' | 'CURRICULUM'>('DETAILS');
+    const [activeLessonId, setActiveLessonId] = useState<string | null>(null);
+    const [newLessonType, setNewLessonType] = useState<ContentType>('video');
+    const [isSaving, setIsSaving] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState(0);
 
-              // Inline Editing State for Course Manager
-              const [editingCourseId, setEditingCourseId] = useState<string | null>(null);
-              const [editingCourseTitle, setEditingCourseTitle] = useState<string>('');
+    // Inline Editing State for Course Manager
+    const [editingCourseId, setEditingCourseId] = useState<string | null>(null);
+    const [editingCourseTitle, setEditingCourseTitle] = useState<string>('');
 
-                // Pending Users State
-                const [pendingUsers, setPendingUsers] = useState<PendingUser[]>([]);
-                const [allUsers, setAllUsers] = useState<any[]>([]);
-                const [loadingPending, setLoadingPending] = useState(false);
-                const [loadingUsers, setLoadingUsers] = useState(false);
-                const [processingUser, setProcessingUser] = useState<string | null>(null);
-                const [userSearchQuery, setUserSearchQuery] = useState('');
-                const [userFilterRole, setUserFilterRole] = useState<string>('ALL');
+    // Pending Users State
+    const [pendingUsers, setPendingUsers] = useState<PendingUser[]>([]);
+    const [allUsers, setAllUsers] = useState<any[]>([]);
+    const [loadingPending, setLoadingPending] = useState(false);
+    const [loadingUsers, setLoadingUsers] = useState(false);
+    const [processingUser, setProcessingUser] = useState<string | null>(null);
+    const [userSearchQuery, setUserSearchQuery] = useState('');
+    const [userFilterRole, setUserFilterRole] = useState<string>('ALL');
 
-                  // Track deleted lessons for backend sync
-                  const [deletedLessonIds, setDeletedLessonIds] = useState<string[]>([]);
+    // Track deleted lessons for backend sync
+    const [deletedLessonIds, setDeletedLessonIds] = useState<string[]>([]);
 
-                  // Real Analytics State
-                  const [fullStats, setFullStats] = useState<{
+    // Real Analytics State
+    const [fullStats, setFullStats] = useState<{
       totalLearners: number;
-                  totalCourses: number;
-                  totalLessons: number;
-                  totalEnrollments: number;
-                  completionRate: number;
-                  totalStudyHours: number;
-                  overdueEnrollments?: number;
-                  averageQuizScore?: number;
-                  quizPassRate?: number;
+      totalCourses: number;
+      totalLessons: number;
+      totalEnrollments: number;
+      completionRate: number;
+      totalStudyHours: number;
+      overdueEnrollments?: number;
+      averageQuizScore?: number;
+      quizPassRate?: number;
     } | null>(null);
-                  const [ministryStats, setMinistryStats] = useState<any[]>([]);
-                  const [contentStats, setContentStats] = useState<any[]>([]);
-                  const [overdueLearners, setOverdueLearners] = useState<any[]>([]);
-                  const [selectedMinistry, setSelectedMinistry] = useState<string | null>(null);
-                  const [ministryCourseStats, setMinistryCourseStats] = useState<any[]>([]);
+    const [ministryStats, setMinistryStats] = useState<any[]>([]);
+    const [contentStats, setContentStats] = useState<any[]>([]);
+    const [overdueLearners, setOverdueLearners] = useState<any[]>([]);
+    const [selectedMinistry, setSelectedMinistry] = useState<string | null>(null);
+    const [ministryCourseStats, setMinistryCourseStats] = useState<any[]>([]);
 
-                  // Track if data has been loaded (to prevent re-fetching)
-                  const [pendingUsersLoaded, setPendingUsersLoaded] = useState(false);
-                  const [allUsersLoaded, setAllUsersLoaded] = useState(false);
-                  const [statsLoaded, setStatsLoaded] = useState(false);
+    // Track if data has been loaded (to prevent re-fetching)
+    const [pendingUsersLoaded, setPendingUsersLoaded] = useState(false);
+    const [allUsersLoaded, setAllUsersLoaded] = useState(false);
+    const [statsLoaded, setStatsLoaded] = useState(false);
 
     // Load pending users only once
     useEffect(() => {
       if (pendingUsersLoaded) return;
       const loadPendingUsers = async () => {
-                    setLoadingPending(true);
-                  try {
+        setLoadingPending(true);
+        try {
           const response = await authAPI.getPendingUsers();
-                  setPendingUsers(response.pendingUsers);
-                  setPendingUsersLoaded(true);
+          setPendingUsers(response.pendingUsers);
+          setPendingUsersLoaded(true);
         } catch (err) {
-                    console.error('Failed to load pending users:', err);
+          console.error('Failed to load pending users:', err);
         } finally {
-                    setLoadingPending(false);
+          setLoadingPending(false);
         }
       };
-                  loadPendingUsers();
+      loadPendingUsers();
     }, [pendingUsersLoaded]);
 
     // Load real analytics data
@@ -2222,1746 +2227,1746 @@ const App: React.FC = () => {
       const loadStats = async () => {
         try {
           const [statsRes, ministryRes, contentRes, overdueRes] = await Promise.all([
-                  dataService.getFullAdminStats(),
-                  dataService.getMinistryStats(),
-                  dataService.getContentStats(),
-                  dataService.getOverdueLearners()
-                  ]);
-                  setFullStats(statsRes.stats);
-                  setMinistryStats(ministryRes.ministryStats || []);
-                  setContentStats(contentRes.contentStats || []);
-                  setOverdueLearners(overdueRes.overdueLearners || []);
-                  setStatsLoaded(true);
+            dataService.getFullAdminStats(),
+            dataService.getMinistryStats(),
+            dataService.getContentStats(),
+            dataService.getOverdueLearners()
+          ]);
+          setFullStats(statsRes.stats);
+          setMinistryStats(ministryRes.ministryStats || []);
+          setContentStats(contentRes.contentStats || []);
+          setOverdueLearners(overdueRes.overdueLearners || []);
+          setStatsLoaded(true);
         } catch (err) {
-                    console.error('Failed to load admin stats:', err);
+          console.error('Failed to load admin stats:', err);
         }
       };
-                  loadStats();
+      loadStats();
     }, [statsLoaded]);
 
     // Load ministry course breakdown when a ministry is selected
     useEffect(() => {
       if (!selectedMinistry) {
-                    setMinistryCourseStats([]);
-                  return;
+        setMinistryCourseStats([]);
+        return;
       }
       const loadMinistryCourseStats = async () => {
         try {
           const res = await dataService.getMinistryCourseStats(selectedMinistry);
-                  setMinistryCourseStats(res.ministryCourseStats || []);
+          setMinistryCourseStats(res.ministryCourseStats || []);
         } catch (err) {
-                    console.error('Failed to load ministry course stats:', err);
+          console.error('Failed to load ministry course stats:', err);
         }
       };
-                  loadMinistryCourseStats();
+      loadMinistryCourseStats();
     }, [selectedMinistry]);
 
     // Load all users when USERS section is active (only once)
     useEffect(() => {
       if (adminSection !== 'USERS' || allUsersLoaded) return;
       const loadAllUsers = async () => {
-                    setLoadingUsers(true);
-                  try {
-          const response = await api.admin.getUsers({limit: 100 });
-                  setAllUsers(response.users || []);
-                  setAllUsersLoaded(true);
+        setLoadingUsers(true);
+        try {
+          const response = await api.admin.getUsers({ limit: 100 });
+          setAllUsers(response.users || []);
+          setAllUsersLoaded(true);
         } catch (err) {
-                    console.error('Failed to load users:', err);
+          console.error('Failed to load users:', err);
         } finally {
-                    setLoadingUsers(false);
+          setLoadingUsers(false);
         }
       };
-                  loadAllUsers();
+      loadAllUsers();
     }, [adminSection, allUsersLoaded]);
 
     const handleApproveUser = async (userId: string) => {
-                    setProcessingUser(userId);
-                  try {
-                    await authAPI.approveUser(userId);
+      setProcessingUser(userId);
+      try {
+        await authAPI.approveUser(userId);
         setPendingUsers(prev => prev.filter(u => u.id !== userId));
       } catch (err) {
-                    console.error('Failed to approve user:', err);
+        console.error('Failed to approve user:', err);
       } finally {
-                    setProcessingUser(null);
+        setProcessingUser(null);
       }
     };
 
     const handleRejectUser = async (userId: string) => {
-                    setProcessingUser(userId);
-                  try {
-                    await authAPI.rejectUser(userId);
+      setProcessingUser(userId);
+      try {
+        await authAPI.rejectUser(userId);
         setPendingUsers(prev => prev.filter(u => u.id !== userId));
       } catch (err) {
-                    console.error('Failed to reject user:', err);
+        console.error('Failed to reject user:', err);
       } finally {
-                    setProcessingUser(null);
+        setProcessingUser(null);
       }
     };
 
     // Inline editing handlers for Course Manager
     const startEditingCourseTitle = (course: Course) => {
-                    setEditingCourseId(course.id);
-                  setEditingCourseTitle(course.title);
+      setEditingCourseId(course.id);
+      setEditingCourseTitle(course.title);
     };
 
     const saveEditingCourseTitle = async () => {
       if (!editingCourseId || !editingCourseTitle.trim()) {
-                    cancelEditingCourseTitle();
-                  return;
+        cancelEditingCourseTitle();
+        return;
       }
-                  try {
-        const updatedCourse = await dataService.updateCourse(editingCourseId, {title: editingCourseTitle.trim() });
-        setCourses(prev => prev.map(c => c.id === editingCourseId ? {...c, title: editingCourseTitle.trim() } : c));
-                  showToast('success', 'Title Updated', 'Course title has been updated successfully.');
+      try {
+        const updatedCourse = await dataService.updateCourse(editingCourseId, { title: editingCourseTitle.trim() });
+        setCourses(prev => prev.map(c => c.id === editingCourseId ? { ...c, title: editingCourseTitle.trim() } : c));
+        showToast('success', 'Title Updated', 'Course title has been updated successfully.');
       } catch (err) {
-                    console.error('Failed to update course title:', err);
-                  showToast('error', 'Update Failed', 'Failed to update course title. Please try again.');
+        console.error('Failed to update course title:', err);
+        showToast('error', 'Update Failed', 'Failed to update course title. Please try again.');
       }
-                  cancelEditingCourseTitle();
+      cancelEditingCourseTitle();
     };
 
     const cancelEditingCourseTitle = () => {
-                    setEditingCourseId(null);
-                  setEditingCourseTitle('');
+      setEditingCourseId(null);
+      setEditingCourseTitle('');
     };
 
-                  const handleQuickUpdateCourse = async (courseId: string, updates: {title ?: string; level?: 'Beginner' | 'Intermediate' | 'Advanced' }) => {
+    const handleQuickUpdateCourse = async (courseId: string, updates: { title?: string; level?: 'Beginner' | 'Intermediate' | 'Advanced' }) => {
       try {
-                    await dataService.updateCourse(courseId, updates);
-        setCourses(prev => prev.map(c => c.id === courseId ? {...c, ...updates } : c));
-                  showToast('success', 'Course Updated', 'Course has been updated successfully.');
+        await dataService.updateCourse(courseId, updates);
+        setCourses(prev => prev.map(c => c.id === courseId ? { ...c, ...updates } : c));
+        showToast('success', 'Course Updated', 'Course has been updated successfully.');
       } catch (err) {
-                    console.error('Failed to update course:', err);
-                  showToast('error', 'Update Failed', 'Failed to update course. Please try again.');
+        console.error('Failed to update course:', err);
+        showToast('error', 'Update Failed', 'Failed to update course. Please try again.');
       }
     };
 
     const handleCreateCourse = () => {
-                    setEditingCourse({
-                      id: `new-${Date.now()}`, // Temporary ID to identify as new course
-                      title: '',
-                      description: '',
-                      level: 'Beginner',
-                      lessons: [],
-                      thumbnail: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=2070',
-                      totalDuration: '60 min',
-                      progress: 0,
-                      status: 'NOT_STARTED' as any
-                    });
-                  setViewMode('EDITOR');
-                  setEditorTab('DETAILS');
+      setEditingCourse({
+        id: `new-${Date.now()}`, // Temporary ID to identify as new course
+        title: '',
+        description: '',
+        level: 'Beginner',
+        lessons: [],
+        thumbnail: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=2070',
+        totalDuration: '60 min',
+        progress: 0,
+        status: 'NOT_STARTED' as any
+      });
+      setViewMode('EDITOR');
+      setEditorTab('DETAILS');
     };
 
     const handleEditCourse = (course: Course) => {
-                    setEditingCourse({ ...course });
-                  setViewMode('EDITOR');
-                  setEditorTab('CURRICULUM');
+      setEditingCourse({ ...course });
+      setViewMode('EDITOR');
+      setEditorTab('CURRICULUM');
     };
 
     const addLesson = () => {
       if (!editingCourse) return;
-                  const lesson: Lesson = {
-                    id: `l-${Date.now()}`,
-                  title: 'New Lesson',
-                  type: newLessonType,
-                  durationMin: 10,
-                  content: '',
-                  quiz: []
+      const lesson: Lesson = {
+        id: `l-${Date.now()}`,
+        title: 'New Lesson',
+        type: newLessonType,
+        durationMin: 10,
+        content: '',
+        quiz: []
       };
-                  setEditingCourse({
-                    ...editingCourse,
-                    lessons: [...(editingCourse.lessons || []), lesson]
+      setEditingCourse({
+        ...editingCourse,
+        lessons: [...(editingCourse.lessons || []), lesson]
       });
-                  setActiveLessonId(lesson.id);
+      setActiveLessonId(lesson.id);
     };
 
-                  const updateLesson = (id: string, updates: Partial<Lesson>) => {
+    const updateLesson = (id: string, updates: Partial<Lesson>) => {
       if (!editingCourse || !editingCourse.lessons) return;
-      const updatedLessons = editingCourse.lessons.map(l => l.id === id ? {...l, ...updates } : l);
-                    setEditingCourse({...editingCourse, lessons: updatedLessons });
+      const updatedLessons = editingCourse.lessons.map(l => l.id === id ? { ...l, ...updates } : l);
+      setEditingCourse({ ...editingCourse, lessons: updatedLessons });
     };
 
     const deleteLesson = (id: string) => {
       if (!editingCourse || !editingCourse.lessons) return;
-                    if (!confirm('Are you sure you want to delete this lesson?')) return;
+      if (!confirm('Are you sure you want to delete this lesson?')) return;
       const updatedLessons = editingCourse.lessons.filter(l => l.id !== id);
-                    setEditingCourse({...editingCourse, lessons: updatedLessons });
-                    // Track deletion for backend sync (only if it's an existing lesson, not a new one)
-                    if (!id.startsWith('l-')) {
-                      setDeletedLessonIds(prev => [...prev, id]);
+      setEditingCourse({ ...editingCourse, lessons: updatedLessons });
+      // Track deletion for backend sync (only if it's an existing lesson, not a new one)
+      if (!id.startsWith('l-')) {
+        setDeletedLessonIds(prev => [...prev, id]);
       }
-                    if (activeLessonId === id) {
-                      setActiveLessonId(updatedLessons[0]?.id || null);
+      if (activeLessonId === id) {
+        setActiveLessonId(updatedLessons[0]?.id || null);
       }
     };
 
     // Move lesson up in order
     const moveLessonUp = (index: number) => {
       if (!editingCourse || !editingCourse.lessons || index === 0) return;
-                    const lessons = [...editingCourse.lessons];
-                    [lessons[index - 1], lessons[index]] = [lessons[index], lessons[index - 1]];
-                    setEditingCourse({...editingCourse, lessons});
+      const lessons = [...editingCourse.lessons];
+      [lessons[index - 1], lessons[index]] = [lessons[index], lessons[index - 1]];
+      setEditingCourse({ ...editingCourse, lessons });
     };
 
     // Move lesson down in order
     const moveLessonDown = (index: number) => {
       if (!editingCourse || !editingCourse.lessons || index === editingCourse.lessons.length - 1) return;
-                    const lessons = [...editingCourse.lessons];
-                    [lessons[index], lessons[index + 1]] = [lessons[index + 1], lessons[index]];
-                    setEditingCourse({...editingCourse, lessons});
+      const lessons = [...editingCourse.lessons];
+      [lessons[index], lessons[index + 1]] = [lessons[index + 1], lessons[index]];
+      setEditingCourse({ ...editingCourse, lessons });
     };
 
     const deleteCourse = async (courseId: string) => {
       if (!confirm('Are you sure you want to delete this course? This action cannot be undone.')) return;
-                    try {
-                      await dataService.deleteCourse(courseId);
-                    const freshCourses = await dataService.getCourses();
-                    setCourses(sortCourses(freshCourses));
-                    showToast('success', 'Course Deleted', 'The course has been successfully removed.');
+      try {
+        await dataService.deleteCourse(courseId);
+        const freshCourses = await dataService.getCourses();
+        setCourses(sortCourses(freshCourses));
+        showToast('success', 'Course Deleted', 'The course has been successfully removed.');
       } catch (error) {
-                      console.error('Failed to delete course:', error);
-                    showToast('error', 'Delete Failed', 'Failed to delete course. Please try again.');
+        console.error('Failed to delete course:', error);
+        showToast('error', 'Delete Failed', 'Failed to delete course. Please try again.');
       }
     };
 
     // Save course to backend with all lessons
     const handleSaveCourse = async () => {
       if (!editingCourse) return;
-                    setIsSaving(true);
-                    try {
-                      let courseId = editingCourse.id;
-                    const isNewCourse = !courseId || courseId.startsWith('new-');
+      setIsSaving(true);
+      try {
+        let courseId = editingCourse.id;
+        const isNewCourse = !courseId || courseId.startsWith('new-');
 
-                    // 1. Create or update the course first
-                    if (isNewCourse) {
+        // 1. Create or update the course first
+        if (isNewCourse) {
           const savedCourse = await dataService.createCourse(editingCourse);
-                    courseId = savedCourse.id;
+          courseId = savedCourse.id;
         } else {
-                      await dataService.updateCourse(courseId, editingCourse);
+          await dataService.updateCourse(courseId, editingCourse);
         }
 
-                    // 2. Delete removed lessons from backend
-                    let deletionWarning = false;
-                    for (const deletedId of deletedLessonIds) {
+        // 2. Delete removed lessons from backend
+        let deletionWarning = false;
+        for (const deletedId of deletedLessonIds) {
           try {
-                      await dataService.deleteLesson(deletedId);
+            await dataService.deleteLesson(deletedId);
           } catch (err) {
-                      console.error(`Failed to delete lesson ${deletedId}:`, err);
-                    deletionWarning = true;
+            console.error(`Failed to delete lesson ${deletedId}:`, err);
+            deletionWarning = true;
           }
         }
-                    setDeletedLessonIds([]); // Clear after sync
+        setDeletedLessonIds([]); // Clear after sync
 
-                    // 3. Save all lessons with order
-                    const lessons = editingCourse.lessons || [];
-                    for (let i = 0; i < lessons.length; i++) {
+        // 3. Save all lessons with order
+        const lessons = editingCourse.lessons || [];
+        for (let i = 0; i < lessons.length; i++) {
           const lesson = lessons[i];
-                    const isNewLesson = lesson.id.startsWith('l-');
+          const isNewLesson = lesson.id.startsWith('l-');
 
-                    if (isNewLesson) {
-                      // Create new lesson with order
-                      await dataService.addLesson(courseId, {
-                        title: lesson.title,
-                        type: lesson.type,
-                        durationMin: lesson.durationMin,
-                        videoUrl: lesson.videoUrl,
-                        fileUrl: lesson.fileUrl,
-                        fileName: lesson.fileName,
-                        pageCount: lesson.pageCount,
-                        content: lesson.content,
-                        quiz: lesson.quiz,
-                        orderIndex: i
-                      });
+          if (isNewLesson) {
+            // Create new lesson with order
+            await dataService.addLesson(courseId, {
+              title: lesson.title,
+              type: lesson.type,
+              durationMin: lesson.durationMin,
+              videoUrl: lesson.videoUrl,
+              fileUrl: lesson.fileUrl,
+              fileName: lesson.fileName,
+              pageCount: lesson.pageCount,
+              content: lesson.content,
+              quiz: lesson.quiz,
+              orderIndex: i
+            });
           } else {
-                      // Update existing lesson with order
-                      await dataService.updateLesson(lesson.id, {
-                        title: lesson.title,
-                        type: lesson.type,
-                        durationMin: lesson.durationMin,
-                        videoUrl: lesson.videoUrl,
-                        fileUrl: lesson.fileUrl,
-                        fileName: lesson.fileName,
-                        pageCount: lesson.pageCount,
-                        content: lesson.content,
-                        orderIndex: i
-                      });
+            // Update existing lesson with order
+            await dataService.updateLesson(lesson.id, {
+              title: lesson.title,
+              type: lesson.type,
+              durationMin: lesson.durationMin,
+              videoUrl: lesson.videoUrl,
+              fileUrl: lesson.fileUrl,
+              fileName: lesson.fileName,
+              pageCount: lesson.pageCount,
+              content: lesson.content,
+              orderIndex: i
+            });
           }
         }
 
-                    // 4. Refresh courses list (sorted by level and order)
-                    const freshCourses = await dataService.getCourses();
-                    setCourses(sortCourses(freshCourses));
-                    setViewMode('DASHBOARD');
-                    setEditingCourse(null);
-                    setActiveLessonId(null);
+        // 4. Refresh courses list (sorted by level and order)
+        const freshCourses = await dataService.getCourses();
+        setCourses(sortCourses(freshCourses));
+        setViewMode('DASHBOARD');
+        setEditingCourse(null);
+        setActiveLessonId(null);
 
-                    // Show success toast
-                    if (deletionWarning) {
-                      showToast('warning', 'Partial Save', 'Course saved but some lessons could not be deleted. Please review and retry.');
+        // Show success toast
+        if (deletionWarning) {
+          showToast('warning', 'Partial Save', 'Course saved but some lessons could not be deleted. Please review and retry.');
         } else {
-                      showToast('success', isNewCourse ? 'Course Created' : 'Course Updated', 'Your changes have been saved and published successfully.');
+          showToast('success', isNewCourse ? 'Course Created' : 'Course Updated', 'Your changes have been saved and published successfully.');
         }
       } catch (error) {
-                      console.error('Failed to save course:', error);
-                    showToast('error', 'Update Failed', 'Something went wrong. Please try again or contact support.');
+        console.error('Failed to save course:', error);
+        showToast('error', 'Update Failed', 'Something went wrong. Please try again or contact support.');
       } finally {
-                      setIsSaving(false);
+        setIsSaving(false);
       }
     };
 
     // Calculate analytics for dashboard
     const totalLessons = courses.reduce((acc, c) => acc + c.lessons.length, 0);
 
-                    // --- Sub-View: Course Editor (The Hyper Glass Tool) ---
-                    if (viewMode === 'EDITOR' && editingCourse) {
+    // --- Sub-View: Course Editor (The Hyper Glass Tool) ---
+    if (viewMode === 'EDITOR' && editingCourse) {
       const activeLesson = editingCourse.lessons?.find(l => l.id === activeLessonId);
 
-                    return (
-                    <div className="md:ml-64 h-screen overflow-hidden relative z-10 bg-black flex flex-col">
-                      {/* Editor Header */}
-                      <div className="h-16 flex-shrink-0 bg-[linear-gradient(180deg,#121214_0%,#0a0a0b_100%)] border-b border-white/[0.05] flex items-center justify-between px-6 z-30">
-                        <div className="flex items-center gap-4">
-                          <IconButton icon={<ArrowLeft size={20} />} onClick={() => setViewMode('DASHBOARD')} />
-                          <h2 className="font-bold text-lg text-white">Course Editor</h2>
-                          <div className="h-4 w-px bg-white/10"></div>
-                          <span className="text-zinc-400 text-sm">{editingCourse.title}</span>
-                        </div>
-                        <div className="flex gap-3">
-                          <SecondaryButton className="px-4 py-2 text-sm h-9 flex items-center" onClick={() => setViewMode('DASHBOARD')}>Cancel</SecondaryButton>
-                          <PrimaryButton
-                            className="px-4 py-2 text-sm h-9 flex items-center gap-2"
-                            onClick={handleSaveCourse}
-                            disabled={isSaving}
-                          >
-                            {isSaving ? (
-                              <><div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" /> Saving...</>
-                            ) : (
-                              <><Save size={16} /> Publish Changes</>
-                            )}
-                          </PrimaryButton>
-                        </div>
+      return (
+        <div className="md:ml-64 h-screen overflow-hidden relative z-10 bg-black flex flex-col">
+          {/* Editor Header */}
+          <div className="h-16 flex-shrink-0 bg-[linear-gradient(180deg,#121214_0%,#0a0a0b_100%)] border-b border-white/[0.05] flex items-center justify-between px-6 z-30">
+            <div className="flex items-center gap-4">
+              <IconButton icon={<ArrowLeft size={20} />} onClick={() => setViewMode('DASHBOARD')} />
+              <h2 className="font-bold text-lg text-white">Course Editor</h2>
+              <div className="h-4 w-px bg-white/10"></div>
+              <span className="text-zinc-400 text-sm">{editingCourse.title}</span>
+            </div>
+            <div className="flex gap-3">
+              <SecondaryButton className="px-4 py-2 text-sm h-9 flex items-center" onClick={() => setViewMode('DASHBOARD')}>Cancel</SecondaryButton>
+              <PrimaryButton
+                className="px-4 py-2 text-sm h-9 flex items-center gap-2"
+                onClick={handleSaveCourse}
+                disabled={isSaving}
+              >
+                {isSaving ? (
+                  <><div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" /> Saving...</>
+                ) : (
+                  <><Save size={16} /> Publish Changes</>
+                )}
+              </PrimaryButton>
+            </div>
+          </div>
+
+          <div className="flex flex-1 overflow-hidden">
+            {/* Left Sidebar: Structure */}
+            <div className="w-80 bg-[linear-gradient(180deg,#131315_0%,#0a0a0b_100%)] border-r border-white/[0.05] flex flex-col">
+              <div className="flex border-b border-white/5">
+                <button
+                  onClick={() => setEditorTab('DETAILS')}
+                  className={`flex-1 py-4 text-sm font-medium transition-colors ${editorTab === 'DETAILS' ? 'text-yellow-400 border-b-2 border-yellow-400 bg-yellow-400/5' : 'text-zinc-400 hover:text-white'}`}
+                >
+                  Details
+                </button>
+                <button
+                  onClick={() => setEditorTab('CURRICULUM')}
+                  className={`flex-1 py-4 text-sm font-medium transition-colors ${editorTab === 'CURRICULUM' ? 'text-yellow-400 border-b-2 border-yellow-400 bg-yellow-400/5' : 'text-zinc-400 hover:text-white'}`}
+                >
+                  Curriculum
+                </button>
+              </div>
+
+              {editorTab === 'DETAILS' ? (
+                <div className="p-6 space-y-6 overflow-y-auto">
+                  <div>
+                    <label className="text-xs text-zinc-500 font-bold uppercase mb-2 block">Course Thumbnail</label>
+                    {/* Current thumbnail preview */}
+                    {editingCourse.thumbnail && (
+                      <div className="aspect-video rounded-xl bg-zinc-800 overflow-hidden mb-3 relative group border border-white/10">
+                        <img src={editingCourse.thumbnail} className="w-full h-full object-cover" />
+                        <button
+                          onClick={() => setEditingCourse({ ...editingCourse, thumbnail: '' })}
+                          className="absolute top-2 right-2 p-1.5 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500"
+                        >
+                          <X size={14} />
+                        </button>
                       </div>
+                    )}
+                    {/* Upload option */}
+                    <div className="mb-3">
+                      <FileDropZone
+                        label="Upload Thumbnail Image"
+                        accept="image/jpeg,image/png,image/webp,image/gif,.jpg,.jpeg,.png,.webp,.gif"
+                        currentFile={undefined}
+                        isUploading={isUploading}
+                        uploadProgress={uploadProgress}
+                        onFileSelect={async (file) => {
+                          try {
+                            setIsUploading(true);
+                            setUploadProgress(0);
+                            const result = await dataService.uploadFile(file, (progress) => {
+                              setUploadProgress(progress);
+                            });
+                            setEditingCourse({ ...editingCourse, thumbnail: result.file.fileUrl });
+                            showToast('success', 'Thumbnail Uploaded', 'Image uploaded successfully.');
+                          } catch (error) {
+                            console.error('Failed to upload thumbnail:', error);
+                            showToast('error', 'Upload Failed', 'Failed to upload thumbnail. Please try again.');
+                          } finally {
+                            setIsUploading(false);
+                            setUploadProgress(0);
+                          }
+                        }}
+                      />
+                    </div>
+                    {/* OR use URL */}
+                    <div className="relative mb-3">
+                      <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-white/10"></div></div>
+                      <div className="relative flex justify-center"><span className="px-2 bg-zinc-900 text-xs text-zinc-500">OR use URL</span></div>
+                    </div>
+                    <input
+                      value={editingCourse.thumbnail || ''}
+                      onChange={e => setEditingCourse({ ...editingCourse, thumbnail: e.target.value })}
+                      placeholder="Enter image URL..."
+                      className="w-full bg-zinc-900/50 border border-white/10 rounded-xl p-2 text-xs text-white focus:border-yellow-400 outline-none mb-3"
+                    />
+                    {/* Quick select presets */}
+                    <div className="text-xs text-zinc-500 mb-2">Quick select:</div>
+                    <div className="grid grid-cols-4 gap-1">
+                      {[
+                        'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=400',
+                        'https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=400',
+                        'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=400',
+                        'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?q=80&w=400',
+                      ].map((url, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => setEditingCourse({ ...editingCourse, thumbnail: url.replace('w=400', 'w=2070') })}
+                          className={`aspect-video rounded-lg overflow-hidden border-2 transition-all ${editingCourse.thumbnail?.includes(url.split('?')[0].split('/').pop() || '') ? 'border-yellow-400' : 'border-transparent hover:border-white/30'}`}
+                        >
+                          <img src={url} className="w-full h-full object-cover" />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-xs text-zinc-500 font-bold uppercase mb-2 block">Title</label>
+                    <input
+                      value={editingCourse.title}
+                      onChange={e => setEditingCourse({ ...editingCourse, title: e.target.value })}
+                      className="w-full bg-zinc-900/50 border border-white/10 rounded-xl p-3 text-white focus:border-yellow-400 outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-zinc-500 font-bold uppercase mb-2 block">Description</label>
+                    <textarea
+                      value={editingCourse.description}
+                      onChange={e => setEditingCourse({ ...editingCourse, description: e.target.value })}
+                      className="w-full h-32 bg-zinc-900/50 border border-white/10 rounded-xl p-3 text-white focus:border-yellow-400 outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-zinc-500 font-bold uppercase mb-2 block">Course Level</label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {(['Beginner', 'Intermediate', 'Advanced'] as const).map(level => (
+                        <button
+                          key={level}
+                          onClick={() => setEditingCourse({ ...editingCourse, level })}
+                          className={`py-3 px-2 rounded-xl text-sm font-medium transition-all border flex items-center justify-center text-center whitespace-nowrap min-h-[48px] ${editingCourse.level === level
+                            ? 'bg-yellow-400 text-black border-yellow-400 shadow-lg shadow-yellow-400/20'
+                            : 'bg-zinc-900/50 text-zinc-400 border-white/10 hover:border-yellow-400/50'
+                            }`}
+                        >
+                          {level}
+                        </button>
+                      ))}
+                    </div>
+                    <p className="text-[10px] text-zinc-500 mt-2">
+                      {editingCourse.level === 'Beginner' && 'Available to all learners from the start'}
+                      {editingCourse.level === 'Intermediate' && 'Unlocked after completing all Beginner courses'}
+                      {editingCourse.level === 'Advanced' && 'Unlocked after completing Beginner & Intermediate courses'}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-xs text-zinc-500 font-bold uppercase mb-2 block">Estimated Duration</label>
+                    <input
+                      value={editingCourse.totalDuration || ''}
+                      onChange={e => setEditingCourse({ ...editingCourse, totalDuration: e.target.value })}
+                      placeholder="e.g., 60 min or 1h 30min"
+                      className="w-full bg-zinc-900/50 border border-white/10 rounded-xl p-3 text-white focus:border-yellow-400 outline-none"
+                    />
+                  </div>
 
-                      <div className="flex flex-1 overflow-hidden">
-                        {/* Left Sidebar: Structure */}
-                        <div className="w-80 bg-[linear-gradient(180deg,#131315_0%,#0a0a0b_100%)] border-r border-white/[0.05] flex flex-col">
-                          <div className="flex border-b border-white/5">
-                            <button
-                              onClick={() => setEditorTab('DETAILS')}
-                              className={`flex-1 py-4 text-sm font-medium transition-colors ${editorTab === 'DETAILS' ? 'text-yellow-400 border-b-2 border-yellow-400 bg-yellow-400/5' : 'text-zinc-400 hover:text-white'}`}
-                            >
-                              Details
-                            </button>
-                            <button
-                              onClick={() => setEditorTab('CURRICULUM')}
-                              className={`flex-1 py-4 text-sm font-medium transition-colors ${editorTab === 'CURRICULUM' ? 'text-yellow-400 border-b-2 border-yellow-400 bg-yellow-400/5' : 'text-zinc-400 hover:text-white'}`}
-                            >
-                              Curriculum
-                            </button>
-                          </div>
-
-                          {editorTab === 'DETAILS' ? (
-                            <div className="p-6 space-y-6 overflow-y-auto">
-                              <div>
-                                <label className="text-xs text-zinc-500 font-bold uppercase mb-2 block">Course Thumbnail</label>
-                                {/* Current thumbnail preview */}
-                                {editingCourse.thumbnail && (
-                                  <div className="aspect-video rounded-xl bg-zinc-800 overflow-hidden mb-3 relative group border border-white/10">
-                                    <img src={editingCourse.thumbnail} className="w-full h-full object-cover" />
-                                    <button
-                                      onClick={() => setEditingCourse({ ...editingCourse, thumbnail: '' })}
-                                      className="absolute top-2 right-2 p-1.5 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500"
-                                    >
-                                      <X size={14} />
-                                    </button>
-                                  </div>
-                                )}
-                                {/* Upload option */}
-                                <div className="mb-3">
-                                  <FileDropZone
-                                    label="Upload Thumbnail Image"
-                                    accept="image/jpeg,image/png,image/webp,image/gif,.jpg,.jpeg,.png,.webp,.gif"
-                                    currentFile={undefined}
-                                    isUploading={isUploading}
-                                    uploadProgress={uploadProgress}
-                                    onFileSelect={async (file) => {
-                                      try {
-                                        setIsUploading(true);
-                                        setUploadProgress(0);
-                                        const result = await dataService.uploadFile(file, (progress) => {
-                                          setUploadProgress(progress);
-                                        });
-                                        setEditingCourse({ ...editingCourse, thumbnail: result.file.fileUrl });
-                                        showToast('success', 'Thumbnail Uploaded', 'Image uploaded successfully.');
-                                      } catch (error) {
-                                        console.error('Failed to upload thumbnail:', error);
-                                        showToast('error', 'Upload Failed', 'Failed to upload thumbnail. Please try again.');
-                                      } finally {
-                                        setIsUploading(false);
-                                        setUploadProgress(0);
-                                      }
-                                    }}
-                                  />
-                                </div>
-                                {/* OR use URL */}
-                                <div className="relative mb-3">
-                                  <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-white/10"></div></div>
-                                  <div className="relative flex justify-center"><span className="px-2 bg-zinc-900 text-xs text-zinc-500">OR use URL</span></div>
-                                </div>
-                                <input
-                                  value={editingCourse.thumbnail || ''}
-                                  onChange={e => setEditingCourse({ ...editingCourse, thumbnail: e.target.value })}
-                                  placeholder="Enter image URL..."
-                                  className="w-full bg-zinc-900/50 border border-white/10 rounded-xl p-2 text-xs text-white focus:border-yellow-400 outline-none mb-3"
-                                />
-                                {/* Quick select presets */}
-                                <div className="text-xs text-zinc-500 mb-2">Quick select:</div>
-                                <div className="grid grid-cols-4 gap-1">
-                                  {[
-                                    'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=400',
-                                    'https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=400',
-                                    'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=400',
-                                    'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?q=80&w=400',
-                                  ].map((url, idx) => (
-                                    <button
-                                      key={idx}
-                                      onClick={() => setEditingCourse({ ...editingCourse, thumbnail: url.replace('w=400', 'w=2070') })}
-                                      className={`aspect-video rounded-lg overflow-hidden border-2 transition-all ${editingCourse.thumbnail?.includes(url.split('?')[0].split('/').pop() || '') ? 'border-yellow-400' : 'border-transparent hover:border-white/30'}`}
-                                    >
-                                      <img src={url} className="w-full h-full object-cover" />
-                                    </button>
-                                  ))}
-                                </div>
-                              </div>
-                              <div>
-                                <label className="text-xs text-zinc-500 font-bold uppercase mb-2 block">Title</label>
-                                <input
-                                  value={editingCourse.title}
-                                  onChange={e => setEditingCourse({ ...editingCourse, title: e.target.value })}
-                                  className="w-full bg-zinc-900/50 border border-white/10 rounded-xl p-3 text-white focus:border-yellow-400 outline-none"
-                                />
-                              </div>
-                              <div>
-                                <label className="text-xs text-zinc-500 font-bold uppercase mb-2 block">Description</label>
-                                <textarea
-                                  value={editingCourse.description}
-                                  onChange={e => setEditingCourse({ ...editingCourse, description: e.target.value })}
-                                  className="w-full h-32 bg-zinc-900/50 border border-white/10 rounded-xl p-3 text-white focus:border-yellow-400 outline-none"
-                                />
-                              </div>
-                              <div>
-                                <label className="text-xs text-zinc-500 font-bold uppercase mb-2 block">Course Level</label>
-                                <div className="grid grid-cols-3 gap-2">
-                                  {(['Beginner', 'Intermediate', 'Advanced'] as const).map(level => (
-                                    <button
-                                      key={level}
-                                      onClick={() => setEditingCourse({ ...editingCourse, level })}
-                                      className={`py-3 px-2 rounded-xl text-sm font-medium transition-all border flex items-center justify-center text-center whitespace-nowrap min-h-[48px] ${editingCourse.level === level
-                                        ? 'bg-yellow-400 text-black border-yellow-400 shadow-lg shadow-yellow-400/20'
-                                        : 'bg-zinc-900/50 text-zinc-400 border-white/10 hover:border-yellow-400/50'
-                                        }`}
-                                    >
-                                      {level}
-                                    </button>
-                                  ))}
-                                </div>
-                                <p className="text-[10px] text-zinc-500 mt-2">
-                                  {editingCourse.level === 'Beginner' && 'Available to all learners from the start'}
-                                  {editingCourse.level === 'Intermediate' && 'Unlocked after completing all Beginner courses'}
-                                  {editingCourse.level === 'Advanced' && 'Unlocked after completing Beginner & Intermediate courses'}
-                                </p>
-                              </div>
-                              <div>
-                                <label className="text-xs text-zinc-500 font-bold uppercase mb-2 block">Estimated Duration</label>
-                                <input
-                                  value={editingCourse.totalDuration || ''}
-                                  onChange={e => setEditingCourse({ ...editingCourse, totalDuration: e.target.value })}
-                                  placeholder="e.g., 60 min or 1h 30min"
-                                  className="w-full bg-zinc-900/50 border border-white/10 rounded-xl p-3 text-white focus:border-yellow-400 outline-none"
-                                />
-                              </div>
-
-                              {/* Deadline and Mandatory Settings */}
-                              <div className="pt-4 border-t border-white/10">
-                                <h4 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
-                                  <Calendar size={16} className="text-yellow-400" />
-                                  Deadline & Requirements
-                                </h4>
-                                <div className="space-y-3">
-                                  <div>
-                                    <label className="text-xs text-zinc-500 font-bold uppercase mb-2 block">Completion Deadline</label>
-                                    <input
-                                      type="datetime-local"
-                                      value={editingCourse.deadline ? new Date(editingCourse.deadline).toISOString().slice(0, 16) : ''}
-                                      onChange={e => setEditingCourse({ ...editingCourse, deadline: e.target.value ? new Date(e.target.value).toISOString() : undefined })}
-                                      className="w-full bg-zinc-900/50 border border-white/10 rounded-xl p-3 text-white focus:border-yellow-400 outline-none"
-                                    />
-                                    <p className="text-[10px] text-zinc-500 mt-1">Leave empty for no deadline</p>
-                                  </div>
-                                  <div className="flex items-center gap-3">
-                                    <button
-                                      onClick={() => setEditingCourse({ ...editingCourse, isMandatory: !editingCourse.isMandatory })}
-                                      className={`w-12 h-6 rounded-full transition-colors relative ${editingCourse.isMandatory ? 'bg-yellow-400' : 'bg-zinc-700'
-                                        }`}
-                                    >
-                                      <div className={`w-5 h-5 rounded-full bg-white absolute top-0.5 transition-transform ${editingCourse.isMandatory ? 'translate-x-6' : 'translate-x-0.5'
-                                        }`} />
-                                    </button>
-                                    <div>
-                                      <span className="text-sm text-white">Mandatory Training</span>
-                                      <p className="text-[10px] text-zinc-500">Mark as required for all learners</p>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          ) : (
-                            <div className="flex-1 flex flex-col">
-                              <div className="p-4 space-y-2 overflow-y-auto flex-1">
-                                {editingCourse.lessons?.map((lesson, idx) => (
-                                  <div
-                                    key={lesson.id}
-                                    draggable
-                                    onDragStart={(e) => {
-                                      e.dataTransfer.setData('text/plain', idx.toString());
-                                      e.dataTransfer.effectAllowed = 'move';
-                                      (e.target as HTMLElement).classList.add('dragging');
-                                    }}
-                                    onDragEnd={(e) => {
-                                      (e.target as HTMLElement).classList.remove('dragging');
-                                    }}
-                                    onDragOver={(e) => {
-                                      e.preventDefault();
-                                      e.dataTransfer.dropEffect = 'move';
-                                      (e.currentTarget as HTMLElement).classList.add('drag-over');
-                                    }}
-                                    onDragLeave={(e) => {
-                                      (e.currentTarget as HTMLElement).classList.remove('drag-over');
-                                    }}
-                                    onDrop={(e) => {
-                                      e.preventDefault();
-                                      (e.currentTarget as HTMLElement).classList.remove('drag-over');
-                                      const fromIndex = parseInt(e.dataTransfer.getData('text/plain'));
-                                      const toIndex = idx;
-                                      if (fromIndex !== toIndex && editingCourse?.lessons) {
-                                        const lessons = [...editingCourse.lessons];
-                                        const [movedLesson] = lessons.splice(fromIndex, 1);
-                                        lessons.splice(toIndex, 0, movedLesson);
-                                        setEditingCourse({ ...editingCourse, lessons });
-                                      }
-                                    }}
-                                    onClick={() => setActiveLessonId(lesson.id)}
-                                    className={`group p-3 rounded-xl border transition-all cursor-pointer flex items-center gap-2 ${activeLessonId === lesson.id
-                                      ? 'bg-yellow-400/10 border-yellow-400/30 shadow-[0_0_15px_rgba(250,204,21,0.1)]'
-                                      : 'bg-white/5 border-transparent hover:border-white/10'
-                                      }`}
-                                  >
-                                    {/* Drag Handle */}
-                                    <div
-                                      className="drag-handle p-1 rounded hover:bg-white/10 text-zinc-500 hover:text-zinc-300 transition-colors"
-                                      onClick={(e) => e.stopPropagation()}
-                                    >
-                                      <GripVertical size={14} />
-                                    </div>
-                                    {/* Reorder buttons (kept as alternative) */}
-                                    <div className="flex flex-col gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                                      <button
-                                        onClick={(e) => { e.stopPropagation(); moveLessonUp(idx); }}
-                                        disabled={idx === 0}
-                                        className={`p-0.5 rounded hover:bg-white/10 ${idx === 0 ? 'text-zinc-700 cursor-not-allowed' : 'text-zinc-400 hover:text-white'}`}
-                                      >
-                                        <ChevronUp size={12} />
-                                      </button>
-                                      <button
-                                        onClick={(e) => { e.stopPropagation(); moveLessonDown(idx); }}
-                                        disabled={idx === (editingCourse.lessons?.length || 0) - 1}
-                                        className={`p-0.5 rounded hover:bg-white/10 ${idx === (editingCourse.lessons?.length || 0) - 1 ? 'text-zinc-700 cursor-not-allowed' : 'text-zinc-400 hover:text-white'}`}
-                                      >
-                                        <ChevronDown size={12} />
-                                      </button>
-                                    </div>
-                                    <div className="h-6 w-6 rounded flex items-center justify-center bg-zinc-800 text-zinc-400 text-xs font-mono">{idx + 1}</div>
-                                    <div className="flex-1 min-w-0">
-                                      <div className="text-sm font-medium truncate text-white" title={lesson.title}>{lesson.title}</div>
-                                      <div className="text-[10px] text-zinc-500 uppercase flex items-center gap-1">
-                                        {lesson.type === 'video' && <Video size={10} />}
-                                        {lesson.type === 'quiz' && <HelpCircle size={10} />}
-                                        {(lesson.type === 'pdf' || lesson.type === 'presentation') && <FileText size={10} />}
-                                        {lesson.type}
-                                      </div>
-                                    </div>
-                                    <button
-                                      onClick={(e) => { e.stopPropagation(); deleteLesson(lesson.id); }}
-                                      className="opacity-0 group-hover:opacity-100 p-1 hover:text-red-400 transition-opacity"
-                                    >
-                                      <Trash2 size={14} />
-                                    </button>
-                                  </div>
-                                ))}
-                              </div>
-                              <div className="p-4 border-t border-white/10 bg-zinc-900/50">
-                                <div className="flex gap-2 mb-2">
-                                  {(['video', 'pdf', 'presentation', 'quiz'] as ContentType[]).map(type => (
-                                    <button
-                                      key={type}
-                                      onClick={() => setNewLessonType(type)}
-                                      className={`flex-1 py-1 rounded text-[10px] uppercase font-bold transition-all ${newLessonType === type ? 'bg-yellow-400 text-black' : 'bg-zinc-800 text-zinc-500 hover:bg-zinc-700'}`}
-                                    >
-                                      {type === 'presentation' ? 'PPT' : type}
-                                    </button>
-                                  ))}
-                                </div>
-                                <PrimaryButton onClick={addLesson} className="w-full py-2 text-sm">Add Lesson</PrimaryButton>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Main Editing Area */}
-                        <div className="flex-1 bg-gradient-to-br from-zinc-950 to-zinc-900 p-8 overflow-y-auto">
-                          {editorTab === 'CURRICULUM' && activeLesson ? (
-                            <div className="max-w-3xl mx-auto space-y-8 animate-fade-in">
-                              <div className="flex items-center justify-between mb-2">
-                                <Badge type="default">{activeLesson.type.toUpperCase()}</Badge>
-                                <div className="text-xs text-zinc-500 font-mono">ID: {activeLesson.id}</div>
-                              </div>
-
-                              <input
-                                className="text-3xl font-bold bg-transparent border-none outline-none text-white placeholder-zinc-600 w-full"
-                                placeholder="Lesson Title"
-                                value={activeLesson.title}
-                                onChange={(e) => updateLesson(activeLesson.id, { title: e.target.value })}
-                              />
-
-                              {/* Content Type Specific Editors */}
-
-                              {/* 1. Video Editor */}
-                              {activeLesson.type === 'video' && (
-                                <GlassCard className="space-y-6">
-                                  {/* Video Source Options */}
-                                  <div className="space-y-4">
-                                    <label className="block text-sm text-zinc-400 mb-2">Video Source</label>
-                                    <div className="grid grid-cols-2 gap-4">
-                                      {/* Option 1: URL */}
-                                      <div className="space-y-2">
-                                        <div className="text-xs text-zinc-500 uppercase font-bold">From URL (YouTube/Vimeo)</div>
-                                        <input
-                                          className="w-full bg-zinc-900/50 border border-white/10 rounded-xl p-3 outline-none focus:border-yellow-400 text-sm"
-                                          placeholder="https://youtube.com/watch?v=..."
-                                          value={activeLesson.videoUrl || ''}
-                                          onChange={(e) => updateLesson(activeLesson.id, { videoUrl: e.target.value, fileUrl: undefined })}
-                                        />
-                                      </div>
-                                      {/* Option 2: Upload */}
-                                      <div className="space-y-2">
-                                        <div className="text-xs text-zinc-500 uppercase font-bold">Upload from Computer</div>
-                                        <FileDropZone
-                                          label="Upload Video"
-                                          accept="video/mp4,video/webm,video/ogg,.mp4,.webm,.ogg"
-                                          currentFile={activeLesson.fileName}
-                                          isUploading={isUploading}
-                                          uploadProgress={uploadProgress}
-                                          onFileSelect={async (file) => {
-                                            try {
-                                              setIsUploading(true);
-                                              setUploadProgress(0);
-                                              const result = await dataService.uploadFile(file, (progress) => {
-                                                setUploadProgress(progress);
-                                              });
-                                              updateLesson(activeLesson.id, {
-                                                fileUrl: result.file.fileUrl,
-                                                fileName: result.file.originalName,
-                                                videoUrl: undefined
-                                              });
-                                              showToast('success', 'Video Uploaded', 'Your video has been uploaded successfully.');
-                                            } catch (error) {
-                                              console.error('Failed to upload video:', error);
-                                              showToast('error', 'Upload Failed', 'Failed to upload video. Please try again.');
-                                            } finally {
-                                              setIsUploading(false);
-                                              setUploadProgress(0);
-                                            }
-                                          }}
-                                        />
-                                      </div>
-                                    </div>
-                                  </div>
-
-                                  {/* Duration */}
-                                  <div className="w-48">
-                                    <label className="block text-sm text-zinc-400 mb-1">Duration (min)</label>
-                                    <input
-                                      type="number"
-                                      className="w-full bg-zinc-900/50 border border-white/10 rounded-xl p-3 outline-none focus:border-yellow-400"
-                                      value={activeLesson.durationMin}
-                                      onChange={(e) => updateLesson(activeLesson.id, { durationMin: parseInt(e.target.value) })}
-                                    />
-                                  </div>
-
-                                  {/* Preview */}
-                                  <div className="aspect-video bg-black rounded-xl border border-white/10 flex items-center justify-center text-zinc-500 overflow-hidden">
-                                    {activeLesson.videoUrl ? (
-                                      isYouTubeUrl(activeLesson.videoUrl) ? (
-                                        <iframe
-                                          src={`https://www.youtube.com/embed/${getYouTubeVideoId(activeLesson.videoUrl)}`}
-                                          className="w-full h-full"
-                                          allowFullScreen
-                                        />
-                                      ) : (
-                                        <iframe src={activeLesson.videoUrl} className="w-full h-full" allowFullScreen />
-                                      )
-                                    ) : activeLesson.fileUrl ? (
-                                      <video
-                                        src={activeLesson.fileUrl}
-                                        controls
-                                        className="w-full h-full"
-                                      />
-                                    ) : (
-                                      <div className="text-center">
-                                        <MonitorPlay size={48} className="mx-auto mb-2 opacity-50" />
-                                        <p>Enter a URL or upload a video to preview</p>
-                                      </div>
-                                    )}
-                                  </div>
-                                </GlassCard>
-                              )}
-
-                              {/* 2. Document (PDF/PPT) Editor */}
-                              {(activeLesson.type === 'pdf' || activeLesson.type === 'presentation') && (
-                                <GlassCard className="space-y-6">
-                                  <FileDropZone
-                                    label={`Upload ${activeLesson.type === 'pdf' ? 'PDF Document' : 'PowerPoint Presentation'}`}
-                                    accept={activeLesson.type === 'pdf' ? '.pdf,application/pdf' : '.ppt,.pptx,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation'}
-                                    currentFile={activeLesson.fileName}
-                                    isUploading={isUploading}
-                                    uploadProgress={uploadProgress}
-                                    onFileSelect={async (file) => {
-                                      try {
-                                        setIsUploading(true);
-                                        setUploadProgress(0);
-                                        const result = await dataService.uploadFile(file, (progress) => {
-                                          setUploadProgress(progress);
-                                        });
-                                        updateLesson(activeLesson.id, {
-                                          fileUrl: result.file.fileUrl,
-                                          fileName: result.file.originalName
-                                        });
-                                        showToast('success', 'File Uploaded', `${activeLesson.type === 'pdf' ? 'PDF document' : 'Presentation'} uploaded successfully.`);
-                                      } catch (error) {
-                                        console.error('Failed to upload file:', error);
-                                        showToast('error', 'Upload Failed', 'Failed to upload file. Please try again.');
-                                      } finally {
-                                        setIsUploading(false);
-                                        setUploadProgress(0);
-                                      }
-                                    }}
-                                  />
-
-                                  <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                      <label className="block text-sm text-zinc-400 mb-1">Total {activeLesson.type === 'pdf' ? 'Pages' : 'Slides'}</label>
-                                      <input
-                                        type="number"
-                                        className="w-full bg-zinc-900/50 border border-white/10 rounded-xl p-3 outline-none focus:border-yellow-400"
-                                        value={activeLesson.pageCount || 0}
-                                        onChange={(e) => updateLesson(activeLesson.id, { pageCount: parseInt(e.target.value) })}
-                                      />
-                                      <p className="text-[10px] text-zinc-500 mt-1">Used to calculate est. reading time</p>
-                                    </div>
-                                    <div>
-                                      <label className="block text-sm text-zinc-400 mb-1">Est. Time (min)</label>
-                                      <input
-                                        type="number"
-                                        className="w-full bg-zinc-900/50 border border-white/10 rounded-xl p-3 outline-none focus:border-yellow-400"
-                                        value={activeLesson.durationMin}
-                                        readOnly
-                                      />
-                                      <p className="text-[10px] text-yellow-400 mt-1">Auto-calculated: 2 min / page</p>
-                                    </div>
-                                  </div>
-                                </GlassCard>
-                              )}
-
-                              {/* 3. Quiz Editor */}
-                              {activeLesson.type === 'quiz' && (
-                                <div className="space-y-4">
-                                  {/* Passing Score Setting */}
-                                  <GlassCard className="!bg-yellow-400/5 !border-yellow-400/20">
-                                    <div className="flex items-center justify-between">
-                                      <div className="flex items-center gap-3">
-                                        <Target size={20} className="text-yellow-400" />
-                                        <div>
-                                          <label className="text-sm font-bold text-white block">Passing Score</label>
-                                          <p className="text-xs text-zinc-500">Minimum % required to complete this quiz</p>
-                                        </div>
-                                      </div>
-                                      <div className="flex items-center gap-2">
-                                        <input
-                                          type="number"
-                                          min="0"
-                                          max="100"
-                                          value={activeLesson.passingScore || 70}
-                                          onChange={(e) => updateLesson(activeLesson.id, { passingScore: parseInt(e.target.value) || 70 })}
-                                          className="w-20 bg-zinc-900 border border-white/20 rounded-lg px-3 py-2 text-white text-center focus:border-yellow-400 outline-none"
-                                        />
-                                        <span className="text-zinc-400">%</span>
-                                      </div>
-                                    </div>
-                                  </GlassCard>
-
-                                  {activeLesson.quiz?.map((q, qIdx) => (
-                                    <GlassCard key={q.id} className="relative group">
-                                      <button
-                                        onClick={() => {
-                                          if (!confirm('Delete this question?')) return;
-                                          const newQuiz = activeLesson.quiz?.filter((_, idx) => idx !== qIdx) || [];
-                                          updateLesson(activeLesson.id, { quiz: newQuiz });
-                                        }}
-                                        className="absolute top-4 right-4 text-zinc-500 hover:text-red-400 transition-colors"
-                                      >
-                                        <X size={16} />
-                                      </button>
-                                      <div className="mb-4">
-                                        <label className="text-xs font-bold text-zinc-500 uppercase mb-1 block">Question {qIdx + 1}</label>
-                                        <input
-                                          className="w-full bg-zinc-900 border-b border-white/10 p-2 outline-none focus:border-yellow-400"
-                                          value={q.question}
-                                          placeholder="Enter question..."
-                                          onChange={(e) => {
-                                            const newQuiz = [...(activeLesson.quiz || [])];
-                                            newQuiz[qIdx].question = e.target.value;
-                                            updateLesson(activeLesson.id, { quiz: newQuiz });
-                                          }}
-                                        />
-                                      </div>
-                                      <div className="space-y-2">
-                                        {q.options.map((opt, oIdx) => (
-                                          <div key={oIdx} className="flex items-center gap-3">
-                                            <input
-                                              type="radio"
-                                              checked={q.correctAnswer === oIdx}
-                                              onChange={() => {
-                                                const newQuiz = [...(activeLesson.quiz || [])];
-                                                newQuiz[qIdx].correctAnswer = oIdx;
-                                                updateLesson(activeLesson.id, { quiz: newQuiz });
-                                              }}
-                                              className="text-yellow-400 accent-yellow-400"
-                                            />
-                                            <input
-                                              className="flex-1 bg-transparent border border-white/5 rounded px-2 py-1 text-sm focus:border-white/20 outline-none"
-                                              value={opt}
-                                              onChange={(e) => {
-                                                const newQuiz = [...(activeLesson.quiz || [])];
-                                                newQuiz[qIdx].options[oIdx] = e.target.value;
-                                                updateLesson(activeLesson.id, { quiz: newQuiz });
-                                              }}
-                                            />
-                                          </div>
-                                        ))}
-                                      </div>
-                                    </GlassCard>
-                                  ))}
-
-                                  {(activeLesson.quiz?.length || 0) < 5 ? (
-                                    <button
-                                      onClick={() => {
-                                        const newQuiz = [...(activeLesson.quiz || []), { id: `q-${Date.now()}`, question: '', options: ['Option A', 'Option B'], correctAnswer: 0 }];
-                                        updateLesson(activeLesson.id, { quiz: newQuiz });
-                                      }}
-                                      className="w-full py-4 border-2 border-dashed border-white/10 rounded-2xl text-zinc-500 hover:text-yellow-400 hover:border-yellow-400/30 hover:bg-yellow-400/5 transition-all flex items-center justify-center gap-2"
-                                    >
-                                      <Plus size={20} /> Add Question
-                                    </button>
-                                  ) : (
-                                    <div className="text-center p-4 text-zinc-500 text-sm italic border border-white/5 rounded-xl">
-                                      Maximum 5 questions per quiz reached.
-                                    </div>
-                                  )}
-                                </div>
-                              )}
-
-                            </div>
-                          ) : (
-                            <div className="h-full flex flex-col items-center justify-center text-zinc-500">
-                              <Layout size={64} className="mb-6 opacity-20" />
-                              <h3 className="text-xl font-medium text-zinc-400">Select a lesson to edit content</h3>
-                              <p className="max-w-xs text-center mt-2 opacity-60">Choose from the curriculum on the left or create a new lesson.</p>
-                            </div>
-                          )}
+                  {/* Deadline and Mandatory Settings */}
+                  <div className="pt-4 border-t border-white/10">
+                    <h4 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
+                      <Calendar size={16} className="text-yellow-400" />
+                      Deadline & Requirements
+                    </h4>
+                    <div className="space-y-3">
+                      <div>
+                        <label className="text-xs text-zinc-500 font-bold uppercase mb-2 block">Completion Deadline</label>
+                        <input
+                          type="datetime-local"
+                          value={editingCourse.deadline ? new Date(editingCourse.deadline).toISOString().slice(0, 16) : ''}
+                          onChange={e => setEditingCourse({ ...editingCourse, deadline: e.target.value ? new Date(e.target.value).toISOString() : undefined })}
+                          className="w-full bg-zinc-900/50 border border-white/10 rounded-xl p-3 text-white focus:border-yellow-400 outline-none"
+                        />
+                        <p className="text-[10px] text-zinc-500 mt-1">Leave empty for no deadline</p>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={() => setEditingCourse({ ...editingCourse, isMandatory: !editingCourse.isMandatory })}
+                          className={`w-12 h-6 rounded-full transition-colors relative ${editingCourse.isMandatory ? 'bg-yellow-400' : 'bg-zinc-700'
+                            }`}
+                        >
+                          <div className={`w-5 h-5 rounded-full bg-white absolute top-0.5 transition-transform ${editingCourse.isMandatory ? 'translate-x-6' : 'translate-x-0.5'
+                            }`} />
+                        </button>
+                        <div>
+                          <span className="text-sm text-white">Mandatory Training</span>
+                          <p className="text-[10px] text-zinc-500">Mark as required for all learners</p>
                         </div>
                       </div>
                     </div>
-                    );
+                  </div>
+                </div>
+              ) : (
+                <div className="flex-1 flex flex-col">
+                  <div className="p-4 space-y-2 overflow-y-auto flex-1">
+                    {editingCourse.lessons?.map((lesson, idx) => (
+                      <div
+                        key={lesson.id}
+                        draggable
+                        onDragStart={(e) => {
+                          e.dataTransfer.setData('text/plain', idx.toString());
+                          e.dataTransfer.effectAllowed = 'move';
+                          (e.target as HTMLElement).classList.add('dragging');
+                        }}
+                        onDragEnd={(e) => {
+                          (e.target as HTMLElement).classList.remove('dragging');
+                        }}
+                        onDragOver={(e) => {
+                          e.preventDefault();
+                          e.dataTransfer.dropEffect = 'move';
+                          (e.currentTarget as HTMLElement).classList.add('drag-over');
+                        }}
+                        onDragLeave={(e) => {
+                          (e.currentTarget as HTMLElement).classList.remove('drag-over');
+                        }}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          (e.currentTarget as HTMLElement).classList.remove('drag-over');
+                          const fromIndex = parseInt(e.dataTransfer.getData('text/plain'));
+                          const toIndex = idx;
+                          if (fromIndex !== toIndex && editingCourse?.lessons) {
+                            const lessons = [...editingCourse.lessons];
+                            const [movedLesson] = lessons.splice(fromIndex, 1);
+                            lessons.splice(toIndex, 0, movedLesson);
+                            setEditingCourse({ ...editingCourse, lessons });
+                          }
+                        }}
+                        onClick={() => setActiveLessonId(lesson.id)}
+                        className={`group p-3 rounded-xl border transition-all cursor-pointer flex items-center gap-2 ${activeLessonId === lesson.id
+                          ? 'bg-yellow-400/10 border-yellow-400/30 shadow-[0_0_15px_rgba(250,204,21,0.1)]'
+                          : 'bg-white/5 border-transparent hover:border-white/10'
+                          }`}
+                      >
+                        {/* Drag Handle */}
+                        <div
+                          className="drag-handle p-1 rounded hover:bg-white/10 text-zinc-500 hover:text-zinc-300 transition-colors"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <GripVertical size={14} />
+                        </div>
+                        {/* Reorder buttons (kept as alternative) */}
+                        <div className="flex flex-col gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            onClick={(e) => { e.stopPropagation(); moveLessonUp(idx); }}
+                            disabled={idx === 0}
+                            className={`p-0.5 rounded hover:bg-white/10 ${idx === 0 ? 'text-zinc-700 cursor-not-allowed' : 'text-zinc-400 hover:text-white'}`}
+                          >
+                            <ChevronUp size={12} />
+                          </button>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); moveLessonDown(idx); }}
+                            disabled={idx === (editingCourse.lessons?.length || 0) - 1}
+                            className={`p-0.5 rounded hover:bg-white/10 ${idx === (editingCourse.lessons?.length || 0) - 1 ? 'text-zinc-700 cursor-not-allowed' : 'text-zinc-400 hover:text-white'}`}
+                          >
+                            <ChevronDown size={12} />
+                          </button>
+                        </div>
+                        <div className="h-6 w-6 rounded flex items-center justify-center bg-zinc-800 text-zinc-400 text-xs font-mono">{idx + 1}</div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-medium truncate text-white" title={lesson.title}>{lesson.title}</div>
+                          <div className="text-[10px] text-zinc-500 uppercase flex items-center gap-1">
+                            {lesson.type === 'video' && <Video size={10} />}
+                            {lesson.type === 'quiz' && <HelpCircle size={10} />}
+                            {(lesson.type === 'pdf' || lesson.type === 'presentation') && <FileText size={10} />}
+                            {lesson.type}
+                          </div>
+                        </div>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); deleteLesson(lesson.id); }}
+                          className="opacity-0 group-hover:opacity-100 p-1 hover:text-red-400 transition-opacity"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="p-4 border-t border-white/10 bg-zinc-900/50">
+                    <div className="flex gap-2 mb-2">
+                      {(['video', 'pdf', 'presentation', 'quiz'] as ContentType[]).map(type => (
+                        <button
+                          key={type}
+                          onClick={() => setNewLessonType(type)}
+                          className={`flex-1 py-1 rounded text-[10px] uppercase font-bold transition-all ${newLessonType === type ? 'bg-yellow-400 text-black' : 'bg-zinc-800 text-zinc-500 hover:bg-zinc-700'}`}
+                        >
+                          {type === 'presentation' ? 'PPT' : type}
+                        </button>
+                      ))}
+                    </div>
+                    <PrimaryButton onClick={addLesson} className="w-full py-2 text-sm">Add Lesson</PrimaryButton>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Main Editing Area */}
+            <div className="flex-1 bg-gradient-to-br from-zinc-950 to-zinc-900 p-8 overflow-y-auto">
+              {editorTab === 'CURRICULUM' && activeLesson ? (
+                <div className="max-w-3xl mx-auto space-y-8 animate-fade-in">
+                  <div className="flex items-center justify-between mb-2">
+                    <Badge type="default">{activeLesson.type.toUpperCase()}</Badge>
+                    <div className="text-xs text-zinc-500 font-mono">ID: {activeLesson.id}</div>
+                  </div>
+
+                  <input
+                    className="text-3xl font-bold bg-transparent border-none outline-none text-white placeholder-zinc-600 w-full"
+                    placeholder="Lesson Title"
+                    value={activeLesson.title}
+                    onChange={(e) => updateLesson(activeLesson.id, { title: e.target.value })}
+                  />
+
+                  {/* Content Type Specific Editors */}
+
+                  {/* 1. Video Editor */}
+                  {activeLesson.type === 'video' && (
+                    <GlassCard className="space-y-6">
+                      {/* Video Source Options */}
+                      <div className="space-y-4">
+                        <label className="block text-sm text-zinc-400 mb-2">Video Source</label>
+                        <div className="grid grid-cols-2 gap-4">
+                          {/* Option 1: URL */}
+                          <div className="space-y-2">
+                            <div className="text-xs text-zinc-500 uppercase font-bold">From URL (YouTube/Vimeo)</div>
+                            <input
+                              className="w-full bg-zinc-900/50 border border-white/10 rounded-xl p-3 outline-none focus:border-yellow-400 text-sm"
+                              placeholder="https://youtube.com/watch?v=..."
+                              value={activeLesson.videoUrl || ''}
+                              onChange={(e) => updateLesson(activeLesson.id, { videoUrl: e.target.value, fileUrl: undefined })}
+                            />
+                          </div>
+                          {/* Option 2: Upload */}
+                          <div className="space-y-2">
+                            <div className="text-xs text-zinc-500 uppercase font-bold">Upload from Computer</div>
+                            <FileDropZone
+                              label="Upload Video"
+                              accept="video/mp4,video/webm,video/ogg,.mp4,.webm,.ogg"
+                              currentFile={activeLesson.fileName}
+                              isUploading={isUploading}
+                              uploadProgress={uploadProgress}
+                              onFileSelect={async (file) => {
+                                try {
+                                  setIsUploading(true);
+                                  setUploadProgress(0);
+                                  const result = await dataService.uploadFile(file, (progress) => {
+                                    setUploadProgress(progress);
+                                  });
+                                  updateLesson(activeLesson.id, {
+                                    fileUrl: result.file.fileUrl,
+                                    fileName: result.file.originalName,
+                                    videoUrl: undefined
+                                  });
+                                  showToast('success', 'Video Uploaded', 'Your video has been uploaded successfully.');
+                                } catch (error) {
+                                  console.error('Failed to upload video:', error);
+                                  showToast('error', 'Upload Failed', 'Failed to upload video. Please try again.');
+                                } finally {
+                                  setIsUploading(false);
+                                  setUploadProgress(0);
+                                }
+                              }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Duration */}
+                      <div className="w-48">
+                        <label className="block text-sm text-zinc-400 mb-1">Duration (min)</label>
+                        <input
+                          type="number"
+                          className="w-full bg-zinc-900/50 border border-white/10 rounded-xl p-3 outline-none focus:border-yellow-400"
+                          value={activeLesson.durationMin}
+                          onChange={(e) => updateLesson(activeLesson.id, { durationMin: parseInt(e.target.value) })}
+                        />
+                      </div>
+
+                      {/* Preview */}
+                      <div className="aspect-video bg-black rounded-xl border border-white/10 flex items-center justify-center text-zinc-500 overflow-hidden">
+                        {activeLesson.videoUrl ? (
+                          isYouTubeUrl(activeLesson.videoUrl) ? (
+                            <iframe
+                              src={`https://www.youtube.com/embed/${getYouTubeVideoId(activeLesson.videoUrl)}`}
+                              className="w-full h-full"
+                              allowFullScreen
+                            />
+                          ) : (
+                            <iframe src={activeLesson.videoUrl} className="w-full h-full" allowFullScreen />
+                          )
+                        ) : activeLesson.fileUrl ? (
+                          <video
+                            src={activeLesson.fileUrl}
+                            controls
+                            className="w-full h-full"
+                          />
+                        ) : (
+                          <div className="text-center">
+                            <MonitorPlay size={48} className="mx-auto mb-2 opacity-50" />
+                            <p>Enter a URL or upload a video to preview</p>
+                          </div>
+                        )}
+                      </div>
+                    </GlassCard>
+                  )}
+
+                  {/* 2. Document (PDF/PPT) Editor */}
+                  {(activeLesson.type === 'pdf' || activeLesson.type === 'presentation') && (
+                    <GlassCard className="space-y-6">
+                      <FileDropZone
+                        label={`Upload ${activeLesson.type === 'pdf' ? 'PDF Document' : 'PowerPoint Presentation'}`}
+                        accept={activeLesson.type === 'pdf' ? '.pdf,application/pdf' : '.ppt,.pptx,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation'}
+                        currentFile={activeLesson.fileName}
+                        isUploading={isUploading}
+                        uploadProgress={uploadProgress}
+                        onFileSelect={async (file) => {
+                          try {
+                            setIsUploading(true);
+                            setUploadProgress(0);
+                            const result = await dataService.uploadFile(file, (progress) => {
+                              setUploadProgress(progress);
+                            });
+                            updateLesson(activeLesson.id, {
+                              fileUrl: result.file.fileUrl,
+                              fileName: result.file.originalName
+                            });
+                            showToast('success', 'File Uploaded', `${activeLesson.type === 'pdf' ? 'PDF document' : 'Presentation'} uploaded successfully.`);
+                          } catch (error) {
+                            console.error('Failed to upload file:', error);
+                            showToast('error', 'Upload Failed', 'Failed to upload file. Please try again.');
+                          } finally {
+                            setIsUploading(false);
+                            setUploadProgress(0);
+                          }
+                        }}
+                      />
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm text-zinc-400 mb-1">Total {activeLesson.type === 'pdf' ? 'Pages' : 'Slides'}</label>
+                          <input
+                            type="number"
+                            className="w-full bg-zinc-900/50 border border-white/10 rounded-xl p-3 outline-none focus:border-yellow-400"
+                            value={activeLesson.pageCount || 0}
+                            onChange={(e) => updateLesson(activeLesson.id, { pageCount: parseInt(e.target.value) })}
+                          />
+                          <p className="text-[10px] text-zinc-500 mt-1">Used to calculate est. reading time</p>
+                        </div>
+                        <div>
+                          <label className="block text-sm text-zinc-400 mb-1">Est. Time (min)</label>
+                          <input
+                            type="number"
+                            className="w-full bg-zinc-900/50 border border-white/10 rounded-xl p-3 outline-none focus:border-yellow-400"
+                            value={activeLesson.durationMin}
+                            readOnly
+                          />
+                          <p className="text-[10px] text-yellow-400 mt-1">Auto-calculated: 2 min / page</p>
+                        </div>
+                      </div>
+                    </GlassCard>
+                  )}
+
+                  {/* 3. Quiz Editor */}
+                  {activeLesson.type === 'quiz' && (
+                    <div className="space-y-4">
+                      {/* Passing Score Setting */}
+                      <GlassCard className="!bg-yellow-400/5 !border-yellow-400/20">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <Target size={20} className="text-yellow-400" />
+                            <div>
+                              <label className="text-sm font-bold text-white block">Passing Score</label>
+                              <p className="text-xs text-zinc-500">Minimum % required to complete this quiz</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="number"
+                              min="0"
+                              max="100"
+                              value={activeLesson.passingScore || 70}
+                              onChange={(e) => updateLesson(activeLesson.id, { passingScore: parseInt(e.target.value) || 70 })}
+                              className="w-20 bg-zinc-900 border border-white/20 rounded-lg px-3 py-2 text-white text-center focus:border-yellow-400 outline-none"
+                            />
+                            <span className="text-zinc-400">%</span>
+                          </div>
+                        </div>
+                      </GlassCard>
+
+                      {activeLesson.quiz?.map((q, qIdx) => (
+                        <GlassCard key={q.id} className="relative group">
+                          <button
+                            onClick={() => {
+                              if (!confirm('Delete this question?')) return;
+                              const newQuiz = activeLesson.quiz?.filter((_, idx) => idx !== qIdx) || [];
+                              updateLesson(activeLesson.id, { quiz: newQuiz });
+                            }}
+                            className="absolute top-4 right-4 text-zinc-500 hover:text-red-400 transition-colors"
+                          >
+                            <X size={16} />
+                          </button>
+                          <div className="mb-4">
+                            <label className="text-xs font-bold text-zinc-500 uppercase mb-1 block">Question {qIdx + 1}</label>
+                            <input
+                              className="w-full bg-zinc-900 border-b border-white/10 p-2 outline-none focus:border-yellow-400"
+                              value={q.question}
+                              placeholder="Enter question..."
+                              onChange={(e) => {
+                                const newQuiz = [...(activeLesson.quiz || [])];
+                                newQuiz[qIdx].question = e.target.value;
+                                updateLesson(activeLesson.id, { quiz: newQuiz });
+                              }}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            {q.options.map((opt, oIdx) => (
+                              <div key={oIdx} className="flex items-center gap-3">
+                                <input
+                                  type="radio"
+                                  checked={q.correctAnswer === oIdx}
+                                  onChange={() => {
+                                    const newQuiz = [...(activeLesson.quiz || [])];
+                                    newQuiz[qIdx].correctAnswer = oIdx;
+                                    updateLesson(activeLesson.id, { quiz: newQuiz });
+                                  }}
+                                  className="text-yellow-400 accent-yellow-400"
+                                />
+                                <input
+                                  className="flex-1 bg-transparent border border-white/5 rounded px-2 py-1 text-sm focus:border-white/20 outline-none"
+                                  value={opt}
+                                  onChange={(e) => {
+                                    const newQuiz = [...(activeLesson.quiz || [])];
+                                    newQuiz[qIdx].options[oIdx] = e.target.value;
+                                    updateLesson(activeLesson.id, { quiz: newQuiz });
+                                  }}
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        </GlassCard>
+                      ))}
+
+                      {(activeLesson.quiz?.length || 0) < 5 ? (
+                        <button
+                          onClick={() => {
+                            const newQuiz = [...(activeLesson.quiz || []), { id: `q-${Date.now()}`, question: '', options: ['Option A', 'Option B'], correctAnswer: 0 }];
+                            updateLesson(activeLesson.id, { quiz: newQuiz });
+                          }}
+                          className="w-full py-4 border-2 border-dashed border-white/10 rounded-2xl text-zinc-500 hover:text-yellow-400 hover:border-yellow-400/30 hover:bg-yellow-400/5 transition-all flex items-center justify-center gap-2"
+                        >
+                          <Plus size={20} /> Add Question
+                        </button>
+                      ) : (
+                        <div className="text-center p-4 text-zinc-500 text-sm italic border border-white/5 rounded-xl">
+                          Maximum 5 questions per quiz reached.
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                </div>
+              ) : (
+                <div className="h-full flex flex-col items-center justify-center text-zinc-500">
+                  <Layout size={64} className="mb-6 opacity-20" />
+                  <h3 className="text-xl font-medium text-zinc-400">Select a lesson to edit content</h3>
+                  <p className="max-w-xs text-center mt-2 opacity-60">Choose from the curriculum on the left or create a new lesson.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      );
     }
 
     // --- User Management Section (Liquid Glass Design) ---
     const UserManagementSection = () => {
       const filteredUsers = allUsers.filter(u => {
         const matchesSearch = userSearchQuery === '' ||
-                    u.name?.toLowerCase().includes(userSearchQuery.toLowerCase()) ||
-                    u.email?.toLowerCase().includes(userSearchQuery.toLowerCase());
-                    const matchesRole = userFilterRole === 'ALL' || u.role === userFilterRole;
-                    return matchesSearch && matchesRole;
+          u.name?.toLowerCase().includes(userSearchQuery.toLowerCase()) ||
+          u.email?.toLowerCase().includes(userSearchQuery.toLowerCase());
+        const matchesRole = userFilterRole === 'ALL' || u.role === userFilterRole;
+        return matchesSearch && matchesRole;
       });
 
-                    return (
-                    <div className="space-y-8">
-                      {/* Header */}
-                      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
-                        <div>
-                          <h2 className="text-3xl font-bold">User Management</h2>
-                          <p className="text-zinc-400 mt-1">Approve, manage, and monitor user accounts</p>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm">
-                          <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10">
-                            <Users size={16} className="text-zinc-500" />
-                            <span className="text-white font-medium">{allUsers.length}</span>
-                            <span className="text-zinc-500">total users</span>
-                          </div>
-                        </div>
+      return (
+        <div className="space-y-8">
+          {/* Header */}
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+            <div>
+              <h2 className="text-3xl font-bold">User Management</h2>
+              <p className="text-zinc-400 mt-1">Approve, manage, and monitor user accounts</p>
+            </div>
+            <div className="flex items-center gap-2 text-sm">
+              <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10">
+                <Users size={16} className="text-zinc-500" />
+                <span className="text-white font-medium">{allUsers.length}</span>
+                <span className="text-zinc-500">total users</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Pending Approvals - Liquid Glass Card */}
+          {pendingUsers.length > 0 && (
+            <div className="relative group">
+              {/* Outer glow */}
+              <div className="absolute -inset-1 bg-gradient-to-r from-yellow-500/20 via-yellow-400/10 to-yellow-500/20 rounded-[28px] blur-xl opacity-60 group-hover:opacity-100 transition-all duration-700" />
+
+              <div className="relative rounded-3xl overflow-hidden backdrop-blur-2xl bg-gradient-to-br from-yellow-900/20 via-black/40 to-black/60 border border-yellow-500/30 shadow-[0_8px_32px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.1)] p-8">
+                {/* Inner highlight */}
+                <div className="absolute inset-0 bg-gradient-to-b from-yellow-400/5 via-transparent to-transparent pointer-events-none" />
+
+                <div className="relative z-10">
+                  <div className="flex items-center justify-between mb-8">
+                    <div className="flex items-center gap-4">
+                      <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-yellow-400/30 to-yellow-500/10 border border-yellow-400/40 flex items-center justify-center shadow-[0_0_30px_rgba(250,204,21,0.2)]">
+                        <Clock size={28} className="text-yellow-400 drop-shadow-[0_0_10px_rgba(250,204,21,0.5)]" />
                       </div>
+                      <div>
+                        <h3 className="text-2xl font-bold text-white">Pending Approvals</h3>
+                        <p className="text-sm text-yellow-400/80">{pendingUsers.length} user{pendingUsers.length > 1 ? 's' : ''} awaiting your review</p>
+                      </div>
+                    </div>
+                  </div>
 
-                      {/* Pending Approvals - Liquid Glass Card */}
-                      {pendingUsers.length > 0 && (
-                        <div className="relative group">
-                          {/* Outer glow */}
-                          <div className="absolute -inset-1 bg-gradient-to-r from-yellow-500/20 via-yellow-400/10 to-yellow-500/20 rounded-[28px] blur-xl opacity-60 group-hover:opacity-100 transition-all duration-700" />
+                  <div className="space-y-4">
+                    {pendingUsers.map((pendingUser, idx) => (
+                      <div
+                        key={pendingUser.id}
+                        className="group/card relative overflow-hidden rounded-2xl bg-gradient-to-r from-white/[0.06] to-white/[0.02] border border-white/10 hover:border-yellow-400/30 transition-all duration-500 p-5"
+                        style={{ animationDelay: `${idx * 100}ms` }}
+                      >
+                        {/* Hover glow effect */}
+                        <div className="absolute inset-0 opacity-0 group-hover/card:opacity-100 transition-opacity duration-500">
+                          <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/5 via-transparent to-transparent" />
+                        </div>
 
-                          <div className="relative rounded-3xl overflow-hidden backdrop-blur-2xl bg-gradient-to-br from-yellow-900/20 via-black/40 to-black/60 border border-yellow-500/30 shadow-[0_8px_32px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.1)] p-8">
-                            {/* Inner highlight */}
-                            <div className="absolute inset-0 bg-gradient-to-b from-yellow-400/5 via-transparent to-transparent pointer-events-none" />
-
-                            <div className="relative z-10">
-                              <div className="flex items-center justify-between mb-8">
-                                <div className="flex items-center gap-4">
-                                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-yellow-400/30 to-yellow-500/10 border border-yellow-400/40 flex items-center justify-center shadow-[0_0_30px_rgba(250,204,21,0.2)]">
-                                    <Clock size={28} className="text-yellow-400 drop-shadow-[0_0_10px_rgba(250,204,21,0.5)]" />
-                                  </div>
-                                  <div>
-                                    <h3 className="text-2xl font-bold text-white">Pending Approvals</h3>
-                                    <p className="text-sm text-yellow-400/80">{pendingUsers.length} user{pendingUsers.length > 1 ? 's' : ''} awaiting your review</p>
-                                  </div>
-                                </div>
-                              </div>
-
-                              <div className="space-y-4">
-                                {pendingUsers.map((pendingUser, idx) => (
-                                  <div
-                                    key={pendingUser.id}
-                                    className="group/card relative overflow-hidden rounded-2xl bg-gradient-to-r from-white/[0.06] to-white/[0.02] border border-white/10 hover:border-yellow-400/30 transition-all duration-500 p-5"
-                                    style={{ animationDelay: `${idx * 100}ms` }}
-                                  >
-                                    {/* Hover glow effect */}
-                                    <div className="absolute inset-0 opacity-0 group-hover/card:opacity-100 transition-opacity duration-500">
-                                      <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/5 via-transparent to-transparent" />
-                                    </div>
-
-                                    <div className="relative z-10 flex items-center justify-between">
-                                      <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-zinc-700 to-zinc-800 border border-white/10 flex items-center justify-center font-bold text-lg text-white shadow-lg">
-                                          {pendingUser.name.charAt(0).toUpperCase()}
-                                        </div>
-                                        <div>
-                                          <div className="font-semibold text-white text-lg">{pendingUser.name}</div>
-                                          <div className="text-sm text-zinc-400">{pendingUser.email}</div>
-                                          <div className="flex items-center gap-3 mt-1">
-                                            <span className="text-xs text-zinc-500">{pendingUser.ministry}</span>
-                                            <span className="w-1 h-1 rounded-full bg-zinc-600" />
-                                            <span className="text-xs px-2 py-0.5 rounded-full bg-white/10 text-zinc-400">{pendingUser.role}</span>
-                                            <span className="w-1 h-1 rounded-full bg-zinc-600" />
-                                            <span className="text-xs text-zinc-500">{new Date(pendingUser.created_at).toLocaleDateString()}</span>
-                                          </div>
-                                        </div>
-                                      </div>
-
-                                      <div className="flex items-center gap-3">
-                                        <button
-                                          onClick={() => handleApproveUser(pendingUser.id)}
-                                          disabled={processingUser === pendingUser.id}
-                                          className="group/btn relative px-6 py-3 rounded-xl bg-gradient-to-r from-green-500/20 to-green-600/10 border border-green-500/30 text-green-400 hover:border-green-400/50 hover:shadow-[0_0_20px_rgba(34,197,94,0.2)] transition-all duration-300 flex items-center gap-2 font-medium disabled:opacity-50"
-                                        >
-                                          {processingUser === pendingUser.id ? (
-                                            <Loader2 size={18} className="animate-spin" />
-                                          ) : (
-                                            <UserCheck size={18} />
-                                          )}
-                                          <span className="hidden sm:inline">Approve</span>
-                                        </button>
-
-                                        <button
-                                          onClick={() => handleRejectUser(pendingUser.id)}
-                                          disabled={processingUser === pendingUser.id}
-                                          className="group/btn relative px-6 py-3 rounded-xl bg-gradient-to-r from-red-500/20 to-red-600/10 border border-red-500/30 text-red-400 hover:border-red-400/50 hover:shadow-[0_0_20px_rgba(239,68,68,0.2)] transition-all duration-300 flex items-center gap-2 font-medium disabled:opacity-50"
-                                        >
-                                          <UserX size={18} />
-                                          <span className="hidden sm:inline">Reject</span>
-                                        </button>
-                                      </div>
-                                    </div>
-                                  </div>
-                                ))}
+                        <div className="relative z-10 flex items-center justify-between">
+                          <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-zinc-700 to-zinc-800 border border-white/10 flex items-center justify-center font-bold text-lg text-white shadow-lg">
+                              {pendingUser.name.charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                              <div className="font-semibold text-white text-lg">{pendingUser.name}</div>
+                              <div className="text-sm text-zinc-400">{pendingUser.email}</div>
+                              <div className="flex items-center gap-3 mt-1">
+                                <span className="text-xs text-zinc-500">{pendingUser.ministry}</span>
+                                <span className="w-1 h-1 rounded-full bg-zinc-600" />
+                                <span className="text-xs px-2 py-0.5 rounded-full bg-white/10 text-zinc-400">{pendingUser.role}</span>
+                                <span className="w-1 h-1 rounded-full bg-zinc-600" />
+                                <span className="text-xs text-zinc-500">{new Date(pendingUser.created_at).toLocaleDateString()}</span>
                               </div>
                             </div>
                           </div>
-                        </div>
-                      )}
 
-                      {/* No Pending Users - Clean State */}
-                      {pendingUsers.length === 0 && !loadingPending && (
-                        <GlassCard className="text-center py-12">
-                          <div className="w-20 h-20 rounded-2xl bg-green-500/10 border border-green-500/20 flex items-center justify-center mx-auto mb-6">
-                            <CheckCircle size={40} className="text-green-400" />
-                          </div>
-                          <h3 className="text-xl font-bold text-white mb-2">All Caught Up!</h3>
-                          <p className="text-zinc-400">No pending user approvals at this time.</p>
-                        </GlassCard>
-                      )}
-
-                      {/* Search and Filter */}
-                      <div className="flex flex-col md:flex-row gap-4">
-                        <div className="flex-1 relative">
-                          <input
-                            type="text"
-                            placeholder="Search users by name or email..."
-                            value={userSearchQuery}
-                            onChange={(e) => setUserSearchQuery(e.target.value)}
-                            className="w-full bg-zinc-900/50 border border-white/10 rounded-xl p-4 pl-12 text-white focus:ring-2 focus:ring-yellow-400/50 outline-none transition-all placeholder-zinc-600"
-                          />
-                          <Users size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" />
-                        </div>
-                        <div className="flex gap-2">
-                          {['ALL', 'LEARNER', 'SUPERUSER', 'ADMIN'].map(role => (
+                          <div className="flex items-center gap-3">
                             <button
-                              key={role}
-                              onClick={() => setUserFilterRole(role)}
-                              className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${userFilterRole === role
-                                ? 'bg-yellow-400 text-black'
-                                : 'bg-white/5 border border-white/10 text-zinc-400 hover:bg-white/10'
-                                }`}
+                              onClick={() => handleApproveUser(pendingUser.id)}
+                              disabled={processingUser === pendingUser.id}
+                              className="group/btn relative px-6 py-3 rounded-xl bg-gradient-to-r from-green-500/20 to-green-600/10 border border-green-500/30 text-green-400 hover:border-green-400/50 hover:shadow-[0_0_20px_rgba(34,197,94,0.2)] transition-all duration-300 flex items-center gap-2 font-medium disabled:opacity-50"
                             >
-                              {role === 'ALL' ? 'All Users' : role}
+                              {processingUser === pendingUser.id ? (
+                                <Loader2 size={18} className="animate-spin" />
+                              ) : (
+                                <UserCheck size={18} />
+                              )}
+                              <span className="hidden sm:inline">Approve</span>
                             </button>
-                          ))}
+
+                            <button
+                              onClick={() => handleRejectUser(pendingUser.id)}
+                              disabled={processingUser === pendingUser.id}
+                              className="group/btn relative px-6 py-3 rounded-xl bg-gradient-to-r from-red-500/20 to-red-600/10 border border-red-500/30 text-red-400 hover:border-red-400/50 hover:shadow-[0_0_20px_rgba(239,68,68,0.2)] transition-all duration-300 flex items-center gap-2 font-medium disabled:opacity-50"
+                            >
+                              <UserX size={18} />
+                              <span className="hidden sm:inline">Reject</span>
+                            </button>
+                          </div>
                         </div>
                       </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
-                      {/* All Users List */}
-                      <GlassCard className="p-0 overflow-hidden">
-                        <div className="p-6 border-b border-white/10">
-                          <h3 className="text-lg font-bold">All Users ({filteredUsers.length})</h3>
+          {/* No Pending Users - Clean State */}
+          {pendingUsers.length === 0 && !loadingPending && (
+            <GlassCard className="text-center py-12">
+              <div className="w-20 h-20 rounded-2xl bg-green-500/10 border border-green-500/20 flex items-center justify-center mx-auto mb-6">
+                <CheckCircle size={40} className="text-green-400" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">All Caught Up!</h3>
+              <p className="text-zinc-400">No pending user approvals at this time.</p>
+            </GlassCard>
+          )}
+
+          {/* Search and Filter */}
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1 relative">
+              <input
+                type="text"
+                placeholder="Search users by name or email..."
+                value={userSearchQuery}
+                onChange={(e) => setUserSearchQuery(e.target.value)}
+                className="w-full bg-zinc-900/50 border border-white/10 rounded-xl p-4 pl-12 text-white focus:ring-2 focus:ring-yellow-400/50 outline-none transition-all placeholder-zinc-600"
+              />
+              <Users size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" />
+            </div>
+            <div className="flex gap-2">
+              {['ALL', 'LEARNER', 'SUPERUSER', 'ADMIN'].map(role => (
+                <button
+                  key={role}
+                  onClick={() => setUserFilterRole(role)}
+                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${userFilterRole === role
+                    ? 'bg-yellow-400 text-black'
+                    : 'bg-white/5 border border-white/10 text-zinc-400 hover:bg-white/10'
+                    }`}
+                >
+                  {role === 'ALL' ? 'All Users' : role}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* All Users List */}
+          <GlassCard className="p-0 overflow-hidden">
+            <div className="p-6 border-b border-white/10">
+              <h3 className="text-lg font-bold">All Users ({filteredUsers.length})</h3>
+            </div>
+
+            {loadingUsers ? (
+              <div className="p-12 text-center">
+                <Loader2 size={32} className="animate-spin text-yellow-400 mx-auto" />
+                <p className="text-zinc-500 mt-4">Loading users...</p>
+              </div>
+            ) : (
+              <div className="divide-y divide-white/5">
+                {filteredUsers.map(u => (
+                  <div key={u.id} className="p-4 hover:bg-white/[0.02] transition-colors flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${u.is_approved ? 'bg-yellow-400 text-black' : 'bg-zinc-700 text-zinc-400'
+                        }`}>
+                        {u.name?.charAt(0).toUpperCase() || '?'}
+                      </div>
+                      <div>
+                        <div className="font-medium text-white flex items-center gap-2">
+                          {u.name}
+                          {!u.is_approved && (
+                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-yellow-400/20 text-yellow-400">PENDING</span>
+                          )}
+                          {!u.is_active && (
+                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-red-400/20 text-red-400">INACTIVE</span>
+                          )}
                         </div>
-
-                        {loadingUsers ? (
-                          <div className="p-12 text-center">
-                            <Loader2 size={32} className="animate-spin text-yellow-400 mx-auto" />
-                            <p className="text-zinc-500 mt-4">Loading users...</p>
-                          </div>
-                        ) : (
-                          <div className="divide-y divide-white/5">
-                            {filteredUsers.map(u => (
-                              <div key={u.id} className="p-4 hover:bg-white/[0.02] transition-colors flex items-center justify-between">
-                                <div className="flex items-center gap-4">
-                                  <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${u.is_approved ? 'bg-yellow-400 text-black' : 'bg-zinc-700 text-zinc-400'
-                                    }`}>
-                                    {u.name?.charAt(0).toUpperCase() || '?'}
-                                  </div>
-                                  <div>
-                                    <div className="font-medium text-white flex items-center gap-2">
-                                      {u.name}
-                                      {!u.is_approved && (
-                                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-yellow-400/20 text-yellow-400">PENDING</span>
-                                      )}
-                                      {!u.is_active && (
-                                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-red-400/20 text-red-400">INACTIVE</span>
-                                      )}
-                                    </div>
-                                    <div className="text-sm text-zinc-500">{u.email}</div>
-                                  </div>
-                                </div>
-                                <div className="flex items-center gap-4">
-                                  <div className="text-right hidden md:block">
-                                    <div className="text-sm text-zinc-400">{u.ministry}</div>
-                                    <div className="text-xs text-zinc-600">{u.role}</div>
-                                  </div>
-                                  <Badge type={u.is_approved ? 'success' : 'warning'}>{u.is_approved ? 'Active' : 'Pending'}</Badge>
-                                </div>
-                              </div>
-                            ))}
-
-                            {filteredUsers.length === 0 && (
-                              <div className="p-12 text-center text-zinc-500">
-                                No users found matching your criteria.
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </GlassCard>
+                        <div className="text-sm text-zinc-500">{u.email}</div>
+                      </div>
                     </div>
-                    );
+                    <div className="flex items-center gap-4">
+                      <div className="text-right hidden md:block">
+                        <div className="text-sm text-zinc-400">{u.ministry}</div>
+                        <div className="text-xs text-zinc-600">{u.role}</div>
+                      </div>
+                      <Badge type={u.is_approved ? 'success' : 'warning'}>{u.is_approved ? 'Active' : 'Pending'}</Badge>
+                    </div>
+                  </div>
+                ))}
+
+                {filteredUsers.length === 0 && (
+                  <div className="p-12 text-center text-zinc-500">
+                    No users found matching your criteria.
+                  </div>
+                )}
+              </div>
+            )}
+          </GlassCard>
+        </div>
+      );
     };
 
-                    // --- Main Admin Dashboard ---
-                    return (
-                    <div className="md:ml-64 h-screen overflow-y-auto relative z-10">
-                      <div className="p-6 md:p-10 max-w-7xl mx-auto space-y-8 pb-20">
+    // --- Main Admin Dashboard ---
+    return (
+      <div className="md:ml-64 h-screen overflow-y-auto relative z-10">
+        <div className="p-6 md:p-10 max-w-7xl mx-auto space-y-8 pb-20">
 
-                        {/* Render User Management Section - use CSS to hide instead of unmounting */}
-                        <div className={adminSection === 'USERS' ? '' : 'hidden'}>
-                          <UserManagementSection />
+          {/* Render User Management Section - use CSS to hide instead of unmounting */}
+          <div className={adminSection === 'USERS' ? '' : 'hidden'}>
+            <UserManagementSection />
+          </div>
+
+          {/* Render Overview Section */}
+          <div className={adminSection === 'OVERVIEW' ? 'space-y-8' : 'hidden'}>
+            <div className="flex justify-between items-end">
+              <div>
+                <h2 className="text-3xl font-bold">Admin Command Center</h2>
+                <p className="text-zinc-400 mt-1">Overview of academy performance and content</p>
+              </div>
+              <PrimaryButton onClick={handleCreateCourse} className="text-sm shadow-lg shadow-yellow-400/20">
+                <Plus size={18} /> New Course
+              </PrimaryButton>
+            </div>
+
+            {/* KPI Cards - Glass Effect - Real Data */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <GlassCard className="relative overflow-hidden group">
+                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><Users size={64} /></div>
+                <div className="text-zinc-400 text-sm font-medium uppercase tracking-wider mb-2">Total Learners</div>
+                <div className="text-4xl font-bold text-white mb-1">{fullStats?.totalLearners?.toLocaleString() || '—'}</div>
+                <div className="text-yellow-400 text-xs flex items-center gap-1"><div className="w-1.5 h-1.5 rounded-full bg-yellow-400"></div> {fullStats?.totalEnrollments || 0} enrollments</div>
+              </GlassCard>
+              <GlassCard className="relative overflow-hidden group">
+                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><BookOpen size={64} /></div>
+                <div className="text-zinc-400 text-sm font-medium uppercase tracking-wider mb-2">Content Library</div>
+                <div className="text-4xl font-bold text-white mb-1">{fullStats?.totalLessons || totalLessons}</div>
+                <div className="text-zinc-400 text-xs">Across {fullStats?.totalCourses || courses.length} courses</div>
+              </GlassCard>
+              <GlassCard className="relative overflow-hidden group">
+                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><CheckCircle size={64} /></div>
+                <div className="text-zinc-400 text-sm font-medium uppercase tracking-wider mb-2">Completion Rate</div>
+                <div className="text-4xl font-bold text-white mb-1">{fullStats?.completionRate ?? '—'}%</div>
+                <div className="text-yellow-400 text-xs">Avg. per enrollment</div>
+              </GlassCard>
+              <GlassCard className="relative overflow-hidden group">
+                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><Target size={64} /></div>
+                <div className="text-zinc-400 text-sm font-medium uppercase tracking-wider mb-2">Quiz Pass Rate</div>
+                <div className="text-4xl font-bold text-white mb-1">{fullStats?.quizPassRate ?? '—'}%</div>
+                <div className="text-zinc-400 text-xs">Avg score: {fullStats?.averageQuizScore ?? '—'}%</div>
+              </GlassCard>
+            </div>
+
+            {/* Second Row KPIs - Study Hours & Overdue */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <GlassCard className="relative overflow-hidden group">
+                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><MonitorPlay size={64} /></div>
+                <div className="text-zinc-400 text-sm font-medium uppercase tracking-wider mb-2">Total Study Hours</div>
+                <div className="text-4xl font-bold text-white mb-1">{fullStats?.totalStudyHours ? (fullStats.totalStudyHours >= 1000 ? `${(fullStats.totalStudyHours / 1000).toFixed(1)}k` : fullStats.totalStudyHours) : '—'}</div>
+                <div className="text-white text-xs">Total learning time logged</div>
+              </GlassCard>
+              <GlassCard className={`relative overflow-hidden group ${(fullStats?.overdueEnrollments || 0) > 0 ? 'border-red-500/30' : ''}`}>
+                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><AlertTriangle size={64} /></div>
+                <div className="text-zinc-400 text-sm font-medium uppercase tracking-wider mb-2">Overdue Enrollments</div>
+                <div className={`text-4xl font-bold mb-1 ${(fullStats?.overdueEnrollments || 0) > 0 ? 'text-red-400' : 'text-green-400'}`}>
+                  {fullStats?.overdueEnrollments ?? 0}
+                </div>
+                <div className={`text-xs ${(fullStats?.overdueEnrollments || 0) > 0 ? 'text-red-400/80' : 'text-green-400/80'}`}>
+                  {(fullStats?.overdueEnrollments || 0) > 0 ? 'Learners past deadline' : 'All on track'}
+                </div>
+              </GlassCard>
+            </div>
+
+            {/* URGENT: Pending Users Alert - Hyper Visible Liquid Glass */}
+            {pendingUsers.length > 0 && (
+              <div className="relative group cursor-pointer" onClick={() => setAdminSection('USERS')}>
+                {/* Animated outer glow */}
+                <div className="absolute -inset-1 bg-gradient-to-r from-red-500/40 via-yellow-500/30 to-red-500/40 rounded-[28px] blur-xl opacity-80 animate-pulse" />
+                <div className="absolute -inset-0.5 bg-gradient-to-br from-red-400/20 via-transparent to-yellow-400/20 rounded-[26px] blur-md" />
+
+                <div className="relative rounded-3xl overflow-hidden backdrop-blur-2xl bg-gradient-to-br from-red-900/30 via-black/60 to-yellow-900/20 border-2 border-red-500/50 shadow-[0_8px_32px_rgba(239,68,68,0.3),inset_0_1px_0_rgba(255,255,255,0.1)] p-6 hover:border-yellow-400/60 transition-all duration-500">
+                  {/* Inner highlight */}
+                  <div className="absolute inset-0 bg-gradient-to-b from-white/5 via-transparent to-transparent pointer-events-none" />
+
+                  {/* Pulsing alert indicator */}
+                  <div className="absolute top-4 right-4">
+                    <span className="relative flex h-4 w-4">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-4 w-4 bg-red-500"></span>
+                    </span>
+                  </div>
+
+                  <div className="relative z-10 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-red-500/30 to-yellow-500/20 border border-red-400/50 flex items-center justify-center shadow-[0_0_30px_rgba(239,68,68,0.3)]">
+                        <UserCheck size={32} className="text-red-400 drop-shadow-[0_0_10px_rgba(239,68,68,0.5)]" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-red-500/30 text-red-400 font-bold uppercase tracking-wider animate-pulse">Action Required</span>
                         </div>
+                        <h3 className="text-2xl font-bold text-white">{pendingUsers.length} Pending User{pendingUsers.length > 1 ? 's' : ''}</h3>
+                        <p className="text-sm text-zinc-400 mt-1">Click here to approve or reject registration requests</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="hidden md:flex flex-col items-end text-right">
+                        <span className="text-xs text-zinc-500">Oldest</span>
+                        <span className="text-sm text-white font-medium">{pendingUsers.length > 0 ? new Date(pendingUsers[0].created_at).toLocaleDateString('fr-FR') : '-'}</span>
+                      </div>
+                      <div className="w-12 h-12 rounded-xl bg-yellow-400/20 border border-yellow-400/30 flex items-center justify-center group-hover:bg-yellow-400/30 transition-all">
+                        <ChevronRight size={24} className="text-yellow-400 group-hover:translate-x-1 transition-transform" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
-                        {/* Render Overview Section */}
-                        <div className={adminSection === 'OVERVIEW' ? 'space-y-8' : 'hidden'}>
-                          <div className="flex justify-between items-end">
-                            <div>
-                              <h2 className="text-3xl font-bold">Admin Command Center</h2>
-                              <p className="text-zinc-400 mt-1">Overview of academy performance and content</p>
-                            </div>
-                            <PrimaryButton onClick={handleCreateCourse} className="text-sm shadow-lg shadow-yellow-400/20">
-                              <Plus size={18} /> New Course
-                            </PrimaryButton>
+            {/* Overdue Learners Alert */}
+            {overdueLearners.length > 0 && (
+              <div className="relative group">
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-orange-500/20 via-red-500/20 to-orange-500/20 rounded-[26px] blur-md opacity-60" />
+                <div className="relative rounded-2xl overflow-hidden backdrop-blur-xl bg-gradient-to-br from-orange-900/20 via-black/40 to-red-900/10 border border-orange-500/30 p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-red-500/30 to-orange-500/20 border border-red-400/40 flex items-center justify-center">
+                        <AlertTriangle size={24} className="text-red-400" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-bold text-white">{overdueLearners.length} Overdue Enrollment{overdueLearners.length > 1 ? 's' : ''}</h3>
+                        <p className="text-sm text-zinc-400">Learners past their training deadline</p>
+                      </div>
+                    </div>
+                    <span className="px-3 py-1 text-xs rounded-full bg-red-500/20 text-red-400 font-medium border border-red-500/30">
+                      Requires Attention
+                    </span>
+                  </div>
+                  <div className="space-y-2 max-h-48 overflow-y-auto">
+                    {overdueLearners.slice(0, 5).map((learner, idx) => (
+                      <div key={idx} className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/10">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-red-500/20 to-orange-500/10 flex items-center justify-center text-xs font-bold text-red-400">
+                            {learner.daysOverdue}d
                           </div>
-
-                          {/* KPI Cards - Glass Effect - Real Data */}
-                          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                            <GlassCard className="relative overflow-hidden group">
-                              <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><Users size={64} /></div>
-                              <div className="text-zinc-400 text-sm font-medium uppercase tracking-wider mb-2">Total Learners</div>
-                              <div className="text-4xl font-bold text-white mb-1">{fullStats?.totalLearners?.toLocaleString() || '—'}</div>
-                              <div className="text-yellow-400 text-xs flex items-center gap-1"><div className="w-1.5 h-1.5 rounded-full bg-yellow-400"></div> {fullStats?.totalEnrollments || 0} enrollments</div>
-                            </GlassCard>
-                            <GlassCard className="relative overflow-hidden group">
-                              <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><BookOpen size={64} /></div>
-                              <div className="text-zinc-400 text-sm font-medium uppercase tracking-wider mb-2">Content Library</div>
-                              <div className="text-4xl font-bold text-white mb-1">{fullStats?.totalLessons || totalLessons}</div>
-                              <div className="text-zinc-400 text-xs">Across {fullStats?.totalCourses || courses.length} courses</div>
-                            </GlassCard>
-                            <GlassCard className="relative overflow-hidden group">
-                              <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><CheckCircle size={64} /></div>
-                              <div className="text-zinc-400 text-sm font-medium uppercase tracking-wider mb-2">Completion Rate</div>
-                              <div className="text-4xl font-bold text-white mb-1">{fullStats?.completionRate ?? '—'}%</div>
-                              <div className="text-yellow-400 text-xs">Avg. per enrollment</div>
-                            </GlassCard>
-                            <GlassCard className="relative overflow-hidden group">
-                              <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><Target size={64} /></div>
-                              <div className="text-zinc-400 text-sm font-medium uppercase tracking-wider mb-2">Quiz Pass Rate</div>
-                              <div className="text-4xl font-bold text-white mb-1">{fullStats?.quizPassRate ?? '—'}%</div>
-                              <div className="text-zinc-400 text-xs">Avg score: {fullStats?.averageQuizScore ?? '—'}%</div>
-                            </GlassCard>
-                          </div>
-
-                          {/* Second Row KPIs - Study Hours & Overdue */}
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <GlassCard className="relative overflow-hidden group">
-                              <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><MonitorPlay size={64} /></div>
-                              <div className="text-zinc-400 text-sm font-medium uppercase tracking-wider mb-2">Total Study Hours</div>
-                              <div className="text-4xl font-bold text-white mb-1">{fullStats?.totalStudyHours ? (fullStats.totalStudyHours >= 1000 ? `${(fullStats.totalStudyHours / 1000).toFixed(1)}k` : fullStats.totalStudyHours) : '—'}</div>
-                              <div className="text-white text-xs">Total learning time logged</div>
-                            </GlassCard>
-                            <GlassCard className={`relative overflow-hidden group ${(fullStats?.overdueEnrollments || 0) > 0 ? 'border-red-500/30' : ''}`}>
-                              <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><AlertTriangle size={64} /></div>
-                              <div className="text-zinc-400 text-sm font-medium uppercase tracking-wider mb-2">Overdue Enrollments</div>
-                              <div className={`text-4xl font-bold mb-1 ${(fullStats?.overdueEnrollments || 0) > 0 ? 'text-red-400' : 'text-green-400'}`}>
-                                {fullStats?.overdueEnrollments ?? 0}
-                              </div>
-                              <div className={`text-xs ${(fullStats?.overdueEnrollments || 0) > 0 ? 'text-red-400/80' : 'text-green-400/80'}`}>
-                                {(fullStats?.overdueEnrollments || 0) > 0 ? 'Learners past deadline' : 'All on track'}
-                              </div>
-                            </GlassCard>
-                          </div>
-
-                          {/* URGENT: Pending Users Alert - Hyper Visible Liquid Glass */}
-                          {pendingUsers.length > 0 && (
-                            <div className="relative group cursor-pointer" onClick={() => setAdminSection('USERS')}>
-                              {/* Animated outer glow */}
-                              <div className="absolute -inset-1 bg-gradient-to-r from-red-500/40 via-yellow-500/30 to-red-500/40 rounded-[28px] blur-xl opacity-80 animate-pulse" />
-                              <div className="absolute -inset-0.5 bg-gradient-to-br from-red-400/20 via-transparent to-yellow-400/20 rounded-[26px] blur-md" />
-
-                              <div className="relative rounded-3xl overflow-hidden backdrop-blur-2xl bg-gradient-to-br from-red-900/30 via-black/60 to-yellow-900/20 border-2 border-red-500/50 shadow-[0_8px_32px_rgba(239,68,68,0.3),inset_0_1px_0_rgba(255,255,255,0.1)] p-6 hover:border-yellow-400/60 transition-all duration-500">
-                                {/* Inner highlight */}
-                                <div className="absolute inset-0 bg-gradient-to-b from-white/5 via-transparent to-transparent pointer-events-none" />
-
-                                {/* Pulsing alert indicator */}
-                                <div className="absolute top-4 right-4">
-                                  <span className="relative flex h-4 w-4">
-                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                                    <span className="relative inline-flex rounded-full h-4 w-4 bg-red-500"></span>
-                                  </span>
-                                </div>
-
-                                <div className="relative z-10 flex items-center justify-between">
-                                  <div className="flex items-center gap-4">
-                                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-red-500/30 to-yellow-500/20 border border-red-400/50 flex items-center justify-center shadow-[0_0_30px_rgba(239,68,68,0.3)]">
-                                      <UserCheck size={32} className="text-red-400 drop-shadow-[0_0_10px_rgba(239,68,68,0.5)]" />
-                                    </div>
-                                    <div>
-                                      <div className="flex items-center gap-2 mb-1">
-                                        <span className="text-xs px-2 py-0.5 rounded-full bg-red-500/30 text-red-400 font-bold uppercase tracking-wider animate-pulse">Action Required</span>
-                                      </div>
-                                      <h3 className="text-2xl font-bold text-white">{pendingUsers.length} Pending User{pendingUsers.length > 1 ? 's' : ''}</h3>
-                                      <p className="text-sm text-zinc-400 mt-1">Click here to approve or reject registration requests</p>
-                                    </div>
-                                  </div>
-                                  <div className="flex items-center gap-3">
-                                    <div className="hidden md:flex flex-col items-end text-right">
-                                      <span className="text-xs text-zinc-500">Oldest</span>
-                                      <span className="text-sm text-white font-medium">{pendingUsers.length > 0 ? new Date(pendingUsers[0].created_at).toLocaleDateString('fr-FR') : '-'}</span>
-                                    </div>
-                                    <div className="w-12 h-12 rounded-xl bg-yellow-400/20 border border-yellow-400/30 flex items-center justify-center group-hover:bg-yellow-400/30 transition-all">
-                                      <ChevronRight size={24} className="text-yellow-400 group-hover:translate-x-1 transition-transform" />
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Overdue Learners Alert */}
-                          {overdueLearners.length > 0 && (
-                            <div className="relative group">
-                              <div className="absolute -inset-0.5 bg-gradient-to-r from-orange-500/20 via-red-500/20 to-orange-500/20 rounded-[26px] blur-md opacity-60" />
-                              <div className="relative rounded-2xl overflow-hidden backdrop-blur-xl bg-gradient-to-br from-orange-900/20 via-black/40 to-red-900/10 border border-orange-500/30 p-6">
-                                <div className="flex items-center justify-between mb-4">
-                                  <div className="flex items-center gap-3">
-                                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-red-500/30 to-orange-500/20 border border-red-400/40 flex items-center justify-center">
-                                      <AlertTriangle size={24} className="text-red-400" />
-                                    </div>
-                                    <div>
-                                      <h3 className="text-lg font-bold text-white">{overdueLearners.length} Overdue Enrollment{overdueLearners.length > 1 ? 's' : ''}</h3>
-                                      <p className="text-sm text-zinc-400">Learners past their training deadline</p>
-                                    </div>
-                                  </div>
-                                  <span className="px-3 py-1 text-xs rounded-full bg-red-500/20 text-red-400 font-medium border border-red-500/30">
-                                    Requires Attention
-                                  </span>
-                                </div>
-                                <div className="space-y-2 max-h-48 overflow-y-auto">
-                                  {overdueLearners.slice(0, 5).map((learner, idx) => (
-                                    <div key={idx} className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/10">
-                                      <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-red-500/20 to-orange-500/10 flex items-center justify-center text-xs font-bold text-red-400">
-                                          {learner.daysOverdue}d
-                                        </div>
-                                        <div>
-                                          <p className="text-sm font-medium text-white">{learner.name}</p>
-                                          <p className="text-xs text-zinc-500">{learner.courseTitle}</p>
-                                        </div>
-                                      </div>
-                                      <div className="text-right">
-                                        <p className="text-xs text-zinc-400">{learner.ministry}</p>
-                                        {learner.isMandatory && (
-                                          <span className="text-xs text-red-400">Mandatory</span>
-                                        )}
-                                      </div>
-                                    </div>
-                                  ))}
-                                  {overdueLearners.length > 5 && (
-                                    <p className="text-center text-sm text-zinc-500 pt-2">
-                                      + {overdueLearners.length - 5} more overdue
-                                    </p>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Analytics Section */}
-                          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                            <GlassCard className="lg:col-span-2 p-8">
-                              <div className="flex justify-between items-center mb-6">
-                                <h3 className="text-xl font-bold">Ministry Engagement</h3>
-                                <div className="flex gap-2">
-                                  <button className="px-3 py-1 text-xs rounded-full bg-white/10 text-white">Weekly</button>
-                                  <button className="px-3 py-1 text-xs rounded-full hover:bg-white/5 text-zinc-400">Monthly</button>
-                                </div>
-                              </div>
-                              <div className="h-64 w-full">
-                                <ResponsiveContainer width="100%" height="100%">
-                                  <BarChart data={adminStats} barSize={40}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
-                                    <XAxis dataKey="name" stroke="#64748b" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
-                                    <YAxis stroke="#64748b" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
-                                    <Tooltip
-                                      cursor={{ fill: '#ffffff05' }}
-                                      contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '12px', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}
-                                      itemStyle={{ color: '#fff' }}
-                                    />
-                                    <Bar dataKey="value" radius={[8, 8, 8, 8]}>
-                                      {adminStats.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={['#FACC15', '#CA8A04', '#FEF08A', '#713F12'][index % 4]} />
-                                      ))}
-                                    </Bar>
-                                  </BarChart>
-                                </ResponsiveContainer>
-                              </div>
-                            </GlassCard>
-
-                            <GlassCard className="p-8">
-                              <h3 className="text-xl font-bold mb-6">Content Types</h3>
-                              <div className="h-64 w-full relative">
-                                <ResponsiveContainer width="100%" height="100%">
-                                  <PieChart>
-                                    <Pie
-                                      data={[
-                                        { name: 'Video', value: 45, fill: '#FACC15' },
-                                        { name: 'Reading', value: 30, fill: '#FFFFFF' },
-                                        { name: 'Quizzes', value: 25, fill: '#A16207' },
-                                      ]}
-                                      innerRadius={60}
-                                      outerRadius={80}
-                                      paddingAngle={5}
-                                      dataKey="value"
-                                    >
-                                      <Cell fill="#FACC15" />
-                                      <Cell fill="#FFFFFF" />
-                                      <Cell fill="#A16207" />
-                                    </Pie>
-                                    <Tooltip contentStyle={{ backgroundColor: '#0f172a', border: 'none', borderRadius: '8px' }} />
-                                  </PieChart>
-                                </ResponsiveContainer>
-                                <div className="absolute inset-0 flex items-center justify-center flex-col pointer-events-none">
-                                  <span className="text-3xl font-bold text-white">100%</span>
-                                  <span className="text-xs text-zinc-400">Balanced</span>
-                                </div>
-                              </div>
-                              <div className="flex justify-center gap-4 text-xs">
-                                <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-yellow-400"></div> Video</div>
-                                <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-white"></div> Docs</div>
-                                <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-yellow-700"></div> Quiz</div>
-                              </div>
-                            </GlassCard>
-                          </div>
-
-                          {/* Manage Courses (Enhanced List) */}
-                          <div className="space-y-6">
-                            <div className="flex items-center justify-between">
-                              <h3 className="text-xl font-bold">Manage Courses</h3>
-                              <span className="text-sm text-zinc-400">
-                                {courses.length} course{courses.length !== 1 ? 's' : ''} total
-                              </span>
-                            </div>
-                            <div className="grid gap-4">
-                              {courses.map(course => (
-                                <GlassCard key={course.id} className="group p-0 overflow-hidden flex flex-col md:flex-row items-center hover:border-yellow-400/50 transition-colors">
-                                  <div className="h-32 w-full md:w-48 bg-cover bg-center grayscale group-hover:grayscale-0 transition-all duration-500" style={{ backgroundImage: `url(${course.thumbnail})` }}>
-                                    <div className="h-full w-full bg-black/40 group-hover:bg-transparent transition-colors"></div>
-                                  </div>
-                                  <div className="p-6 flex-1 min-w-0">
-                                    <div className="flex justify-between items-start">
-                                      <div>
-                                        <h4 className="text-xl font-bold text-white mb-1">{course.title}</h4>
-                                        <p className="text-sm text-zinc-400 mb-3" title={course.description}>{course.description}</p>
-                                        <div className="flex gap-3 text-xs">
-                                          <Badge>{course.level}</Badge>
-                                          <span className="flex items-center gap-1 text-zinc-400"><List size={14} /> {course.lessons.length} Modules</span>
-                                          <span className="flex items-center gap-1 text-zinc-400"><Users size={14} /> {course.enrolledCount} Enrolled</span>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </div>
-                                  <div className="p-6 border-l border-white/5 flex gap-3">
-                                    <SecondaryButton onClick={() => handleEditCourse(course)} className="h-10 px-4 text-xs flex items-center gap-2">
-                                      Edit Content
-                                    </SecondaryButton>
-                                    <button
-                                      onClick={() => deleteCourse(course.id)}
-                                      className="h-10 w-10 flex items-center justify-center rounded-full border border-red-900/30 text-red-400 hover:bg-red-900/20 transition-colors"
-                                    >
-                                      <Trash2 size={16} />
-                                    </button>
-                                  </div>
-                                </GlassCard>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Courses Section - Liquid Glass Design */}
-                        <div className={adminSection === 'COURSES' ? '' : 'hidden'}>
-                          <div className="flex justify-between items-end mb-8">
-                            <div>
-                              <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-zinc-400">Course Manager</h2>
-                              <p className="text-zinc-400 mt-2 flex items-center gap-4">
-                                <span>{courses.length} course{courses.length !== 1 ? 's' : ''}</span>
-                                <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-green-400"></span><span className="text-green-400">{courses.filter(c => c.level === 'Beginner').length}</span> Beginner</span>
-                                <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-yellow-400"></span><span className="text-yellow-400">{courses.filter(c => c.level === 'Intermediate').length}</span> Intermediate</span>
-                                <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-purple-400"></span><span className="text-purple-400">{courses.filter(c => c.level === 'Advanced').length}</span> Advanced</span>
-                              </p>
-                            </div>
-                            <PrimaryButton onClick={handleCreateCourse} className="text-sm shadow-lg shadow-yellow-400/20">
-                              <Plus size={18} /> New Course
-                            </PrimaryButton>
-                          </div>
-
-                          {/* Courses Grid - Liquid Glass Cards */}
-                          <div className="space-y-10">
-                            {(['Beginner', 'Intermediate', 'Advanced'] as const).map(level => {
-                              const levelCourses = courses.filter(c => c.level === level);
-                              if (levelCourses.length === 0) return null;
-                              const levelColor = level === 'Beginner' ? 'green' : level === 'Intermediate' ? 'yellow' : 'purple';
-                              return (
-                                <div key={level} className="space-y-5">
-                                  <div className="flex items-center gap-4">
-                                    <div className={`px-4 py-1.5 rounded-full text-sm font-bold ${level === 'Beginner' ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
-                                      level === 'Intermediate' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' :
-                                        'bg-purple-500/20 text-purple-400 border border-purple-500/30'
-                                      }`}>{level}</div>
-                                    <div className="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent"></div>
-                                    <span className="text-sm text-zinc-500">{levelCourses.length} course{levelCourses.length > 1 ? 's' : ''} • Drag to reorder</span>
-                                  </div>
-                                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                                    {levelCourses.map((course, index) => (
-                                      <div
-                                        key={course.id}
-                                        draggable
-                                        onDragStart={(e) => {
-                                          setDraggedCourseId(course.id);
-                                          e.dataTransfer.effectAllowed = 'move';
-                                          e.dataTransfer.setData('text/plain', JSON.stringify({ level, fromIndex: index }));
-                                        }}
-                                        onDragEnd={() => setDraggedCourseId(null)}
-                                        onDragOver={(e) => {
-                                          e.preventDefault();
-                                          e.dataTransfer.dropEffect = 'move';
-                                        }}
-                                        onDrop={async (e) => {
-                                          e.preventDefault();
-                                          const data = JSON.parse(e.dataTransfer.getData('text/plain'));
-                                          if (data.level === level && data.fromIndex !== index) {
-                                            const success = await handleCourseDrop(level, data.fromIndex, index);
-                                            if (success) {
-                                              showToast('success', 'Order Saved', 'Course order updated and saved for all users.');
-                                            } else {
-                                              showToast('error', 'Save Failed', 'Failed to save course order. Please try again.');
-                                            }
-                                          }
-                                          setDraggedCourseId(null);
-                                        }}
-                                        className={`group relative rounded-2xl overflow-hidden transition-all duration-500 cursor-grab active:cursor-grabbing ${draggedCourseId === course.id
-                                          ? 'opacity-50 scale-95 rotate-1 ring-2 ring-yellow-400'
-                                          : 'hover:scale-[1.02] hover:-translate-y-1'
-                                          }`}
-                                      >
-                                        {/* Ambient Glow */}
-                                        <div className={`absolute -inset-1 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl ${level === 'Beginner' ? 'bg-green-500/20' :
-                                          level === 'Intermediate' ? 'bg-yellow-500/20' :
-                                            'bg-purple-500/20'
-                                          }`}></div>
-
-                                        {/* Card */}
-                                        <div className="relative glass-panel rounded-2xl border border-white/10 group-hover:border-white/20 overflow-hidden backdrop-blur-xl bg-zinc-900/80">
-                                          {/* Thumbnail with Overlay */}
-                                          <div className="relative aspect-video overflow-hidden">
-                                            <img
-                                              src={course.thumbnail || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=800'}
-                                              alt={course.title}
-                                              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                                            />
-                                            {/* Gradient Overlay */}
-                                            <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 via-zinc-900/50 to-transparent"></div>
-
-                                            {/* Order Badge */}
-                                            <div className="absolute top-3 left-3 w-8 h-8 rounded-full bg-black/60 backdrop-blur-sm border border-white/20 flex items-center justify-center text-sm font-bold text-white">
-                                              {index + 1}
-                                            </div>
-
-                                            {/* Level Badge */}
-                                            <div className={`absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-bold backdrop-blur-sm ${level === 'Beginner' ? 'bg-green-500/30 text-green-300 border border-green-500/50' :
-                                              level === 'Intermediate' ? 'bg-yellow-500/30 text-yellow-300 border border-yellow-500/50' :
-                                                'bg-purple-500/30 text-purple-300 border border-purple-500/50'
-                                              }`}>{level}</div>
-
-                                            {/* Stats Overlay */}
-                                            <div className="absolute bottom-3 left-3 right-3 flex justify-between items-center">
-                                              <div className="flex gap-3">
-                                                <span className="flex items-center gap-1.5 text-xs text-white/80 bg-black/40 backdrop-blur-sm px-2 py-1 rounded-full">
-                                                  <List size={12} /> {course.lessons.length} modules
-                                                </span>
-                                                <span className="flex items-center gap-1.5 text-xs text-white/80 bg-black/40 backdrop-blur-sm px-2 py-1 rounded-full">
-                                                  <Users size={12} /> {course.enrolledCount || 0}
-                                                </span>
-                                              </div>
-                                            </div>
-
-                                            {/* Drag Handle - Appears on Hover */}
-                                            <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity">
-                                              <div className="p-3 rounded-full bg-white/10 backdrop-blur-sm border border-white/20">
-                                                <GripVertical size={24} className="text-white" />
-                                              </div>
-                                            </div>
-                                          </div>
-
-                                          {/* Content */}
-                                          <div className="p-5">
-                                            {/* Title - Editable */}
-                                            {editingCourseId === course.id ? (
-                                              <input
-                                                type="text"
-                                                value={editingCourseTitle}
-                                                onChange={(e) => setEditingCourseTitle(e.target.value)}
-                                                onKeyDown={(e) => {
-                                                  if (e.key === 'Enter') saveEditingCourseTitle();
-                                                  if (e.key === 'Escape') cancelEditingCourseTitle();
-                                                }}
-                                                onBlur={saveEditingCourseTitle}
-                                                autoFocus
-                                                className="text-lg font-bold text-white mb-2 bg-transparent border-b-2 border-yellow-400 outline-none w-full pb-1"
-                                                onClick={(e) => e.stopPropagation()}
-                                              />
-                                            ) : (
-                                              <h4
-                                                className="text-lg font-bold text-white mb-2 cursor-text hover:text-yellow-400 transition-colors line-clamp-1"
-                                                onClick={(e) => { e.stopPropagation(); startEditingCourseTitle(course); }}
-                                                title="Click to edit title"
-                                              >
-                                                {course.title}
-                                              </h4>
-                                            )}
-
-                                            {/* Description */}
-                                            <p className="text-sm text-zinc-400 mb-4 line-clamp-2">{course.description || 'No description'}</p>
-
-                                            {/* Actions */}
-                                            <div className="flex gap-2">
-                                              <button
-                                                onClick={(e) => { e.stopPropagation(); handleEditCourse(course); }}
-                                                className="flex-1 py-2.5 px-4 rounded-xl bg-yellow-400 text-black text-sm font-bold hover:bg-yellow-300 transition-colors flex items-center justify-center gap-2"
-                                              >
-                                                <Pencil size={14} /> Edit Course
-                                              </button>
-                                              <button
-                                                onClick={(e) => { e.stopPropagation(); deleteCourse(course.id); }}
-                                                className="p-2.5 rounded-xl border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-colors"
-                                                title="Delete course"
-                                              >
-                                                <Trash2 size={16} />
-                                              </button>
-                                            </div>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    ))}
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-
-                        {/* Analytics Section */}
-                        <div className={adminSection === 'ANALYTICS' ? 'space-y-6' : 'hidden'}>
                           <div>
-                            <h2 className="text-3xl font-bold">Analytics Dashboard</h2>
-                            <p className="text-zinc-400 mt-1">Detailed insights into platform engagement</p>
+                            <p className="text-sm font-medium text-white">{learner.name}</p>
+                            <p className="text-xs text-zinc-500">{learner.courseTitle}</p>
                           </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-xs text-zinc-400">{learner.ministry}</p>
+                          {learner.isMandatory && (
+                            <span className="text-xs text-red-400">Mandatory</span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                    {overdueLearners.length > 5 && (
+                      <p className="text-center text-sm text-zinc-500 pt-2">
+                        + {overdueLearners.length - 5} more overdue
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
 
-                          {/* Ministry Progress Tracking - Enhanced with per-course breakdown */}
-                          <GlassCard className="p-6">
-                            <div className="flex justify-between items-center mb-4">
-                              <h3 className="text-xl font-bold">Ministry Training Progress</h3>
-                              {selectedMinistry && (
-                                <button
-                                  onClick={() => setSelectedMinistry(null)}
-                                  className="text-sm text-yellow-400 hover:text-yellow-300 flex items-center gap-1"
-                                >
-                                  <ArrowLeft size={14} /> Back to all ministries
-                                </button>
-                              )}
-                            </div>
+            {/* Analytics Section */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <GlassCard className="lg:col-span-2 p-8">
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-xl font-bold">Ministry Engagement</h3>
+                  <div className="flex gap-2">
+                    <button className="px-3 py-1 text-xs rounded-full bg-white/10 text-white">Weekly</button>
+                    <button className="px-3 py-1 text-xs rounded-full hover:bg-white/5 text-zinc-400">Monthly</button>
+                  </div>
+                </div>
+                <div className="h-64 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={adminStats} barSize={40}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
+                      <XAxis dataKey="name" stroke="#64748b" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
+                      <YAxis stroke="#64748b" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
+                      <Tooltip
+                        cursor={{ fill: '#ffffff05' }}
+                        contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '12px', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}
+                        itemStyle={{ color: '#fff' }}
+                      />
+                      <Bar dataKey="value" radius={[8, 8, 8, 8]}>
+                        {adminStats.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={['#FACC15', '#CA8A04', '#FEF08A', '#713F12'][index % 4]} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </GlassCard>
 
-                            {!selectedMinistry ? (
-                              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {ministryStats.length > 0 ? ministryStats.map((ministry, idx) => (
-                                  <button
-                                    key={idx}
-                                    onClick={() => setSelectedMinistry(ministry.name)}
-                                    className="p-4 rounded-xl bg-white/5 border border-white/10 hover:border-yellow-400/30 hover:bg-white/10 transition-all text-left group"
-                                  >
-                                    <div className="flex justify-between items-start mb-2">
-                                      <div className="text-sm font-medium text-white truncate group-hover:text-yellow-400 transition-colors">{ministry.name}</div>
-                                      <div className="flex gap-2">
-                                        {ministry.overdueCount > 0 && (
-                                          <Badge type="default" className="!bg-red-500/20 !text-red-400 !border-red-500/30">
-                                            {ministry.overdueCount} overdue
-                                          </Badge>
-                                        )}
-                                        <Badge type={ministry.activeLearners > 0 ? 'success' : 'default'}>
-                                          {ministry.activeLearners} active
-                                        </Badge>
-                                      </div>
-                                    </div>
-                                    <div className="text-2xl font-bold text-yellow-400 mb-1">{ministry.totalLearners}</div>
-                                    <div className="text-xs text-zinc-500 mb-3">learners enrolled</div>
-                                    <div className="flex justify-between text-xs text-zinc-400 mb-1">
-                                      <span>Courses Completed</span>
-                                      <span className="text-white">{ministry.coursesCompleted}</span>
-                                    </div>
-                                    <div className="flex justify-between text-xs text-zinc-400 mb-1">
-                                      <span>Avg Quiz Score</span>
-                                      <span className="text-white">{ministry.avgQuizScore || 0}%</span>
-                                    </div>
-                                    <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
-                                      <div
-                                        className="h-full bg-gradient-to-r from-yellow-400 to-yellow-500 rounded-full"
-                                        style={{ width: `${ministry.totalLearners > 0 ? Math.min(100, (ministry.coursesCompleted / ministry.totalLearners) * 100) : 0}%` }}
-                                      />
-                                    </div>
-                                    <div className="text-xs text-zinc-500 mt-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                      Click to view course breakdown <ChevronRight size={12} />
-                                    </div>
-                                  </button>
-                                )) : (
-                                  <div className="col-span-3 text-center text-zinc-500 py-8">No ministry data available yet</div>
-                                )}
-                              </div>
-                            ) : (
-                              <div className="space-y-4">
-                                <div className="text-lg font-medium text-white mb-4">
-                                  {selectedMinistry} - Per-Course Breakdown
-                                </div>
-                                {ministryCourseStats.length > 0 ? (
-                                  <div className="space-y-3">
-                                    {ministryCourseStats.map((stat, idx) => (
-                                      <div key={idx} className="p-4 rounded-xl bg-white/5 border border-white/10">
-                                        <div className="flex justify-between items-start mb-3">
-                                          <div>
-                                            <div className="font-medium text-white">{stat.courseTitle}</div>
-                                            <div className="text-xs text-zinc-500">{stat.enrolledCount} enrolled</div>
-                                          </div>
-                                          <div className="flex gap-2">
-                                            {stat.overdueCount > 0 && (
-                                              <Badge type="default" className="!bg-red-500/20 !text-red-400 !border-red-500/30">
-                                                {stat.overdueCount} overdue
-                                              </Badge>
-                                            )}
-                                            <Badge type="success">{stat.completionRate}% complete</Badge>
-                                          </div>
-                                        </div>
-                                        <div className="grid grid-cols-3 gap-4 text-center">
-                                          <div>
-                                            <div className="text-lg font-bold text-green-400">{stat.completedCount}</div>
-                                            <div className="text-xs text-zinc-500">Completed</div>
-                                          </div>
-                                          <div>
-                                            <div className="text-lg font-bold text-yellow-400">{stat.enrolledCount - stat.completedCount}</div>
-                                            <div className="text-xs text-zinc-500">In Progress</div>
-                                          </div>
-                                          <div>
-                                            <div className="text-lg font-bold text-white">{stat.avgScore}%</div>
-                                            <div className="text-xs text-zinc-500">Avg Score</div>
-                                          </div>
-                                        </div>
-                                        <div className="h-1.5 bg-white/10 rounded-full overflow-hidden mt-3">
-                                          <div
-                                            className="h-full bg-gradient-to-r from-green-400 to-green-500 rounded-full"
-                                            style={{ width: `${stat.completionRate}%` }}
-                                          />
-                                        </div>
-                                      </div>
-                                    ))}
-                                  </div>
-                                ) : (
-                                  <div className="text-center text-zinc-500 py-8">No course data available for this ministry</div>
-                                )}
-                              </div>
-                            )}
-                          </GlassCard>
+              <GlassCard className="p-8">
+                <h3 className="text-xl font-bold mb-6">Content Types</h3>
+                <div className="h-64 w-full relative">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={[
+                          { name: 'Video', value: 45, fill: '#FACC15' },
+                          { name: 'Reading', value: 30, fill: '#FFFFFF' },
+                          { name: 'Quizzes', value: 25, fill: '#A16207' },
+                        ]}
+                        innerRadius={60}
+                        outerRadius={80}
+                        paddingAngle={5}
+                        dataKey="value"
+                      >
+                        <Cell fill="#FACC15" />
+                        <Cell fill="#FFFFFF" />
+                        <Cell fill="#A16207" />
+                      </Pie>
+                      <Tooltip contentStyle={{ backgroundColor: '#0f172a', border: 'none', borderRadius: '8px' }} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div className="absolute inset-0 flex items-center justify-center flex-col pointer-events-none">
+                    <span className="text-3xl font-bold text-white">100%</span>
+                    <span className="text-xs text-zinc-400">Balanced</span>
+                  </div>
+                </div>
+                <div className="flex justify-center gap-4 text-xs">
+                  <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-yellow-400"></div> Video</div>
+                  <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-white"></div> Docs</div>
+                  <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-yellow-700"></div> Quiz</div>
+                </div>
+              </GlassCard>
+            </div>
 
-                          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                            <GlassCard className="lg:col-span-2 p-8">
-                              <div className="flex justify-between items-center mb-6">
-                                <h3 className="text-xl font-bold">Ministry Engagement</h3>
-                              </div>
-                              <div className="h-64 w-full">
-                                <ResponsiveContainer width="100%" height="100%">
-                                  <BarChart data={ministryStats.length > 0 ? ministryStats.map(m => ({ name: m.name?.split(' ').pop() || m.name, value: m.totalLearners })) : adminStats} barSize={40}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
-                                    <XAxis dataKey="name" stroke="#64748b" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
-                                    <YAxis stroke="#64748b" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
-                                    <Tooltip
-                                      cursor={{ fill: '#ffffff05' }}
-                                      contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '12px', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}
-                                      itemStyle={{ color: '#fff' }}
-                                    />
-                                    <Bar dataKey="value" radius={[8, 8, 8, 8]}>
-                                      {(ministryStats.length > 0 ? ministryStats : adminStats).map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={['#FACC15', '#CA8A04', '#FEF08A', '#713F12'][index % 4]} />
-                                      ))}
-                                    </Bar>
-                                  </BarChart>
-                                </ResponsiveContainer>
-                              </div>
-                            </GlassCard>
-
-                            <GlassCard className="p-8">
-                              <h3 className="text-xl font-bold mb-6">Content Types</h3>
-                              <div className="h-64 w-full relative">
-                                <ResponsiveContainer width="100%" height="100%">
-                                  <PieChart>
-                                    <Pie
-                                      data={contentStats.length > 0 ? contentStats : [
-                                        { name: 'Video', value: 45 },
-                                        { name: 'Pdf', value: 30 },
-                                        { name: 'Quiz', value: 25 },
-                                      ]}
-                                      innerRadius={60}
-                                      outerRadius={80}
-                                      paddingAngle={5}
-                                      dataKey="value"
-                                    >
-                                      {(contentStats.length > 0 ? contentStats : [1, 2, 3]).map((_, index) => (
-                                        <Cell key={`cell-${index}`} fill={['#FACC15', '#FFFFFF', '#A16207', '#FEF08A'][index % 4]} />
-                                      ))}
-                                    </Pie>
-                                    <Tooltip contentStyle={{ backgroundColor: '#0f172a', border: 'none', borderRadius: '8px' }} />
-                                  </PieChart>
-                                </ResponsiveContainer>
-                                <div className="absolute inset-0 flex items-center justify-center flex-col pointer-events-none">
-                                  <span className="text-3xl font-bold text-white">{fullStats?.totalLessons || '—'}</span>
-                                  <span className="text-xs text-zinc-400">Total Lessons</span>
-                                </div>
-                              </div>
-                              <div className="flex justify-center gap-4 text-xs flex-wrap">
-                                {contentStats.length > 0 ? contentStats.map((c, idx) => (
-                                  <div key={idx} className="flex items-center gap-1">
-                                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: ['#FACC15', '#FFFFFF', '#A16207', '#FEF08A'][idx % 4] }}></div>
-                                    {c.name} ({c.count || c.value})
-                                  </div>
-                                )) : (
-                                  <>
-                                    <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-yellow-400"></div> Video</div>
-                                    <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-white"></div> Docs</div>
-                                    <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-yellow-700"></div> Quiz</div>
-                                  </>
-                                )}
-                              </div>
-                            </GlassCard>
+            {/* Manage Courses (Enhanced List) */}
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xl font-bold">Manage Courses</h3>
+                <span className="text-sm text-zinc-400">
+                  {courses.length} course{courses.length !== 1 ? 's' : ''} total
+                </span>
+              </div>
+              <div className="grid gap-4">
+                {courses.map(course => (
+                  <GlassCard key={course.id} className="group p-0 overflow-hidden flex flex-col md:flex-row items-center hover:border-yellow-400/50 transition-colors">
+                    <div className="h-32 w-full md:w-48 bg-cover bg-center grayscale group-hover:grayscale-0 transition-all duration-500" style={{ backgroundImage: `url(${course.thumbnail})` }}>
+                      <div className="h-full w-full bg-black/40 group-hover:bg-transparent transition-colors"></div>
+                    </div>
+                    <div className="p-6 flex-1 min-w-0">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h4 className="text-xl font-bold text-white mb-1">{course.title}</h4>
+                          <p className="text-sm text-zinc-400 mb-3" title={course.description}>{course.description}</p>
+                          <div className="flex gap-3 text-xs">
+                            <Badge>{course.level}</Badge>
+                            <span className="flex items-center gap-1 text-zinc-400"><List size={14} /> {course.lessons.length} Modules</span>
+                            <span className="flex items-center gap-1 text-zinc-400"><Users size={14} /> {course.enrolledCount} Enrolled</span>
                           </div>
                         </div>
                       </div>
                     </div>
-                    );
+                    <div className="p-6 border-l border-white/5 flex gap-3">
+                      <SecondaryButton onClick={() => handleEditCourse(course)} className="h-10 px-4 text-xs flex items-center gap-2">
+                        Edit Content
+                      </SecondaryButton>
+                      <button
+                        onClick={() => deleteCourse(course.id)}
+                        className="h-10 w-10 flex items-center justify-center rounded-full border border-red-900/30 text-red-400 hover:bg-red-900/20 transition-colors"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </GlassCard>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Courses Section - Liquid Glass Design */}
+          <div className={adminSection === 'COURSES' ? '' : 'hidden'}>
+            <div className="flex justify-between items-end mb-8">
+              <div>
+                <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-zinc-400">Course Manager</h2>
+                <p className="text-zinc-400 mt-2 flex items-center gap-4">
+                  <span>{courses.length} course{courses.length !== 1 ? 's' : ''}</span>
+                  <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-green-400"></span><span className="text-green-400">{courses.filter(c => c.level === 'Beginner').length}</span> Beginner</span>
+                  <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-yellow-400"></span><span className="text-yellow-400">{courses.filter(c => c.level === 'Intermediate').length}</span> Intermediate</span>
+                  <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-purple-400"></span><span className="text-purple-400">{courses.filter(c => c.level === 'Advanced').length}</span> Advanced</span>
+                </p>
+              </div>
+              <PrimaryButton onClick={handleCreateCourse} className="text-sm shadow-lg shadow-yellow-400/20">
+                <Plus size={18} /> New Course
+              </PrimaryButton>
+            </div>
+
+            {/* Courses Grid - Liquid Glass Cards */}
+            <div className="space-y-10">
+              {(['Beginner', 'Intermediate', 'Advanced'] as const).map(level => {
+                const levelCourses = courses.filter(c => c.level === level);
+                if (levelCourses.length === 0) return null;
+                const levelColor = level === 'Beginner' ? 'green' : level === 'Intermediate' ? 'yellow' : 'purple';
+                return (
+                  <div key={level} className="space-y-5">
+                    <div className="flex items-center gap-4">
+                      <div className={`px-4 py-1.5 rounded-full text-sm font-bold ${level === 'Beginner' ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
+                        level === 'Intermediate' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' :
+                          'bg-purple-500/20 text-purple-400 border border-purple-500/30'
+                        }`}>{level}</div>
+                      <div className="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent"></div>
+                      <span className="text-sm text-zinc-500">{levelCourses.length} course{levelCourses.length > 1 ? 's' : ''} • Drag to reorder</span>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                      {levelCourses.map((course, index) => (
+                        <div
+                          key={course.id}
+                          draggable
+                          onDragStart={(e) => {
+                            setDraggedCourseId(course.id);
+                            e.dataTransfer.effectAllowed = 'move';
+                            e.dataTransfer.setData('text/plain', JSON.stringify({ level, fromIndex: index }));
+                          }}
+                          onDragEnd={() => setDraggedCourseId(null)}
+                          onDragOver={(e) => {
+                            e.preventDefault();
+                            e.dataTransfer.dropEffect = 'move';
+                          }}
+                          onDrop={async (e) => {
+                            e.preventDefault();
+                            const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+                            if (data.level === level && data.fromIndex !== index) {
+                              const success = await handleCourseDrop(level, data.fromIndex, index);
+                              if (success) {
+                                showToast('success', 'Order Saved', 'Course order updated and saved for all users.');
+                              } else {
+                                showToast('error', 'Save Failed', 'Failed to save course order. Please try again.');
+                              }
+                            }
+                            setDraggedCourseId(null);
+                          }}
+                          className={`group relative rounded-2xl overflow-hidden transition-all duration-500 cursor-grab active:cursor-grabbing ${draggedCourseId === course.id
+                            ? 'opacity-50 scale-95 rotate-1 ring-2 ring-yellow-400'
+                            : 'hover:scale-[1.02] hover:-translate-y-1'
+                            }`}
+                        >
+                          {/* Ambient Glow */}
+                          <div className={`absolute -inset-1 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl ${level === 'Beginner' ? 'bg-green-500/20' :
+                            level === 'Intermediate' ? 'bg-yellow-500/20' :
+                              'bg-purple-500/20'
+                            }`}></div>
+
+                          {/* Card */}
+                          <div className="relative glass-panel rounded-2xl border border-white/10 group-hover:border-white/20 overflow-hidden backdrop-blur-xl bg-zinc-900/80">
+                            {/* Thumbnail with Overlay */}
+                            <div className="relative aspect-video overflow-hidden">
+                              <img
+                                src={course.thumbnail || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=800'}
+                                alt={course.title}
+                                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                              />
+                              {/* Gradient Overlay */}
+                              <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 via-zinc-900/50 to-transparent"></div>
+
+                              {/* Order Badge */}
+                              <div className="absolute top-3 left-3 w-8 h-8 rounded-full bg-black/60 backdrop-blur-sm border border-white/20 flex items-center justify-center text-sm font-bold text-white">
+                                {index + 1}
+                              </div>
+
+                              {/* Level Badge */}
+                              <div className={`absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-bold backdrop-blur-sm ${level === 'Beginner' ? 'bg-green-500/30 text-green-300 border border-green-500/50' :
+                                level === 'Intermediate' ? 'bg-yellow-500/30 text-yellow-300 border border-yellow-500/50' :
+                                  'bg-purple-500/30 text-purple-300 border border-purple-500/50'
+                                }`}>{level}</div>
+
+                              {/* Stats Overlay */}
+                              <div className="absolute bottom-3 left-3 right-3 flex justify-between items-center">
+                                <div className="flex gap-3">
+                                  <span className="flex items-center gap-1.5 text-xs text-white/80 bg-black/40 backdrop-blur-sm px-2 py-1 rounded-full">
+                                    <List size={12} /> {course.lessons.length} modules
+                                  </span>
+                                  <span className="flex items-center gap-1.5 text-xs text-white/80 bg-black/40 backdrop-blur-sm px-2 py-1 rounded-full">
+                                    <Users size={12} /> {course.enrolledCount || 0}
+                                  </span>
+                                </div>
+                              </div>
+
+                              {/* Drag Handle - Appears on Hover */}
+                              <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <div className="p-3 rounded-full bg-white/10 backdrop-blur-sm border border-white/20">
+                                  <GripVertical size={24} className="text-white" />
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Content */}
+                            <div className="p-5">
+                              {/* Title - Editable */}
+                              {editingCourseId === course.id ? (
+                                <input
+                                  type="text"
+                                  value={editingCourseTitle}
+                                  onChange={(e) => setEditingCourseTitle(e.target.value)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') saveEditingCourseTitle();
+                                    if (e.key === 'Escape') cancelEditingCourseTitle();
+                                  }}
+                                  onBlur={saveEditingCourseTitle}
+                                  autoFocus
+                                  className="text-lg font-bold text-white mb-2 bg-transparent border-b-2 border-yellow-400 outline-none w-full pb-1"
+                                  onClick={(e) => e.stopPropagation()}
+                                />
+                              ) : (
+                                <h4
+                                  className="text-lg font-bold text-white mb-2 cursor-text hover:text-yellow-400 transition-colors line-clamp-1"
+                                  onClick={(e) => { e.stopPropagation(); startEditingCourseTitle(course); }}
+                                  title="Click to edit title"
+                                >
+                                  {course.title}
+                                </h4>
+                              )}
+
+                              {/* Description */}
+                              <p className="text-sm text-zinc-400 mb-4 line-clamp-2">{course.description || 'No description'}</p>
+
+                              {/* Actions */}
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); handleEditCourse(course); }}
+                                  className="flex-1 py-2.5 px-4 rounded-xl bg-yellow-400 text-black text-sm font-bold hover:bg-yellow-300 transition-colors flex items-center justify-center gap-2"
+                                >
+                                  <Pencil size={14} /> Edit Course
+                                </button>
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); deleteCourse(course.id); }}
+                                  className="p-2.5 rounded-xl border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-colors"
+                                  title="Delete course"
+                                >
+                                  <Trash2 size={16} />
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Analytics Section */}
+          <div className={adminSection === 'ANALYTICS' ? 'space-y-6' : 'hidden'}>
+            <div>
+              <h2 className="text-3xl font-bold">Analytics Dashboard</h2>
+              <p className="text-zinc-400 mt-1">Detailed insights into platform engagement</p>
+            </div>
+
+            {/* Ministry Progress Tracking - Enhanced with per-course breakdown */}
+            <GlassCard className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-bold">Ministry Training Progress</h3>
+                {selectedMinistry && (
+                  <button
+                    onClick={() => setSelectedMinistry(null)}
+                    className="text-sm text-yellow-400 hover:text-yellow-300 flex items-center gap-1"
+                  >
+                    <ArrowLeft size={14} /> Back to all ministries
+                  </button>
+                )}
+              </div>
+
+              {!selectedMinistry ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {ministryStats.length > 0 ? ministryStats.map((ministry, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setSelectedMinistry(ministry.name)}
+                      className="p-4 rounded-xl bg-white/5 border border-white/10 hover:border-yellow-400/30 hover:bg-white/10 transition-all text-left group"
+                    >
+                      <div className="flex justify-between items-start mb-2">
+                        <div className="text-sm font-medium text-white truncate group-hover:text-yellow-400 transition-colors">{ministry.name}</div>
+                        <div className="flex gap-2">
+                          {ministry.overdueCount > 0 && (
+                            <Badge type="default" className="!bg-red-500/20 !text-red-400 !border-red-500/30">
+                              {ministry.overdueCount} overdue
+                            </Badge>
+                          )}
+                          <Badge type={ministry.activeLearners > 0 ? 'success' : 'default'}>
+                            {ministry.activeLearners} active
+                          </Badge>
+                        </div>
+                      </div>
+                      <div className="text-2xl font-bold text-yellow-400 mb-1">{ministry.totalLearners}</div>
+                      <div className="text-xs text-zinc-500 mb-3">learners enrolled</div>
+                      <div className="flex justify-between text-xs text-zinc-400 mb-1">
+                        <span>Courses Completed</span>
+                        <span className="text-white">{ministry.coursesCompleted}</span>
+                      </div>
+                      <div className="flex justify-between text-xs text-zinc-400 mb-1">
+                        <span>Avg Quiz Score</span>
+                        <span className="text-white">{ministry.avgQuizScore || 0}%</span>
+                      </div>
+                      <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-gradient-to-r from-yellow-400 to-yellow-500 rounded-full"
+                          style={{ width: `${ministry.totalLearners > 0 ? Math.min(100, (ministry.coursesCompleted / ministry.totalLearners) * 100) : 0}%` }}
+                        />
+                      </div>
+                      <div className="text-xs text-zinc-500 mt-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        Click to view course breakdown <ChevronRight size={12} />
+                      </div>
+                    </button>
+                  )) : (
+                    <div className="col-span-3 text-center text-zinc-500 py-8">No ministry data available yet</div>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="text-lg font-medium text-white mb-4">
+                    {selectedMinistry} - Per-Course Breakdown
+                  </div>
+                  {ministryCourseStats.length > 0 ? (
+                    <div className="space-y-3">
+                      {ministryCourseStats.map((stat, idx) => (
+                        <div key={idx} className="p-4 rounded-xl bg-white/5 border border-white/10">
+                          <div className="flex justify-between items-start mb-3">
+                            <div>
+                              <div className="font-medium text-white">{stat.courseTitle}</div>
+                              <div className="text-xs text-zinc-500">{stat.enrolledCount} enrolled</div>
+                            </div>
+                            <div className="flex gap-2">
+                              {stat.overdueCount > 0 && (
+                                <Badge type="default" className="!bg-red-500/20 !text-red-400 !border-red-500/30">
+                                  {stat.overdueCount} overdue
+                                </Badge>
+                              )}
+                              <Badge type="success">{stat.completionRate}% complete</Badge>
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-3 gap-4 text-center">
+                            <div>
+                              <div className="text-lg font-bold text-green-400">{stat.completedCount}</div>
+                              <div className="text-xs text-zinc-500">Completed</div>
+                            </div>
+                            <div>
+                              <div className="text-lg font-bold text-yellow-400">{stat.enrolledCount - stat.completedCount}</div>
+                              <div className="text-xs text-zinc-500">In Progress</div>
+                            </div>
+                            <div>
+                              <div className="text-lg font-bold text-white">{stat.avgScore}%</div>
+                              <div className="text-xs text-zinc-500">Avg Score</div>
+                            </div>
+                          </div>
+                          <div className="h-1.5 bg-white/10 rounded-full overflow-hidden mt-3">
+                            <div
+                              className="h-full bg-gradient-to-r from-green-400 to-green-500 rounded-full"
+                              style={{ width: `${stat.completionRate}%` }}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center text-zinc-500 py-8">No course data available for this ministry</div>
+                  )}
+                </div>
+              )}
+            </GlassCard>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <GlassCard className="lg:col-span-2 p-8">
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-xl font-bold">Ministry Engagement</h3>
+                </div>
+                <div className="h-64 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={ministryStats.length > 0 ? ministryStats.map(m => ({ name: m.name?.split(' ').pop() || m.name, value: m.totalLearners })) : adminStats} barSize={40}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
+                      <XAxis dataKey="name" stroke="#64748b" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
+                      <YAxis stroke="#64748b" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
+                      <Tooltip
+                        cursor={{ fill: '#ffffff05' }}
+                        contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '12px', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}
+                        itemStyle={{ color: '#fff' }}
+                      />
+                      <Bar dataKey="value" radius={[8, 8, 8, 8]}>
+                        {(ministryStats.length > 0 ? ministryStats : adminStats).map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={['#FACC15', '#CA8A04', '#FEF08A', '#713F12'][index % 4]} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </GlassCard>
+
+              <GlassCard className="p-8">
+                <h3 className="text-xl font-bold mb-6">Content Types</h3>
+                <div className="h-64 w-full relative">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={contentStats.length > 0 ? contentStats : [
+                          { name: 'Video', value: 45 },
+                          { name: 'Pdf', value: 30 },
+                          { name: 'Quiz', value: 25 },
+                        ]}
+                        innerRadius={60}
+                        outerRadius={80}
+                        paddingAngle={5}
+                        dataKey="value"
+                      >
+                        {(contentStats.length > 0 ? contentStats : [1, 2, 3]).map((_, index) => (
+                          <Cell key={`cell-${index}`} fill={['#FACC15', '#FFFFFF', '#A16207', '#FEF08A'][index % 4]} />
+                        ))}
+                      </Pie>
+                      <Tooltip contentStyle={{ backgroundColor: '#0f172a', border: 'none', borderRadius: '8px' }} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div className="absolute inset-0 flex items-center justify-center flex-col pointer-events-none">
+                    <span className="text-3xl font-bold text-white">{fullStats?.totalLessons || '—'}</span>
+                    <span className="text-xs text-zinc-400">Total Lessons</span>
+                  </div>
+                </div>
+                <div className="flex justify-center gap-4 text-xs flex-wrap">
+                  {contentStats.length > 0 ? contentStats.map((c, idx) => (
+                    <div key={idx} className="flex items-center gap-1">
+                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: ['#FACC15', '#FFFFFF', '#A16207', '#FEF08A'][idx % 4] }}></div>
+                      {c.name} ({c.count || c.value})
+                    </div>
+                  )) : (
+                    <>
+                      <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-yellow-400"></div> Video</div>
+                      <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-white"></div> Docs</div>
+                      <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-yellow-700"></div> Quiz</div>
+                    </>
+                  )}
+                </div>
+              </GlassCard>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   };
 
-                    return (
-                    <ToastProvider>
-                      <div className="font-sans text-slate-50 selection:bg-yellow-400/30 h-screen overflow-hidden">
-                        <LiquidBackground />
+  return (
+    <ToastProvider>
+      <div className="font-sans text-slate-50 selection:bg-yellow-400/30 h-screen overflow-hidden">
+        <LiquidBackground />
 
-                        {/* Sidebar for authenticated views except player */}
-                        {(currentView === 'DASHBOARD' || currentView === 'ADMIN') && <Sidebar />}
+        {/* Sidebar for authenticated views except player */}
+        {(currentView === 'DASHBOARD' || currentView === 'ADMIN') && <Sidebar />}
 
-                        {/* Main Content Router */}
-                        <main className="h-screen overflow-hidden">
-                          {currentView === 'LANDING' && <LandingView />}
-                          {currentView === 'AUTH' && <AuthView />}
-                          {currentView === 'DASHBOARD' && <DashboardView />}
-                          {currentView === 'COURSE_PLAYER' && <PlayerView />}
-                          {currentView === 'ADMIN' && <AdminView />}
-                        </main>
-                      </div>
-                    </ToastProvider>
-                    );
+        {/* Main Content Router */}
+        <main className="h-screen overflow-hidden">
+          {currentView === 'LANDING' && <LandingView />}
+          {currentView === 'AUTH' && <AuthView />}
+          {currentView === 'DASHBOARD' && <DashboardView />}
+          {currentView === 'COURSE_PLAYER' && <PlayerView />}
+          {currentView === 'ADMIN' && <AdminView />}
+        </main>
+      </div>
+    </ToastProvider>
+  );
 };
 
-                    export default App;
+export default App;
