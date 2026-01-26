@@ -105,3 +105,56 @@
 .delay-700 {
   animation-delay: 700ms;
 }
+
+/* Luxury Radiant Animations */
+@keyframes radiant-pulse {
+  0% {
+    transform: scale(0.3);
+    opacity: 1;
+    border-width: 4px;
+  }
+
+  100% {
+    transform: scale(2.5);
+    opacity: 0;
+    border-width: 1px;
+  }
+}
+
+@keyframes gold-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes expand-x {
+  0% {
+    width: 0%;
+    left: 50%;
+    opacity: 0;
+  }
+
+  100% {
+    width: 100%;
+    left: 0%;
+    opacity: 1;
+  }
+}
+
+.animate-radiant {
+  animation: radiant-pulse 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-gold-flood {
+  background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.2), transparent);
+  background-size: 200% 100%;
+  animation: gold-shimmer 1s infinite linear;
+}
+
+.animate-expand-x {
+  animation: expand-x 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}

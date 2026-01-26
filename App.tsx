@@ -454,18 +454,31 @@ const App: React.FC = () => {
   );
 
   const SidebarItem = ({ icon, label, active, onClick, badge }: any) => {
-    const [isCharging, setIsCharging] = useState(false);
+    const [isRadiating, setIsRadiating] = useState(false);
+    const [clickPos, setClickPos] = useState({ x: 0, y: 0 });
 
-    const handleClick = () => {
-      if (!active) {
-        setIsCharging(true);
-        setTimeout(() => {
-          setIsCharging(false);
-          onClick();
-        }, 400); // Cool Charge duration
-      } else {
+    const handleClick = (e: React.MouseEvent) => {
+      if (active) {
         onClick();
+        return;
       }
+
+      const rect = e.currentTarget.getBoundingClientRect();
+      setClickPos({
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top
+      });
+
+      setIsRadiating(true);
+
+      // Snappy mechanical feedback then navigation
+      setTimeout(() => {
+        onClick();
+      }, 250); // Navigate at peak power
+
+      setTimeout(() => {
+        setIsRadiating(false);
+      }, 600); // UI cleanup
     };
 
     return (
@@ -477,21 +490,37 @@ const App: React.FC = () => {
             ? 'text-[#D4AF37] border border-[#D4AF37]/40 bg-[#D4AF37]/5'
             : 'text-zinc-500 hover:text-white hover:bg-white/[0.03]'
           }
-        ${isCharging ? 'scale-[0.98]' : 'scale-100'}
+        ${isRadiating ? 'scale-95 brightness-125' : 'scale-100'}
+        active:scale-[0.96] active:duration-75
       `}
       >
-        {/* Cool Charge Effect Background */}
-        {isCharging && (
-          <div className="absolute inset-0 bg-white/[0.05] animate-pulse" />
+        {/* Radiant Pulse Ring */}
+        {isRadiating && (
+          <div
+            className="absolute pointer-events-none rounded-full border-2 border-[#D4AF37] animate-radiant z-20"
+            style={{
+              left: clickPos.x,
+              top: clickPos.y,
+              width: '10px',
+              height: '10px',
+              marginLeft: '-5px',
+              marginTop: '-5px'
+            }}
+          />
         )}
 
-        {/* Charge bar sweep */}
-        {isCharging && (
-          <div className="absolute bottom-0 left-0 h-[2px] bg-[#D4AF37] animate-expand-x" style={{ width: '100%' }} />
+        {/* Internal Background Flood */}
+        {isRadiating && (
+          <div className="absolute inset-0 bg-[#D4AF37]/20 animate-gold-flood z-0" />
+        )}
+
+        {/* Active Glow Accent */}
+        {active && (
+          <div className="absolute left-0 top-1 bottom-1 w-1 bg-[#D4AF37] rounded-r-full shadow-[0_0_15px_rgba(212,175,55,0.6)]" />
         )}
 
         <span className="relative z-10">{icon}</span>
-        <span className={`relative z-10 font-helvetica ${active ? 'font-helvetica-bold' : ''}`}>{label}</span>
+        <span className={`relative z-10 font-helvetica ${active || isRadiating ? 'font-helvetica-bold' : ''}`}>{label}</span>
         {badge && <span className="relative z-10 ml-auto">{badge}</span>}
       </button>
     );
