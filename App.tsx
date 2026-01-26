@@ -2146,7 +2146,8 @@ const App: React.FC = () => {
     const [activeLessonId, setActiveLessonId] = useState<string | null>(null);
     const [newLessonType, setNewLessonType] = useState<ContentType>('video');
     const [isSaving, setIsSaving] = useState(false);
-    const [isUploading, setIsUploading] = useState(false);
+    // Track which item is uploading: null = none, 'thumbnail' = course thumbnail, lessonId = specific lesson
+    const [uploadingId, setUploadingId] = useState<string | null>(null);
     const [uploadProgress, setUploadProgress] = useState(0);
 
     // Inline Editing State for Course Manager
@@ -2574,11 +2575,11 @@ const App: React.FC = () => {
                         label="Upload Thumbnail Image"
                         accept="image/jpeg,image/png,image/webp,image/gif,.jpg,.jpeg,.png,.webp,.gif"
                         currentFile={undefined}
-                        isUploading={isUploading}
-                        uploadProgress={uploadProgress}
+                        isUploading={uploadingId === 'thumbnail'}
+                        uploadProgress={uploadingId === 'thumbnail' ? uploadProgress : 0}
                         onFileSelect={async (file) => {
                           try {
-                            setIsUploading(true);
+                            setUploadingId('thumbnail');
                             setUploadProgress(0);
                             const result = await dataService.uploadFile(file, (progress) => {
                               setUploadProgress(progress);
@@ -2589,7 +2590,7 @@ const App: React.FC = () => {
                             console.error('Failed to upload thumbnail:', error);
                             showToast('error', 'Upload Failed', 'Failed to upload thumbnail. Please try again.');
                           } finally {
-                            setIsUploading(false);
+                            setUploadingId(null);
                             setUploadProgress(0);
                           }
                         }}
@@ -2851,16 +2852,17 @@ const App: React.FC = () => {
                               label="Upload Video"
                               accept="video/mp4,video/webm,video/ogg,.mp4,.webm,.ogg"
                               currentFile={activeLesson.fileName}
-                              isUploading={isUploading}
-                              uploadProgress={uploadProgress}
+                              isUploading={uploadingId === activeLesson.id}
+                              uploadProgress={uploadingId === activeLesson.id ? uploadProgress : 0}
                               onFileSelect={async (file) => {
+                                const lessonId = activeLesson.id;
                                 try {
-                                  setIsUploading(true);
+                                  setUploadingId(lessonId);
                                   setUploadProgress(0);
                                   const result = await dataService.uploadFile(file, (progress) => {
                                     setUploadProgress(progress);
                                   });
-                                  updateLesson(activeLesson.id, {
+                                  updateLesson(lessonId, {
                                     fileUrl: result.file.fileUrl,
                                     fileName: result.file.originalName,
                                     videoUrl: undefined
@@ -2870,7 +2872,7 @@ const App: React.FC = () => {
                                   console.error('Failed to upload video:', error);
                                   showToast('error', 'Upload Failed', 'Failed to upload video. Please try again.');
                                 } finally {
-                                  setIsUploading(false);
+                                  setUploadingId(null);
                                   setUploadProgress(0);
                                 }
                               }}
@@ -2925,16 +2927,17 @@ const App: React.FC = () => {
                         label={`Upload ${activeLesson.type === 'pdf' ? 'PDF Document' : 'PowerPoint Presentation'}`}
                         accept={activeLesson.type === 'pdf' ? '.pdf,application/pdf' : '.ppt,.pptx,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation'}
                         currentFile={activeLesson.fileName}
-                        isUploading={isUploading}
-                        uploadProgress={uploadProgress}
+                        isUploading={uploadingId === activeLesson.id}
+                        uploadProgress={uploadingId === activeLesson.id ? uploadProgress : 0}
                         onFileSelect={async (file) => {
+                          const lessonId = activeLesson.id;
                           try {
-                            setIsUploading(true);
+                            setUploadingId(lessonId);
                             setUploadProgress(0);
                             const result = await dataService.uploadFile(file, (progress) => {
                               setUploadProgress(progress);
                             });
-                            updateLesson(activeLesson.id, {
+                            updateLesson(lessonId, {
                               fileUrl: result.file.fileUrl,
                               fileName: result.file.originalName
                             });
@@ -2943,7 +2946,7 @@ const App: React.FC = () => {
                             console.error('Failed to upload file:', error);
                             showToast('error', 'Upload Failed', 'Failed to upload file. Please try again.');
                           } finally {
-                            setIsUploading(false);
+                            setUploadingId(null);
                             setUploadProgress(0);
                           }
                         }}
