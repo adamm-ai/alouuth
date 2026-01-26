@@ -1571,11 +1571,7 @@ const App: React.FC = () => {
 
     return (
       <div className="h-screen flex flex-col relative z-20 overflow-hidden">
-        {/* Ambient background effects */}
-        <div className="fixed inset-0 z-0 pointer-events-none">
-          <div className="absolute top-0 left-1/4 w-96 h-96 bg-yellow-500/10 rounded-full blur-[120px] animate-pulse" />
-          <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-white/5 rounded-full blur-[100px]" />
-        </div>
+        {/* Clean background - no ambient effects */}
 
         {/* Top Nav - Hyper Glass */}
         <div className="relative z-30 sticky top-0">
@@ -1770,103 +1766,6 @@ const App: React.FC = () => {
                           )}
                         </div>
                       </LiquidVideoFrame>
-
-                      {/* Video Progress Panel - OUTSIDE the video player */}
-                      <div className="relative rounded-2xl overflow-hidden">
-                        <div className="absolute inset-0 bg-gradient-to-r from-white/[0.06] to-white/[0.02] backdrop-blur-xl border border-white/10" />
-                        <div className="relative p-4">
-                          {/* Progress Bar - Full width outside video */}
-                          <div className="relative h-3 bg-white/10 rounded-full overflow-hidden mb-4">
-                            <div
-                              className="absolute inset-y-0 left-0 bg-gradient-to-r from-yellow-400 to-yellow-500 rounded-full shadow-[0_0_10px_rgba(250,204,21,0.5)] transition-all duration-300"
-                              style={{ width: `${videoWatchedPercent}%` }}
-                            />
-                            {/* 80% marker */}
-                            <div className="absolute top-0 bottom-0 w-0.5 bg-green-400/70" style={{ left: '80%' }} />
-                            {/* Glowing dot at progress position */}
-                            {videoWatchedPercent > 0 && (
-                              <div
-                                className="absolute top-1/2 -translate-y-1/2 w-5 h-5 bg-yellow-400 rounded-full shadow-[0_0_15px_rgba(250,204,21,0.8)] transition-all duration-300 border-2 border-white"
-                                style={{ left: `calc(${videoWatchedPercent}% - 10px)` }}
-                              />
-                            )}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Video Status Panel - Additional Info */}
-                      <div className="relative rounded-2xl overflow-hidden">
-                        <div className="absolute inset-0 bg-gradient-to-r from-white/[0.04] to-white/[0.02] backdrop-blur-xl border border-white/10" />
-                        <div className="relative p-4 flex items-center justify-between">
-                          <div className="flex items-center gap-4">
-                            {/* Status Indicator */}
-                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 ${isVideoPlaying
-                              ? 'bg-green-500/20 border border-green-500/40 shadow-[0_0_20px_rgba(34,197,94,0.2)]'
-                              : videoWatchedPercent > 0
-                                ? 'bg-yellow-400/20 border border-yellow-400/40'
-                                : 'bg-white/5 border border-white/10'
-                              }`}>
-                              {isVideoPlaying ? (
-                                <div className="flex gap-0.5">
-                                  <div className="w-1 h-5 bg-green-400 rounded animate-pulse"></div>
-                                  <div className="w-1 h-5 bg-green-400 rounded animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-                                  <div className="w-1 h-5 bg-green-400 rounded animate-pulse" style={{ animationDelay: '0.4s' }}></div>
-                                </div>
-                              ) : videoWatchedPercent >= 80 ? (
-                                <CheckCircle size={24} className="text-green-400" />
-                              ) : (
-                                <PlayCircle size={24} className={videoWatchedPercent > 0 ? 'text-yellow-400' : 'text-zinc-400'} />
-                              )}
-                            </div>
-
-                            <div>
-                              <p className="text-sm font-medium text-white">
-                                {isVideoPlaying
-                                  ? 'Tracking your progress...'
-                                  : videoWatchedPercent >= 80
-                                    ? 'You can complete this lesson!'
-                                    : videoWatchedPercent > 0
-                                      ? 'Resume watching to continue tracking'
-                                      : 'Play the video to start tracking'}
-                              </p>
-                              <p className="text-xs text-zinc-500">
-                                {isYouTubeUrl(activeLesson.videoUrl || '')
-                                  ? 'YouTube video - progress tracked automatically'
-                                  : 'Uploaded video - progress tracked automatically'}
-                              </p>
-                            </div>
-                          </div>
-
-                          {/* Circular Progress Indicator */}
-                          <div className="relative w-14 h-14">
-                            <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
-                              <path
-                                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                                fill="none"
-                                stroke="rgba(255,255,255,0.1)"
-                                strokeWidth="2"
-                              />
-                              <path
-                                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                                fill="none"
-                                stroke={videoWatchedPercent >= 80 ? '#22c55e' : '#FACC15'}
-                                strokeWidth="2.5"
-                                strokeDasharray={`${videoWatchedPercent}, 100`}
-                                strokeLinecap="round"
-                                className="transition-all duration-300"
-                                style={{
-                                  filter: `drop-shadow(0 0 6px ${videoWatchedPercent >= 80 ? 'rgba(34,197,94,0.5)' : 'rgba(250,204,21,0.5)'})`
-                                }}
-                              />
-                            </svg>
-                            <div className="absolute inset-0 flex items-center justify-center">
-                              <span className={`text-xs font-bold ${videoWatchedPercent >= 80 ? 'text-green-400' : 'text-yellow-400'}`}>
-                                {videoWatchedPercent}%
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
                     </div>
                   )}
 
