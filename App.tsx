@@ -1860,93 +1860,67 @@ const App: React.FC = () => {
                     </div>
                   )}
 
-                  {/* 2. Document View - Notion-like Embedded Viewer */}
+                  {/* 2. Document View - Clean Card Design */}
                   {(activeLesson.type === 'pdf' || activeLesson.type === 'presentation') && (
                     <LiquidVideoFrame>
                       {activeLesson.fileUrl ? (
-                        <div className="relative flex flex-col">
-                          {/* Document Toolbar - Notion Style */}
-                          <div className="flex items-center justify-between px-5 py-3 border-b border-white/10 bg-black/20 backdrop-blur-sm">
-                            <div className="flex items-center gap-3">
-                              <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-yellow-400/20 to-yellow-500/10 border border-[#D4AF37]/40 flex items-center justify-center">
-                                {activeLesson.type === 'presentation' ? (
-                                  <FileSpreadsheet size={18} className="text-[#D4AF37]" />
-                                ) : (
-                                  <FileText size={18} className="text-[#D4AF37]" />
-                                )}
-                              </div>
-                              <div>
-                                <h4 className="text-sm font-helvetica-bold text-white truncate max-w-[200px] sm:max-w-[300px]">
-                                  {activeLesson.fileName || 'Document'}
-                                </h4>
-                                <p className="text-xs text-zinc-500">
-                                  {activeLesson.type === 'presentation'
-                                    ? `${activeLesson.pageCount || '—'} slides`
-                                    : `${activeLesson.pageCount || '—'} pages`
-                                  }
-                                </p>
-                              </div>
+                        <div className="min-h-[400px] flex flex-col items-center justify-center p-10 relative">
+                          {/* Background effects */}
+                          <div className="absolute inset-0 opacity-40">
+                            <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(250,204,21,0.15),transparent_50%)]" />
+                            <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_70%,rgba(255,255,255,0.05),transparent_50%)]" />
+                          </div>
+
+                          <div className="relative z-10 w-full max-w-md">
+                            {/* Document Icon */}
+                            <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-yellow-400/20 to-yellow-500/10 border border-[#D4AF37]/40 flex items-center justify-center mx-auto mb-8 shadow-[0_0_60px_rgba(250,204,21,0.15)]">
+                              {activeLesson.type === 'presentation' ? (
+                                <FileSpreadsheet size={48} className="text-[#D4AF37] drop-shadow-[0_0_20px_rgba(250,204,21,0.5)]" />
+                              ) : (
+                                <FileText size={48} className="text-[#D4AF37] drop-shadow-[0_0_20px_rgba(250,204,21,0.5)]" />
+                              )}
                             </div>
-                            <div className="flex items-center gap-2">
+
+                            {/* Document Info */}
+                            <div className="text-center mb-8">
+                              <h3 className="text-2xl font-helvetica-bold text-white mb-2">
+                                {activeLesson.fileName || 'Document'}
+                              </h3>
+                              <p className="text-zinc-400">
+                                {activeLesson.type === 'presentation'
+                                  ? `PowerPoint Presentation • ${activeLesson.pageCount || '—'} slides`
+                                  : `PDF Document • ${activeLesson.pageCount || '—'} pages`
+                                }
+                              </p>
+                              {activeLesson.durationMin && (
+                                <p className="text-zinc-500 text-sm mt-1">
+                                  Estimated reading time: {activeLesson.durationMin} min
+                                </p>
+                              )}
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div className="flex flex-col sm:flex-row gap-3 justify-center">
                               <button
                                 onClick={() => window.open(activeLesson.fileUrl, '_blank')}
-                                className="p-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-all group"
-                                title="Open in new tab"
+                                className="flex-1 px-6 py-4 rounded-2xl bg-[#D4AF37] hover:bg-yellow-500 text-black font-helvetica-bold transition-all flex items-center justify-center gap-3 shadow-[0_0_30px_rgba(250,204,21,0.3)] hover:shadow-[0_0_40px_rgba(250,204,21,0.4)]"
                               >
-                                <ExternalLink size={16} className="text-zinc-400 group-hover:text-white transition-colors" />
+                                <ExternalLink size={20} />
+                                Open Document
                               </button>
                               <button
                                 onClick={downloadResource}
-                                className="p-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-all group"
-                                title="Download"
+                                className="flex-1 px-6 py-4 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-helvetica-bold transition-all flex items-center justify-center gap-3"
                               >
-                                <Download size={16} className="text-zinc-400 group-hover:text-[#D4AF37] transition-colors" />
-                              </button>
-                              <button
-                                onClick={() => {
-                                  const iframe = document.getElementById('doc-viewer-iframe') as HTMLIFrameElement;
-                                  if (iframe) {
-                                    if (document.fullscreenElement) {
-                                      document.exitFullscreen();
-                                    } else {
-                                      iframe.parentElement?.requestFullscreen();
-                                    }
-                                  }
-                                }}
-                                className="p-2 rounded-lg bg-yellow-400/10 hover:bg-yellow-400/20 border border-[#D4AF37]/30 transition-all group"
-                                title="Fullscreen"
-                              >
-                                <Maximize2 size={16} className="text-[#D4AF37] group-hover:text-yellow-300 transition-colors" />
+                                <Download size={20} />
+                                Download
                               </button>
                             </div>
-                          </div>
 
-                          {/* Embedded Document Viewer */}
-                          <div className="relative bg-zinc-900/50" style={{ height: '70vh', minHeight: '500px' }}>
-                            {/* Loading state overlay */}
-                            <div className="absolute inset-0 flex items-center justify-center bg-black/40 z-10 pointer-events-none opacity-0 transition-opacity duration-300" id="doc-loading">
-                              <div className="flex flex-col items-center gap-4">
-                                <div className="w-12 h-12 rounded-full border-2 border-[#D4AF37] border-t-transparent animate-spin" />
-                                <p className="text-zinc-400 text-sm">Loading document...</p>
-                              </div>
-                            </div>
-
-                            {/* Google Docs Viewer iframe - works for PDF, PPT, DOC, etc. */}
-                            <iframe
-                              id="doc-viewer-iframe"
-                              src={`https://docs.google.com/viewer?url=${encodeURIComponent(activeLesson.fileUrl)}&embedded=true`}
-                              className="w-full h-full border-0 rounded-b-2xl"
-                              title={activeLesson.fileName || 'Document Viewer'}
-                              onLoad={() => {
-                                const loader = document.getElementById('doc-loading');
-                                if (loader) loader.style.opacity = '0';
-                              }}
-                              allow="fullscreen"
-                              sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
-                            />
-
-                            {/* Subtle glow effect at bottom */}
-                            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#D4AF37]/30 to-transparent" />
+                            {/* Completion hint */}
+                            <p className="text-center text-zinc-600 text-sm mt-6">
+                              Open or download the document to continue
+                            </p>
                           </div>
                         </div>
                       ) : (
