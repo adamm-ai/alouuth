@@ -1045,7 +1045,7 @@ const App: React.FC = () => {
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <h3 className="text-lg font-helvetica-bold text-white">Bajan-X Program Overall Progress</h3>
-                  <p className="text-sm text-zinc-400">Complete all 8 modules to earn your certification</p>
+                  <p className="text-sm text-zinc-400">Complete all {courses.length} modules to earn your certification</p>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-2xl font-helvetica-bold text-[#D4AF37]">{totalProgress}%</span>
@@ -1069,20 +1069,23 @@ const App: React.FC = () => {
                 ))}
               </div>
 
-              {/* Module indicators */}
-              <div className="flex justify-between mt-3">
-                {['BX1', 'BX2', 'BX3', 'BX4', 'BX5', 'BX6', 'BX7', 'BX8'].map((module, idx) => {
-                  const moduleProgress = ((idx + 1) / 8) * 100;
+              {/* Module indicators - Dynamic based on courses */}
+              <div className="flex justify-between mt-3 overflow-x-auto gap-1">
+                {courses.map((course, idx) => {
+                  const moduleProgress = ((idx + 1) / courses.length) * 100;
                   const isCompleted = totalProgress >= moduleProgress;
+                  const moduleCode = course.code || `BX${idx + 1}`;
                   return (
-                    <div key={module} className="flex flex-col items-center">
+                    <div key={course.id} className="flex flex-col items-center flex-shrink-0">
                       <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-helvetica-bold transition-all duration-300 ${isCompleted
                         ? 'bg-[#D4AF37] shadow-[0_0_15px_rgba(212,175,55,0.4)]'
                         : 'bg-white/10 text-zinc-500'
                         }`}>
                         {isCompleted ? <CheckCircle size={12} /> : idx + 1}
                       </div>
-                      <span className={`text-[10px] mt-1 ${isCompleted ? 'text-[#D4AF37]' : 'text-zinc-600'}`}>{module}</span>
+                      <span className={`text-[10px] mt-1 truncate max-w-[40px] ${isCompleted ? 'text-[#D4AF37]' : 'text-zinc-600'}`} title={course.title}>
+                        {moduleCode}
+                      </span>
                     </div>
                   );
                 })}
