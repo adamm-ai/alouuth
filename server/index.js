@@ -78,9 +78,37 @@ async function loadApp() {
     app.use(express.json({ limit: '1mb' }));
     app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 
-    // Static files
+    // Static files with CORS headers for video/media streaming
     const uploadDir = process.env.UPLOAD_DIR || path.join(__dirname, 'uploads');
-    app.use('/uploads', express.static(uploadDir));
+    app.use('/uploads', (req, res, next) => {
+      // Set CORS headers for media files
+      res.header('Access-Control-Allow-Origin', '*');
+      res.header('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
+      res.header('Access-Control-Allow-Headers', 'Range, Content-Type');
+      res.header('Access-Control-Expose-Headers', 'Content-Length, Content-Range, Accept-Ranges');
+      res.header('Cross-Origin-Resource-Policy', 'cross-origin');
+
+      // Handle preflight
+      if (req.method === 'OPTIONS') {
+        return res.sendStatus(200);
+      }
+      next();
+    }, express.static(uploadDir, {
+      // Enable range requests for video streaming
+      acceptRanges: true,
+      // Set proper cache headers
+      maxAge: '1d',
+      // Set proper content types
+      setHeaders: (res, filePath) => {
+        if (filePath.endsWith('.mp4')) {
+          res.setHeader('Content-Type', 'video/mp4');
+        } else if (filePath.endsWith('.webm')) {
+          res.setHeader('Content-Type', 'video/webm');
+        } else if (filePath.endsWith('.ogg')) {
+          res.setHeader('Content-Type', 'video/ogg');
+        }
+      }
+    }));
 
     // Load routes
     console.log('Loading routes...');
