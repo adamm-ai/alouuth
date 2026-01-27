@@ -1843,12 +1843,15 @@ const App: React.FC = () => {
                             <video
                               ref={html5VideoRef}
                               className="w-full h-full"
-                              src={activeLesson.videoUrl || activeLesson.fileUrl}
                               controls
+                              playsInline
+                              crossOrigin="anonymous"
                               onTimeUpdate={handleHTML5VideoTimeUpdate}
                               onPlay={handleHTML5VideoPlay}
                               onPause={handleHTML5VideoPause}
                             >
+                              <source src={activeLesson.fileUrl || activeLesson.videoUrl || ''} type="video/mp4" />
+                              <source src={activeLesson.fileUrl || activeLesson.videoUrl || ''} type="video/webm" />
                               Your browser does not support the video tag.
                             </video>
                           )}
@@ -2978,20 +2981,24 @@ const App: React.FC = () => {
 
                       {/* Preview - Uploaded file takes priority over URL */}
                       <div className="aspect-video bg-black rounded-xl border border-white/10 flex items-center justify-center text-zinc-500 overflow-hidden">
-                        {activeLesson.fileUrl ? (
+                        {activeLesson.fileUrl && activeLesson.type === 'video' ? (
                           <video
                             key={activeLesson.fileUrl}
-                            src={activeLesson.fileUrl}
                             controls
+                            playsInline
+                            crossOrigin="anonymous"
                             className="w-full h-full"
-                            onError={() => console.error('Video load error:', activeLesson.fileUrl)}
-                          />
+                          >
+                            <source src={activeLesson.fileUrl} type="video/mp4" />
+                            <source src={activeLesson.fileUrl} type="video/webm" />
+                            Your browser does not support the video tag.
+                          </video>
                         ) : activeLesson.videoUrl ? (
                           isYouTubeUrl(activeLesson.videoUrl) ? (
                             <iframe
                               key={activeLesson.videoUrl}
                               src={`https://www.youtube.com/embed/${getYouTubeVideoId(activeLesson.videoUrl)}`}
-                              className="w-full h-full"
+                              className="w-full h-full border-0"
                               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                               allowFullScreen
                             />
@@ -2999,7 +3006,7 @@ const App: React.FC = () => {
                             <iframe
                               key={activeLesson.videoUrl}
                               src={activeLesson.videoUrl}
-                              className="w-full h-full"
+                              className="w-full h-full border-0"
                               allowFullScreen
                             />
                           )
@@ -3068,58 +3075,30 @@ const App: React.FC = () => {
                         </div>
                       </div>
 
-                      {/* Document Preview - Notion-like Embedded Viewer */}
+                      {/* Document Preview Card */}
                       {activeLesson.fileUrl && (
-                        <div className="rounded-xl border border-white/10 overflow-hidden bg-black/30">
-                          {/* Preview Toolbar */}
-                          <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/10 bg-black/20">
-                            <div className="flex items-center gap-2">
-                              <div className="w-7 h-7 rounded-md bg-gradient-to-br from-yellow-400/20 to-yellow-500/10 border border-[#D4AF37]/30 flex items-center justify-center">
-                                {activeLesson.type === 'presentation' ? (
-                                  <FileSpreadsheet size={14} className="text-[#D4AF37]" />
-                                ) : (
-                                  <FileText size={14} className="text-[#D4AF37]" />
-                                )}
-                              </div>
-                              <span className="text-xs font-helvetica-bold text-zinc-300">Preview</span>
+                        <div className="rounded-xl border border-white/10 bg-zinc-900/50 p-6">
+                          <div className="flex items-center gap-4">
+                            <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-yellow-400/20 to-yellow-500/10 border border-[#D4AF37]/30 flex items-center justify-center flex-shrink-0">
+                              {activeLesson.type === 'presentation' ? (
+                                <FileSpreadsheet size={28} className="text-[#D4AF37]" />
+                              ) : (
+                                <FileText size={28} className="text-[#D4AF37]" />
+                              )}
                             </div>
-                            <div className="flex items-center gap-1.5">
-                              <button
-                                onClick={() => window.open(activeLesson.fileUrl, '_blank')}
-                                className="p-1.5 rounded-md bg-white/5 hover:bg-white/10 border border-white/10 transition-all"
-                                title="Open in new tab"
-                              >
-                                <ExternalLink size={14} className="text-zinc-400" />
-                              </button>
-                              <button
-                                onClick={() => {
-                                  const iframe = document.getElementById('admin-doc-viewer-iframe') as HTMLIFrameElement;
-                                  if (iframe?.parentElement) {
-                                    if (document.fullscreenElement) {
-                                      document.exitFullscreen();
-                                    } else {
-                                      iframe.parentElement.requestFullscreen();
-                                    }
-                                  }
-                                }}
-                                className="p-1.5 rounded-md bg-yellow-400/10 hover:bg-yellow-400/20 border border-[#D4AF37]/30 transition-all"
-                                title="Fullscreen"
-                              >
-                                <Maximize2 size={14} className="text-[#D4AF37]" />
-                              </button>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-helvetica-bold text-white truncate">{activeLesson.fileName}</p>
+                              <p className="text-xs text-zinc-500 mt-1">
+                                {activeLesson.type === 'presentation' ? 'PowerPoint Presentation' : 'PDF Document'}
+                              </p>
                             </div>
-                          </div>
-
-                          {/* Embedded Viewer */}
-                          <div className="relative" style={{ height: '400px' }}>
-                            <iframe
-                              id="admin-doc-viewer-iframe"
-                              src={`https://docs.google.com/viewer?url=${encodeURIComponent(activeLesson.fileUrl)}&embedded=true`}
-                              className="w-full h-full border-0"
-                              title="Document Preview"
-                              allow="fullscreen"
-                              sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
-                            />
+                            <button
+                              onClick={() => window.open(activeLesson.fileUrl, '_blank')}
+                              className="px-4 py-2 rounded-lg bg-[#D4AF37]/10 hover:bg-[#D4AF37]/20 border border-[#D4AF37]/30 text-[#D4AF37] text-sm font-helvetica-bold transition-all flex items-center gap-2"
+                            >
+                              <ExternalLink size={16} />
+                              Open
+                            </button>
                           </div>
                         </div>
                       )}
