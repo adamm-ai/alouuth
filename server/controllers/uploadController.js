@@ -16,9 +16,18 @@ export const uploadFile = async (req, res) => {
     }
 
     const file = req.file;
-    const baseUrl = process.env.NODE_ENV === 'production'
-      ? process.env.BASE_URL || ''
-      : `http://localhost:${process.env.PORT || 3001}`;
+    // Build base URL - use BASE_URL env var, or construct from request headers in production
+    let baseUrl;
+    if (process.env.BASE_URL) {
+      baseUrl = process.env.BASE_URL;
+    } else if (process.env.NODE_ENV === 'production') {
+      // Fallback: construct from request headers
+      const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'https';
+      const host = req.headers['x-forwarded-host'] || req.headers.host;
+      baseUrl = `${protocol}://${host}`;
+    } else {
+      baseUrl = `http://localhost:${process.env.PORT || 3001}`;
+    }
 
     // Extract the subdirectory (videos, documents, images, presentations) from the destination path
     const uploadDir = getUploadDir();
@@ -48,9 +57,17 @@ export const uploadMultiple = async (req, res) => {
       return res.status(400).json({ error: 'No files uploaded.' });
     }
 
-    const baseUrl = process.env.NODE_ENV === 'production'
-      ? process.env.BASE_URL || ''
-      : `http://localhost:${process.env.PORT || 3001}`;
+    // Build base URL - use BASE_URL env var, or construct from request headers in production
+    let baseUrl;
+    if (process.env.BASE_URL) {
+      baseUrl = process.env.BASE_URL;
+    } else if (process.env.NODE_ENV === 'production') {
+      const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'https';
+      const host = req.headers['x-forwarded-host'] || req.headers.host;
+      baseUrl = `${protocol}://${host}`;
+    } else {
+      baseUrl = `http://localhost:${process.env.PORT || 3001}`;
+    }
 
     const uploadDir = getUploadDir();
     const files = req.files.map(file => {
