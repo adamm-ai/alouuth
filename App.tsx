@@ -2976,31 +2976,33 @@ const App: React.FC = () => {
                         />
                       </div>
 
-                      {/* Preview */}
-                      <div className="aspect-video bg-black rounded-xl border border-white/10 flex items-center justify-center text-zinc-500 overflow-hidden relative">
-                        {activeLesson.videoUrl ? (
+                      {/* Preview - Uploaded file takes priority over URL */}
+                      <div className="aspect-video bg-black rounded-xl border border-white/10 flex items-center justify-center text-zinc-500 overflow-hidden">
+                        {activeLesson.fileUrl ? (
+                          <video
+                            key={activeLesson.fileUrl}
+                            src={activeLesson.fileUrl}
+                            controls
+                            className="w-full h-full"
+                            onError={() => console.error('Video load error:', activeLesson.fileUrl)}
+                          />
+                        ) : activeLesson.videoUrl ? (
                           isYouTubeUrl(activeLesson.videoUrl) ? (
                             <iframe
+                              key={activeLesson.videoUrl}
                               src={`https://www.youtube.com/embed/${getYouTubeVideoId(activeLesson.videoUrl)}`}
                               className="w-full h-full"
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                               allowFullScreen
                             />
                           ) : (
-                            <iframe src={activeLesson.videoUrl} className="w-full h-full" allowFullScreen />
-                          )
-                        ) : activeLesson.fileUrl ? (
-                          <>
-                            <video
-                              src={activeLesson.fileUrl}
-                              controls
+                            <iframe
+                              key={activeLesson.videoUrl}
+                              src={activeLesson.videoUrl}
                               className="w-full h-full"
-                              onError={(e) => console.error('Video load error:', activeLesson.fileUrl, e)}
+                              allowFullScreen
                             />
-                            {/* Debug: Show URL */}
-                            <div className="absolute bottom-2 left-2 right-2 bg-black/80 text-[10px] text-zinc-400 p-2 rounded font-mono truncate">
-                              URL: {activeLesson.fileUrl}
-                            </div>
-                          </>
+                          )
                         ) : (
                           <div className="text-center">
                             <MonitorPlay size={48} className="mx-auto mb-2 opacity-50" />
