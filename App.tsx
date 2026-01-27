@@ -2898,308 +2898,469 @@ const App: React.FC = () => {
             </div>
 
             {/* Main Editing Area */}
-            <div className="flex-1 bg-gradient-to-br from-zinc-950 to-zinc-900 p-8 overflow-y-auto">
+            <div className="flex-1 bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 p-8 overflow-y-auto">
               {editorTab === 'CURRICULUM' && activeLesson ? (
-                <div className="max-w-3xl mx-auto space-y-8 animate-fade-in">
-                  <div className="flex items-center justify-between mb-2">
-                    <Badge type="default">{activeLesson.type.toUpperCase()}</Badge>
-                    <div className="text-xs text-zinc-500 font-mono">ID: {activeLesson.id}</div>
+                <div className="max-w-3xl mx-auto space-y-6 animate-fade-in">
+                  {/* Lesson Header */}
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg ${
+                        activeLesson.type === 'video' ? 'bg-gradient-to-br from-red-500/20 to-red-600/10 border border-red-500/30' :
+                        activeLesson.type === 'quiz' ? 'bg-gradient-to-br from-purple-500/20 to-purple-600/10 border border-purple-500/30' :
+                        'bg-gradient-to-br from-blue-500/20 to-blue-600/10 border border-blue-500/30'
+                      }`}>
+                        {activeLesson.type === 'video' && <Video size={22} className="text-red-400" />}
+                        {activeLesson.type === 'quiz' && <HelpCircle size={22} className="text-purple-400" />}
+                        {(activeLesson.type === 'pdf' || activeLesson.type === 'presentation') && <FileText size={22} className="text-blue-400" />}
+                      </div>
+                      <div>
+                        <span className={`text-[10px] font-helvetica-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                          activeLesson.type === 'video' ? 'bg-red-500/20 text-red-400' :
+                          activeLesson.type === 'quiz' ? 'bg-purple-500/20 text-purple-400' :
+                          'bg-blue-500/20 text-blue-400'
+                        }`}>
+                          {activeLesson.type === 'presentation' ? 'PPT' : activeLesson.type.toUpperCase()}
+                        </span>
+                        <p className="text-[10px] text-zinc-600 font-mono mt-1">{activeLesson.id.slice(0, 8)}...</p>
+                      </div>
+                    </div>
                   </div>
 
-                  <input
-                    className="text-3xl font-helvetica-bold bg-transparent border-none outline-none text-white placeholder-zinc-600 w-full"
-                    placeholder="Lesson Title"
-                    value={activeLesson.title}
-                    onChange={(e) => updateLesson(activeLesson.id, { title: e.target.value })}
-                  />
+                  {/* Lesson Title */}
+                  <div className="relative group">
+                    <input
+                      className="text-3xl font-helvetica-bold bg-transparent border-none outline-none text-white placeholder-zinc-700 w-full pb-3 border-b-2 border-transparent focus:border-b-[#D4AF37]/50 transition-colors"
+                      placeholder="Lesson Title"
+                      value={activeLesson.title}
+                      onChange={(e) => updateLesson(activeLesson.id, { title: e.target.value })}
+                    />
+                    <Pencil size={16} className="absolute right-0 top-1/2 -translate-y-1/2 text-zinc-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </div>
 
                   {/* Content Type Specific Editors */}
 
                   {/* 1. Video Editor */}
                   {activeLesson.type === 'video' && (
-                    <GlassCard className="space-y-6">
-                      {/* Video Source Options */}
-                      <div className="space-y-4">
-                        <label className="block text-sm text-zinc-400 mb-2">Video Source</label>
-                        <div className="grid grid-cols-2 gap-4">
-                          {/* Option 1: URL */}
-                          <div className="space-y-2">
-                            <div className="text-xs text-zinc-500 uppercase font-helvetica-bold">From URL (YouTube/Vimeo)</div>
-                            <input
-                              className="w-full bg-zinc-900/50 border border-white/10 rounded-xl p-3 outline-none focus:border-yellow-400 text-sm"
-                              placeholder="https://youtube.com/watch?v=..."
-                              value={activeLesson.videoUrl || ''}
-                              onChange={(e) => updateLesson(activeLesson.id, { videoUrl: e.target.value, fileUrl: undefined })}
-                            />
+                    <div className="space-y-6">
+                      {/* Video Source Section */}
+                      <div className="rounded-2xl border border-white/[0.08] bg-white/[0.02] backdrop-blur-sm overflow-hidden">
+                        <div className="px-5 py-4 border-b border-white/[0.06] bg-white/[0.02]">
+                          <div className="flex items-center gap-2">
+                            <Video size={16} className="text-[#D4AF37]" />
+                            <h3 className="text-sm font-helvetica-bold text-white">Video Source</h3>
                           </div>
-                          {/* Option 2: Upload */}
-                          <div className="space-y-2">
-                            <div className="text-xs text-zinc-500 uppercase font-helvetica-bold">Upload from Computer</div>
-                            <FileDropZone
-                              label="Upload Video"
-                              accept="video/mp4,video/webm,video/ogg,.mp4,.webm,.ogg"
-                              currentFile={activeLesson.fileName}
-                              isUploading={uploadingId === activeLesson.id}
-                              uploadProgress={uploadingId === activeLesson.id ? uploadProgress : 0}
-                              onFileSelect={async (file) => {
-                                const lessonId = activeLesson.id;
-                                try {
-                                  setUploadingId(lessonId);
-                                  setUploadProgress(0);
-                                  const result = await dataService.uploadFile(file, (progress) => {
-                                    setUploadProgress(progress);
-                                  });
-                                  updateLesson(lessonId, {
-                                    fileUrl: result.file.fileUrl,
-                                    fileName: result.file.originalName,
-                                    videoUrl: undefined
-                                  });
-                                  showToast('success', 'Video Uploaded', 'Your video has been uploaded successfully.');
-                                } catch (error) {
-                                  console.error('Failed to upload video:', error);
-                                  showToast('error', 'Upload Failed', 'Failed to upload video. Please try again.');
-                                } finally {
-                                  setUploadingId(null);
-                                  setUploadProgress(0);
-                                }
-                              }}
-                            />
+                          <p className="text-xs text-zinc-500 mt-1">Choose how to add your video content</p>
+                        </div>
+
+                        <div className="p-5">
+                          <div className="grid grid-cols-2 gap-4">
+                            {/* Option 1: URL */}
+                            <div className={`rounded-xl border-2 transition-all ${activeLesson.videoUrl && !activeLesson.fileUrl ? 'border-[#D4AF37]/50 bg-[#D4AF37]/5' : 'border-white/[0.08] hover:border-white/20'}`}>
+                              <div className="p-4">
+                                <div className="flex items-center gap-2 mb-3">
+                                  <div className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center">
+                                    <PlayCircle size={16} className="text-zinc-400" />
+                                  </div>
+                                  <span className="text-xs font-helvetica-bold text-zinc-300 uppercase">URL</span>
+                                </div>
+                                <input
+                                  className="w-full bg-zinc-900/80 border border-white/10 rounded-lg px-3 py-2.5 outline-none focus:border-[#D4AF37]/50 focus:ring-1 focus:ring-[#D4AF37]/20 text-sm text-white placeholder-zinc-600 transition-all"
+                                  placeholder="youtube.com/watch?v=..."
+                                  value={activeLesson.videoUrl || ''}
+                                  onChange={(e) => updateLesson(activeLesson.id, { videoUrl: e.target.value, fileUrl: undefined, fileName: undefined })}
+                                />
+                                <p className="text-[10px] text-zinc-600 mt-2">YouTube, Vimeo, or direct link</p>
+                              </div>
+                            </div>
+
+                            {/* Option 2: Upload */}
+                            <div className={`rounded-xl border-2 transition-all ${activeLesson.fileUrl ? 'border-[#D4AF37]/50 bg-[#D4AF37]/5' : 'border-white/[0.08] hover:border-white/20'}`}>
+                              <div className="p-4">
+                                <div className="flex items-center gap-2 mb-3">
+                                  <div className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center">
+                                    <MonitorPlay size={16} className="text-zinc-400" />
+                                  </div>
+                                  <span className="text-xs font-helvetica-bold text-zinc-300 uppercase">Upload</span>
+                                </div>
+                                <FileDropZone
+                                  label="Upload Video"
+                                  accept="video/mp4,video/webm,video/ogg,.mp4,.webm,.ogg"
+                                  currentFile={activeLesson.fileName}
+                                  isUploading={uploadingId === activeLesson.id}
+                                  uploadProgress={uploadingId === activeLesson.id ? uploadProgress : 0}
+                                  onFileSelect={async (file) => {
+                                    const lessonId = activeLesson.id;
+                                    try {
+                                      setUploadingId(lessonId);
+                                      setUploadProgress(0);
+                                      const result = await dataService.uploadFile(file, (progress) => {
+                                        setUploadProgress(progress);
+                                      });
+                                      updateLesson(lessonId, {
+                                        fileUrl: result.file.fileUrl,
+                                        fileName: result.file.originalName,
+                                        videoUrl: undefined
+                                      });
+                                      showToast('success', 'Video Uploaded', 'Your video has been uploaded successfully.');
+                                    } catch (error) {
+                                      console.error('Failed to upload video:', error);
+                                      showToast('error', 'Upload Failed', 'Failed to upload video. Please try again.');
+                                    } finally {
+                                      setUploadingId(null);
+                                      setUploadProgress(0);
+                                    }
+                                  }}
+                                />
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </div>
 
-                      {/* Duration */}
-                      <div className="w-48">
-                        <label className="block text-sm text-zinc-400 mb-1">Duration (min)</label>
-                        <input
-                          type="number"
-                          className="w-full bg-zinc-900/50 border border-white/10 rounded-xl p-3 outline-none focus:border-yellow-400"
-                          value={activeLesson.durationMin}
-                          onChange={(e) => updateLesson(activeLesson.id, { durationMin: parseInt(e.target.value) })}
-                        />
+                      {/* Duration & Settings */}
+                      <div className="rounded-2xl border border-white/[0.08] bg-white/[0.02] backdrop-blur-sm overflow-hidden">
+                        <div className="px-5 py-4 border-b border-white/[0.06] bg-white/[0.02]">
+                          <div className="flex items-center gap-2">
+                            <Clock size={16} className="text-[#D4AF37]" />
+                            <h3 className="text-sm font-helvetica-bold text-white">Settings</h3>
+                          </div>
+                        </div>
+                        <div className="p-5">
+                          <div className="flex items-center gap-4">
+                            <div className="flex-1 max-w-[200px]">
+                              <label className="block text-xs text-zinc-500 mb-2 font-helvetica-bold uppercase">Duration</label>
+                              <div className="relative">
+                                <input
+                                  type="number"
+                                  className="w-full bg-zinc-900/80 border border-white/10 rounded-lg px-3 py-2.5 pr-12 outline-none focus:border-[#D4AF37]/50 text-white"
+                                  value={activeLesson.durationMin}
+                                  onChange={(e) => updateLesson(activeLesson.id, { durationMin: parseInt(e.target.value) })}
+                                />
+                                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-zinc-500">min</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
 
-                      {/* Preview - Uploaded file takes priority over URL */}
-                      <div className="aspect-video bg-black rounded-xl border border-white/10 flex items-center justify-center text-zinc-500 overflow-hidden">
-                        {activeLesson.fileUrl && activeLesson.type === 'video' ? (
-                          <video
-                            key={activeLesson.fileUrl}
-                            controls
-                            playsInline
-                            crossOrigin="anonymous"
-                            className="w-full h-full"
-                          >
-                            <source src={activeLesson.fileUrl} type="video/mp4" />
-                            <source src={activeLesson.fileUrl} type="video/webm" />
-                            Your browser does not support the video tag.
-                          </video>
-                        ) : activeLesson.videoUrl ? (
-                          isYouTubeUrl(activeLesson.videoUrl) ? (
-                            <iframe
-                              key={activeLesson.videoUrl}
-                              src={`https://www.youtube.com/embed/${getYouTubeVideoId(activeLesson.videoUrl)}`}
-                              className="w-full h-full border-0"
-                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                              allowFullScreen
-                            />
-                          ) : (
-                            <iframe
-                              key={activeLesson.videoUrl}
-                              src={activeLesson.videoUrl}
-                              className="w-full h-full border-0"
-                              allowFullScreen
-                            />
-                          )
-                        ) : (
-                          <div className="text-center">
-                            <MonitorPlay size={48} className="mx-auto mb-2 opacity-50" />
-                            <p>Enter a URL or upload a video to preview</p>
+                      {/* Video Preview */}
+                      <div className="rounded-2xl border border-white/[0.08] bg-white/[0.02] backdrop-blur-sm overflow-hidden">
+                        <div className="px-5 py-4 border-b border-white/[0.06] bg-white/[0.02]">
+                          <div className="flex items-center gap-2">
+                            <Eye size={16} className="text-[#D4AF37]" />
+                            <h3 className="text-sm font-helvetica-bold text-white">Preview</h3>
                           </div>
-                        )}
+                        </div>
+                        <div className="aspect-video bg-black flex items-center justify-center text-zinc-500 overflow-hidden">
+                          {activeLesson.fileUrl && activeLesson.type === 'video' ? (
+                            <video
+                              key={activeLesson.fileUrl}
+                              controls
+                              playsInline
+                              crossOrigin="anonymous"
+                              className="w-full h-full"
+                            >
+                              <source src={activeLesson.fileUrl} type="video/mp4" />
+                              <source src={activeLesson.fileUrl} type="video/webm" />
+                              Your browser does not support the video tag.
+                            </video>
+                          ) : activeLesson.videoUrl ? (
+                            isYouTubeUrl(activeLesson.videoUrl) ? (
+                              <iframe
+                                key={activeLesson.videoUrl}
+                                src={`https://www.youtube.com/embed/${getYouTubeVideoId(activeLesson.videoUrl)}`}
+                                className="w-full h-full border-0"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowFullScreen
+                              />
+                            ) : (
+                              <iframe
+                                key={activeLesson.videoUrl}
+                                src={activeLesson.videoUrl}
+                                className="w-full h-full border-0"
+                                allowFullScreen
+                              />
+                            )
+                          ) : (
+                            <div className="text-center py-16">
+                              <div className="w-20 h-20 rounded-full bg-zinc-900 border border-white/10 flex items-center justify-center mx-auto mb-4">
+                                <PlayCircle size={32} className="text-zinc-600" />
+                              </div>
+                              <p className="text-zinc-500 text-sm">Add a video URL or upload a file</p>
+                              <p className="text-zinc-600 text-xs mt-1">Preview will appear here</p>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </GlassCard>
+                    </div>
                   )}
 
                   {/* 2. Document (PDF/PPT) Editor */}
                   {(activeLesson.type === 'pdf' || activeLesson.type === 'presentation') && (
-                    <GlassCard className="space-y-6">
-                      <FileDropZone
-                        label={`Upload ${activeLesson.type === 'pdf' ? 'PDF Document' : 'PowerPoint Presentation'}`}
-                        accept={activeLesson.type === 'pdf' ? '.pdf,application/pdf' : '.ppt,.pptx,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation'}
-                        currentFile={activeLesson.fileName}
-                        isUploading={uploadingId === activeLesson.id}
-                        uploadProgress={uploadingId === activeLesson.id ? uploadProgress : 0}
-                        onFileSelect={async (file) => {
-                          const lessonId = activeLesson.id;
-                          try {
-                            setUploadingId(lessonId);
-                            setUploadProgress(0);
-                            const result = await dataService.uploadFile(file, (progress) => {
-                              setUploadProgress(progress);
-                            });
-                            updateLesson(lessonId, {
-                              fileUrl: result.file.fileUrl,
-                              fileName: result.file.originalName
-                            });
-                            showToast('success', 'File Uploaded', `${activeLesson.type === 'pdf' ? 'PDF document' : 'Presentation'} uploaded successfully.`);
-                          } catch (error) {
-                            console.error('Failed to upload file:', error);
-                            showToast('error', 'Upload Failed', 'Failed to upload file. Please try again.');
-                          } finally {
-                            setUploadingId(null);
-                            setUploadProgress(0);
-                          }
-                        }}
-                      />
-
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm text-zinc-400 mb-1">Total {activeLesson.type === 'pdf' ? 'Pages' : 'Slides'}</label>
-                          <input
-                            type="number"
-                            className="w-full bg-zinc-900/50 border border-white/10 rounded-xl p-3 outline-none focus:border-yellow-400"
-                            value={activeLesson.pageCount || 0}
-                            onChange={(e) => updateLesson(activeLesson.id, { pageCount: parseInt(e.target.value) })}
-                          />
-                          <p className="text-[10px] text-zinc-500 mt-1">Used to calculate est. reading time</p>
+                    <div className="space-y-6">
+                      {/* Upload Section */}
+                      <div className="rounded-2xl border border-white/[0.08] bg-white/[0.02] backdrop-blur-sm overflow-hidden">
+                        <div className="px-5 py-4 border-b border-white/[0.06] bg-white/[0.02]">
+                          <div className="flex items-center gap-2">
+                            {activeLesson.type === 'presentation' ? (
+                              <FileSpreadsheet size={16} className="text-[#D4AF37]" />
+                            ) : (
+                              <FileText size={16} className="text-[#D4AF37]" />
+                            )}
+                            <h3 className="text-sm font-helvetica-bold text-white">
+                              {activeLesson.type === 'pdf' ? 'PDF Document' : 'PowerPoint Presentation'}
+                            </h3>
+                          </div>
+                          <p className="text-xs text-zinc-500 mt-1">Upload your document file</p>
                         </div>
-                        <div>
-                          <label className="block text-sm text-zinc-400 mb-1">Est. Time (min)</label>
-                          <input
-                            type="number"
-                            className="w-full bg-zinc-900/50 border border-white/10 rounded-xl p-3 outline-none focus:border-yellow-400"
-                            value={activeLesson.durationMin}
-                            readOnly
+                        <div className="p-5">
+                          <FileDropZone
+                            label={`Upload ${activeLesson.type === 'pdf' ? 'PDF' : 'PPT'}`}
+                            accept={activeLesson.type === 'pdf' ? '.pdf,application/pdf' : '.ppt,.pptx,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation'}
+                            currentFile={activeLesson.fileName}
+                            isUploading={uploadingId === activeLesson.id}
+                            uploadProgress={uploadingId === activeLesson.id ? uploadProgress : 0}
+                            onFileSelect={async (file) => {
+                              const lessonId = activeLesson.id;
+                              try {
+                                setUploadingId(lessonId);
+                                setUploadProgress(0);
+                                const result = await dataService.uploadFile(file, (progress) => {
+                                  setUploadProgress(progress);
+                                });
+                                updateLesson(lessonId, {
+                                  fileUrl: result.file.fileUrl,
+                                  fileName: result.file.originalName
+                                });
+                                showToast('success', 'File Uploaded', `${activeLesson.type === 'pdf' ? 'PDF document' : 'Presentation'} uploaded successfully.`);
+                              } catch (error) {
+                                console.error('Failed to upload file:', error);
+                                showToast('error', 'Upload Failed', 'Failed to upload file. Please try again.');
+                              } finally {
+                                setUploadingId(null);
+                                setUploadProgress(0);
+                              }
+                            }}
                           />
-                          <p className="text-[10px] text-[#D4AF37] mt-1">Auto-calculated: 2 min / page</p>
                         </div>
                       </div>
 
-                      {/* Document Preview Card */}
+                      {/* Settings Section */}
+                      <div className="rounded-2xl border border-white/[0.08] bg-white/[0.02] backdrop-blur-sm overflow-hidden">
+                        <div className="px-5 py-4 border-b border-white/[0.06] bg-white/[0.02]">
+                          <div className="flex items-center gap-2">
+                            <Clock size={16} className="text-[#D4AF37]" />
+                            <h3 className="text-sm font-helvetica-bold text-white">Settings</h3>
+                          </div>
+                        </div>
+                        <div className="p-5">
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-xs text-zinc-500 mb-2 font-helvetica-bold uppercase">
+                                Total {activeLesson.type === 'pdf' ? 'Pages' : 'Slides'}
+                              </label>
+                              <input
+                                type="number"
+                                className="w-full bg-zinc-900/80 border border-white/10 rounded-lg px-3 py-2.5 outline-none focus:border-[#D4AF37]/50 text-white"
+                                value={activeLesson.pageCount || 0}
+                                onChange={(e) => updateLesson(activeLesson.id, { pageCount: parseInt(e.target.value) })}
+                              />
+                              <p className="text-[10px] text-zinc-600 mt-2">For estimated reading time</p>
+                            </div>
+                            <div>
+                              <label className="block text-xs text-zinc-500 mb-2 font-helvetica-bold uppercase">Est. Time</label>
+                              <div className="relative">
+                                <input
+                                  type="number"
+                                  className="w-full bg-zinc-900/80 border border-white/10 rounded-lg px-3 py-2.5 pr-12 outline-none text-white opacity-60"
+                                  value={activeLesson.durationMin}
+                                  readOnly
+                                />
+                                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-zinc-500">min</span>
+                              </div>
+                              <p className="text-[10px] text-[#D4AF37] mt-2">Auto: 2 min / page</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Document Preview */}
                       {activeLesson.fileUrl && (
-                        <div className="rounded-xl border border-white/10 bg-zinc-900/50 p-6">
-                          <div className="flex items-center gap-4">
-                            <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-yellow-400/20 to-yellow-500/10 border border-[#D4AF37]/30 flex items-center justify-center flex-shrink-0">
-                              {activeLesson.type === 'presentation' ? (
-                                <FileSpreadsheet size={28} className="text-[#D4AF37]" />
-                              ) : (
-                                <FileText size={28} className="text-[#D4AF37]" />
-                              )}
+                        <div className="rounded-2xl border border-white/[0.08] bg-white/[0.02] backdrop-blur-sm overflow-hidden">
+                          <div className="px-5 py-4 border-b border-white/[0.06] bg-white/[0.02]">
+                            <div className="flex items-center gap-2">
+                              <Eye size={16} className="text-[#D4AF37]" />
+                              <h3 className="text-sm font-helvetica-bold text-white">Uploaded File</h3>
                             </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-helvetica-bold text-white truncate">{activeLesson.fileName}</p>
-                              <p className="text-xs text-zinc-500 mt-1">
-                                {activeLesson.type === 'presentation' ? 'PowerPoint Presentation' : 'PDF Document'}
-                              </p>
+                          </div>
+                          <div className="p-5">
+                            <div className="flex items-center gap-4 p-4 rounded-xl bg-zinc-900/50 border border-white/[0.06]">
+                              <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-500/20 to-blue-600/10 border border-blue-500/30 flex items-center justify-center flex-shrink-0">
+                                {activeLesson.type === 'presentation' ? (
+                                  <FileSpreadsheet size={28} className="text-blue-400" />
+                                ) : (
+                                  <FileText size={28} className="text-blue-400" />
+                                )}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-helvetica-bold text-white truncate">{activeLesson.fileName}</p>
+                                <p className="text-xs text-zinc-500 mt-1">
+                                  {activeLesson.type === 'presentation' ? 'PowerPoint Presentation' : 'PDF Document'}
+                                  {activeLesson.pageCount ? ` • ${activeLesson.pageCount} ${activeLesson.type === 'pdf' ? 'pages' : 'slides'}` : ''}
+                                </p>
+                              </div>
+                              <button
+                                onClick={() => window.open(activeLesson.fileUrl, '_blank')}
+                                className="px-4 py-2.5 rounded-xl bg-[#D4AF37]/10 hover:bg-[#D4AF37]/20 border border-[#D4AF37]/30 text-[#D4AF37] text-sm font-helvetica-bold transition-all flex items-center gap-2"
+                              >
+                                <ExternalLink size={16} />
+                                Open
+                              </button>
                             </div>
-                            <button
-                              onClick={() => window.open(activeLesson.fileUrl, '_blank')}
-                              className="px-4 py-2 rounded-lg bg-[#D4AF37]/10 hover:bg-[#D4AF37]/20 border border-[#D4AF37]/30 text-[#D4AF37] text-sm font-helvetica-bold transition-all flex items-center gap-2"
-                            >
-                              <ExternalLink size={16} />
-                              Open
-                            </button>
                           </div>
                         </div>
                       )}
-                    </GlassCard>
+                    </div>
                   )}
 
                   {/* 3. Quiz Editor */}
                   {activeLesson.type === 'quiz' && (
-                    <div className="space-y-4">
+                    <div className="space-y-6">
                       {/* Passing Score Setting */}
-                      <GlassCard className="!bg-yellow-400/5 !border-yellow-400/20">
-                        <div className="flex items-center justify-between">
+                      <div className="rounded-2xl border border-[#D4AF37]/20 bg-[#D4AF37]/5 backdrop-blur-sm overflow-hidden">
+                        <div className="px-5 py-4 flex items-center justify-between">
                           <div className="flex items-center gap-3">
-                            <Target size={20} className="text-[#D4AF37]" />
+                            <div className="w-10 h-10 rounded-xl bg-[#D4AF37]/10 border border-[#D4AF37]/30 flex items-center justify-center">
+                              <Target size={20} className="text-[#D4AF37]" />
+                            </div>
                             <div>
                               <label className="text-sm font-helvetica-bold text-white block">Passing Score</label>
-                              <p className="text-xs text-zinc-500">Minimum % required to complete this quiz</p>
+                              <p className="text-xs text-zinc-500">Minimum % to pass this quiz</p>
                             </div>
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 bg-zinc-900/50 rounded-xl px-3 py-2 border border-white/10">
                             <input
                               type="number"
                               min="0"
                               max="100"
                               value={activeLesson.passingScore || 70}
                               onChange={(e) => updateLesson(activeLesson.id, { passingScore: parseInt(e.target.value) || 70 })}
-                              className="w-20 bg-zinc-900 border border-white/20 rounded-lg px-3 py-2 text-white text-center focus:border-yellow-400 outline-none"
+                              className="w-16 bg-transparent text-white text-center text-lg font-helvetica-bold focus:outline-none"
                             />
-                            <span className="text-zinc-400">%</span>
+                            <span className="text-[#D4AF37] font-helvetica-bold">%</span>
                           </div>
                         </div>
-                      </GlassCard>
+                      </div>
 
-                      {activeLesson.quiz?.map((q, qIdx) => (
-                        <GlassCard key={q.id} className="relative group">
-                          <button
-                            onClick={() => {
-                              if (!confirm('Delete this question?')) return;
-                              const newQuiz = activeLesson.quiz?.filter((_, idx) => idx !== qIdx) || [];
-                              updateLesson(activeLesson.id, { quiz: newQuiz });
-                            }}
-                            className="absolute top-4 right-4 text-zinc-500 hover:text-red-400 transition-colors"
-                          >
-                            <X size={16} />
-                          </button>
-                          <div className="mb-4">
-                            <label className="text-xs font-helvetica-bold text-zinc-500 uppercase mb-1 block">Question {qIdx + 1}</label>
-                            <input
-                              className="w-full bg-zinc-900 border-b border-white/10 p-2 outline-none focus:border-yellow-400"
-                              value={q.question}
-                              placeholder="Enter question..."
-                              onChange={(e) => {
-                                const newQuiz = [...(activeLesson.quiz || [])];
-                                newQuiz[qIdx].question = e.target.value;
-                                updateLesson(activeLesson.id, { quiz: newQuiz });
-                              }}
-                            />
+                      {/* Questions */}
+                      <div className="rounded-2xl border border-white/[0.08] bg-white/[0.02] backdrop-blur-sm overflow-hidden">
+                        <div className="px-5 py-4 border-b border-white/[0.06] bg-white/[0.02]">
+                          <div className="flex items-center gap-2">
+                            <HelpCircle size={16} className="text-[#D4AF37]" />
+                            <h3 className="text-sm font-helvetica-bold text-white">Questions</h3>
+                            <span className="ml-auto text-xs text-zinc-500 bg-zinc-800 px-2 py-0.5 rounded-full">
+                              {activeLesson.quiz?.length || 0} / 5
+                            </span>
                           </div>
-                          <div className="space-y-2">
-                            {q.options.map((opt, oIdx) => (
-                              <div key={oIdx} className="flex items-center gap-3">
-                                <input
-                                  type="radio"
-                                  checked={q.correctAnswer === oIdx}
-                                  onChange={() => {
-                                    const newQuiz = [...(activeLesson.quiz || [])];
-                                    newQuiz[qIdx].correctAnswer = oIdx;
+                        </div>
+
+                        <div className="p-5 space-y-4">
+                          {activeLesson.quiz?.map((q, qIdx) => (
+                            <div key={q.id} className="rounded-xl border border-white/[0.08] bg-zinc-900/30 overflow-hidden group">
+                              {/* Question Header */}
+                              <div className="px-4 py-3 bg-zinc-900/50 border-b border-white/[0.06] flex items-center justify-between">
+                                <span className="text-xs font-helvetica-bold text-purple-400 uppercase tracking-wide">
+                                  Question {qIdx + 1}
+                                </span>
+                                <button
+                                  onClick={() => {
+                                    if (!confirm('Delete this question?')) return;
+                                    const newQuiz = activeLesson.quiz?.filter((_, idx) => idx !== qIdx) || [];
                                     updateLesson(activeLesson.id, { quiz: newQuiz });
                                   }}
-                                  className="text-[#D4AF37] accent-yellow-400"
-                                />
+                                  className="p-1.5 rounded-lg text-zinc-600 hover:text-red-400 hover:bg-red-400/10 transition-all opacity-0 group-hover:opacity-100"
+                                >
+                                  <Trash2 size={14} />
+                                </button>
+                              </div>
+
+                              {/* Question Content */}
+                              <div className="p-4 space-y-4">
                                 <input
-                                  className="flex-1 bg-transparent border border-white/5 rounded px-2 py-1 text-sm focus:border-white/20 outline-none"
-                                  value={opt}
+                                  className="w-full bg-zinc-900/50 border border-white/10 rounded-lg px-3 py-2.5 outline-none focus:border-[#D4AF37]/50 text-white placeholder-zinc-600"
+                                  value={q.question}
+                                  placeholder="Enter your question..."
                                   onChange={(e) => {
                                     const newQuiz = [...(activeLesson.quiz || [])];
-                                    newQuiz[qIdx].options[oIdx] = e.target.value;
+                                    newQuiz[qIdx].question = e.target.value;
                                     updateLesson(activeLesson.id, { quiz: newQuiz });
                                   }}
                                 />
-                              </div>
-                            ))}
-                          </div>
-                        </GlassCard>
-                      ))}
 
-                      {(activeLesson.quiz?.length || 0) < 5 ? (
-                        <button
-                          onClick={() => {
-                            const newQuiz = [...(activeLesson.quiz || []), { id: `q-${Date.now()}`, question: '', options: ['Option A', 'Option B'], correctAnswer: 0 }];
-                            updateLesson(activeLesson.id, { quiz: newQuiz });
-                          }}
-                          className="w-full py-4 border-2 border-dashed border-white/10 rounded-2xl text-zinc-500 hover:text-[#D4AF37] hover:border-[#D4AF37]/50 hover:bg-yellow-400/5 transition-all flex items-center justify-center gap-2"
-                        >
-                          <Plus size={20} /> Add Question
-                        </button>
-                      ) : (
-                        <div className="text-center p-4 text-zinc-500 text-sm italic border border-white/5 rounded-xl">
-                          Maximum 5 questions per quiz reached.
+                                <div className="space-y-2">
+                                  {q.options.map((opt, oIdx) => (
+                                    <div
+                                      key={oIdx}
+                                      className={`flex items-center gap-3 p-3 rounded-lg border transition-all cursor-pointer ${
+                                        q.correctAnswer === oIdx
+                                          ? 'border-green-500/40 bg-green-500/10'
+                                          : 'border-white/[0.06] hover:border-white/20 bg-zinc-900/30'
+                                      }`}
+                                      onClick={() => {
+                                        const newQuiz = [...(activeLesson.quiz || [])];
+                                        newQuiz[qIdx].correctAnswer = oIdx;
+                                        updateLesson(activeLesson.id, { quiz: newQuiz });
+                                      }}
+                                    >
+                                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
+                                        q.correctAnswer === oIdx
+                                          ? 'border-green-500 bg-green-500'
+                                          : 'border-zinc-600'
+                                      }`}>
+                                        {q.correctAnswer === oIdx && (
+                                          <CheckCircle size={12} className="text-white" />
+                                        )}
+                                      </div>
+                                      <input
+                                        className="flex-1 bg-transparent text-sm text-white placeholder-zinc-600 outline-none"
+                                        value={opt}
+                                        placeholder={`Option ${String.fromCharCode(65 + oIdx)}`}
+                                        onClick={(e) => e.stopPropagation()}
+                                        onChange={(e) => {
+                                          const newQuiz = [...(activeLesson.quiz || [])];
+                                          newQuiz[qIdx].options[oIdx] = e.target.value;
+                                          updateLesson(activeLesson.id, { quiz: newQuiz });
+                                        }}
+                                      />
+                                      {q.correctAnswer === oIdx && (
+                                        <span className="text-[10px] text-green-400 font-helvetica-bold uppercase">Correct</span>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+
+                          {/* Add Question Button */}
+                          {(activeLesson.quiz?.length || 0) < 5 ? (
+                            <button
+                              onClick={() => {
+                                const newQuiz = [...(activeLesson.quiz || []), { id: `q-${Date.now()}`, question: '', options: ['Option A', 'Option B'], correctAnswer: 0 }];
+                                updateLesson(activeLesson.id, { quiz: newQuiz });
+                              }}
+                              className="w-full py-4 border-2 border-dashed border-white/10 rounded-xl text-zinc-500 hover:text-[#D4AF37] hover:border-[#D4AF37]/40 hover:bg-[#D4AF37]/5 transition-all flex items-center justify-center gap-2 group"
+                            >
+                              <Plus size={18} className="group-hover:rotate-90 transition-transform" />
+                              <span className="font-helvetica-bold text-sm">Add Question</span>
+                            </button>
+                          ) : (
+                            <div className="text-center py-4 text-zinc-500 text-sm bg-zinc-900/30 rounded-xl border border-white/[0.06]">
+                              Maximum 5 questions reached
+                            </div>
+                          )}
                         </div>
-                      )}
+                      </div>
                     </div>
                   )}
 
