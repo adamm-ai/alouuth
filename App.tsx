@@ -2389,7 +2389,7 @@ const App: React.FC = () => {
                     </div>
                   )}
 
-                  {/* 2. Document View - Embedded Preview with Download */}
+                  {/* 2. Document View - Embedded Preview with Download (Like Notion) */}
                   {(activeLesson.type === 'pdf' || activeLesson.type === 'presentation') && (
                     <LiquidVideoFrame>
                       {activeLesson.fileUrl ? (
@@ -2432,19 +2432,27 @@ const App: React.FC = () => {
                             </button>
                           </div>
 
-                          {/* Embedded Document Viewer */}
-                          <div className="relative bg-zinc-900/50">
-                            <iframe
-                              src={`${activeLesson.fileUrl}#toolbar=1&navpanes=1&scrollbar=1&view=FitH`}
-                              className="w-full h-[600px] border-0"
-                              title={activeLesson.title}
-                              onLoad={() => setIsDownloaded(true)}
-                            />
-                            {/* Fallback overlay if iframe doesn't load well */}
-                            <div className="absolute inset-0 flex flex-col items-center justify-center bg-zinc-900/95 opacity-0 hover:opacity-0 pointer-events-none transition-opacity">
-                              <FileText size={64} className="text-[#D4AF37] mb-4" />
-                              <p className="text-zinc-400">Loading document...</p>
-                            </div>
+                          {/* Embedded Document Viewer - Using Google Docs / Office Online */}
+                          <div className="relative bg-white">
+                            {activeLesson.type === 'presentation' ? (
+                              /* PowerPoint - Use Microsoft Office Online Viewer */
+                              <iframe
+                                src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(activeLesson.fileUrl)}`}
+                                className="w-full h-[650px] border-0"
+                                title={activeLesson.title}
+                                onLoad={() => setIsDownloaded(true)}
+                                allowFullScreen
+                              />
+                            ) : (
+                              /* PDF - Use Google Docs Viewer */
+                              <iframe
+                                src={`https://docs.google.com/viewer?url=${encodeURIComponent(activeLesson.fileUrl)}&embedded=true`}
+                                className="w-full h-[650px] border-0"
+                                title={activeLesson.title}
+                                onLoad={() => setIsDownloaded(true)}
+                                allowFullScreen
+                              />
+                            )}
                           </div>
 
                           {/* Bottom action bar */}
@@ -2453,13 +2461,15 @@ const App: React.FC = () => {
                               <CheckCircle size={14} className="text-green-400" />
                               Document loaded - ready to continue
                             </p>
-                            <button
-                              onClick={() => window.open(activeLesson.fileUrl, '_blank')}
-                              className="text-xs text-[#D4AF37] hover:text-yellow-400 flex items-center gap-1.5 transition-colors"
-                            >
-                              <ExternalLink size={12} />
-                              Open in new tab
-                            </button>
+                            <div className="flex items-center gap-4">
+                              <button
+                                onClick={() => window.open(activeLesson.fileUrl, '_blank')}
+                                className="text-xs text-[#D4AF37] hover:text-yellow-400 flex items-center gap-1.5 transition-colors"
+                              >
+                                <ExternalLink size={12} />
+                                Open original
+                              </button>
+                            </div>
                           </div>
                         </div>
                       ) : (
