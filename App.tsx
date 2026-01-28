@@ -2387,67 +2387,77 @@ const App: React.FC = () => {
                     </div>
                   )}
 
-                  {/* 2. Document View - Clean Card Design */}
+                  {/* 2. Document View - Embedded Preview with Download */}
                   {(activeLesson.type === 'pdf' || activeLesson.type === 'presentation') && (
                     <LiquidVideoFrame>
                       {activeLesson.fileUrl ? (
-                        <div className="min-h-[400px] flex flex-col items-center justify-center p-10 relative">
-                          {/* Background effects */}
-                          <div className="absolute inset-0 opacity-40">
-                            <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(250,204,21,0.15),transparent_50%)]" />
-                            <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_70%,rgba(255,255,255,0.05),transparent_50%)]" />
+                        <div className="flex flex-col">
+                          {/* Document Header */}
+                          <div className="flex items-center justify-between p-4 border-b border-white/10 bg-gradient-to-r from-[#D4AF37]/10 to-transparent">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#D4AF37]/30 to-[#D4AF37]/10 border border-[#D4AF37]/40 flex items-center justify-center">
+                                {activeLesson.type === 'presentation' ? (
+                                  <FileSpreadsheet size={20} className="text-[#D4AF37]" />
+                                ) : (
+                                  <FileText size={20} className="text-[#D4AF37]" />
+                                )}
+                              </div>
+                              <div>
+                                <h3 className="text-sm font-helvetica-bold text-white truncate max-w-[300px]">
+                                  {activeLesson.fileName || activeLesson.title}
+                                </h3>
+                                <p className="text-xs text-zinc-500">
+                                  {activeLesson.type === 'presentation' ? 'PowerPoint' : 'PDF'} • {activeLesson.durationMin} min
+                                </p>
+                              </div>
+                            </div>
+                            {/* Download Button - Yellow Liquid Style */}
+                            <button
+                              onClick={() => {
+                                downloadResource();
+                                setIsDownloaded(true);
+                              }}
+                              className="group relative px-5 py-2.5 rounded-xl font-helvetica-bold text-sm transition-all duration-300 overflow-hidden
+                                bg-gradient-to-r from-[#D4AF37] to-[#F5D76E] text-black
+                                hover:shadow-[0_0_30px_rgba(212,175,55,0.5)] active:scale-95"
+                            >
+                              <span className="relative z-10 flex items-center gap-2">
+                                <Download size={16} />
+                                Download
+                              </span>
+                              {/* Liquid shine effect */}
+                              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+                            </button>
                           </div>
 
-                          <div className="relative z-10 w-full max-w-md">
-                            {/* Document Icon */}
-                            <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-yellow-400/20 to-yellow-500/10 border border-[#D4AF37]/40 flex items-center justify-center mx-auto mb-8 shadow-[0_0_60px_rgba(250,204,21,0.15)]">
-                              {activeLesson.type === 'presentation' ? (
-                                <FileSpreadsheet size={48} className="text-[#D4AF37] drop-shadow-[0_0_20px_rgba(250,204,21,0.5)]" />
-                              ) : (
-                                <FileText size={48} className="text-[#D4AF37] drop-shadow-[0_0_20px_rgba(250,204,21,0.5)]" />
-                              )}
+                          {/* Embedded Document Viewer */}
+                          <div className="relative bg-zinc-900/50">
+                            <iframe
+                              src={`${activeLesson.fileUrl}#toolbar=1&navpanes=1&scrollbar=1&view=FitH`}
+                              className="w-full h-[600px] border-0"
+                              title={activeLesson.title}
+                              onLoad={() => setIsDownloaded(true)}
+                            />
+                            {/* Fallback overlay if iframe doesn't load well */}
+                            <div className="absolute inset-0 flex flex-col items-center justify-center bg-zinc-900/95 opacity-0 hover:opacity-0 pointer-events-none transition-opacity">
+                              <FileText size={64} className="text-[#D4AF37] mb-4" />
+                              <p className="text-zinc-400">Loading document...</p>
                             </div>
+                          </div>
 
-                            {/* Document Info */}
-                            <div className="text-center mb-8">
-                              <h3 className="text-2xl font-helvetica-bold text-white mb-2">
-                                {activeLesson.fileName || 'Document'}
-                              </h3>
-                              <p className="text-zinc-400">
-                                {activeLesson.type === 'presentation'
-                                  ? `PowerPoint Presentation • ${activeLesson.pageCount || '—'} slides`
-                                  : `PDF Document • ${activeLesson.pageCount || '—'} pages`
-                                }
-                              </p>
-                              {activeLesson.durationMin && (
-                                <p className="text-zinc-500 text-sm mt-1">
-                                  Estimated reading time: {activeLesson.durationMin} min
-                                </p>
-                              )}
-                            </div>
-
-                            {/* Action Buttons */}
-                            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                              <button
-                                onClick={() => window.open(activeLesson.fileUrl, '_blank')}
-                                className="flex-1 px-6 py-4 rounded-2xl bg-[#D4AF37] hover:bg-yellow-500 text-black font-helvetica-bold transition-all flex items-center justify-center gap-3 shadow-[0_0_30px_rgba(250,204,21,0.3)] hover:shadow-[0_0_40px_rgba(250,204,21,0.4)]"
-                              >
-                                <ExternalLink size={20} />
-                                Open Document
-                              </button>
-                              <button
-                                onClick={downloadResource}
-                                className="flex-1 px-6 py-4 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-helvetica-bold transition-all flex items-center justify-center gap-3"
-                              >
-                                <Download size={20} />
-                                Download
-                              </button>
-                            </div>
-
-                            {/* Completion hint */}
-                            <p className="text-center text-zinc-600 text-sm mt-6">
-                              Open or download the document to continue
+                          {/* Bottom action bar */}
+                          <div className="p-4 border-t border-white/10 bg-black/30 flex items-center justify-between">
+                            <p className="text-xs text-zinc-500 flex items-center gap-2">
+                              <CheckCircle size={14} className="text-green-400" />
+                              Document loaded - ready to continue
                             </p>
+                            <button
+                              onClick={() => window.open(activeLesson.fileUrl, '_blank')}
+                              className="text-xs text-[#D4AF37] hover:text-yellow-400 flex items-center gap-1.5 transition-colors"
+                            >
+                              <ExternalLink size={12} />
+                              Open in new tab
+                            </button>
                           </div>
                         </div>
                       ) : (
@@ -2592,16 +2602,28 @@ const App: React.FC = () => {
                                 )}
                               </div>
                               <div className="flex gap-4 justify-center pt-4">
-                                <SecondaryButton
+                                <button
                                   onClick={() => { setQuizState('INTRO'); setCurrentQIdx(0); setQuizAnswers([]); setQuizPassed(null); }}
-                                  className="px-8"
+                                  className="px-8 py-3 rounded-xl font-helvetica-bold text-sm text-zinc-400 border border-white/20 bg-white/5 hover:bg-white/10 hover:text-white transition-all"
                                 >
-                                  <RefreshCw size={16} className="mr-2" /> {passed ? 'Retry' : 'Try Again'}
-                                </SecondaryButton>
+                                  <span className="flex items-center gap-2">
+                                    <RefreshCw size={16} /> {passed ? 'Retry' : 'Try Again'}
+                                  </span>
+                                </button>
                                 {passed && (
-                                  <PrimaryButton onClick={() => handleLessonComplete(quizScore, activeLesson?.quiz?.length)} className="px-8">
-                                    <Award size={16} className="mr-2" /> Complete & Continue
-                                  </PrimaryButton>
+                                  <button
+                                    onClick={() => handleLessonComplete(quizScore, activeLesson?.quiz?.length)}
+                                    className="group relative px-8 py-3 rounded-xl font-helvetica-bold text-sm overflow-hidden
+                                      bg-gradient-to-r from-[#D4AF37] via-[#F5D76E] to-[#D4AF37] border-2 border-[#F5D76E] text-black
+                                      shadow-[0_0_30px_rgba(212,175,55,0.4),inset_0_1px_0_rgba(255,255,255,0.3)]
+                                      hover:shadow-[0_0_50px_rgba(212,175,55,0.6)] active:scale-95 transition-all duration-300"
+                                  >
+                                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out" />
+                                    <span className="relative z-10 flex items-center gap-2">
+                                      <Award size={16} /> Continue
+                                      <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                                    </span>
+                                  </button>
                                 )}
                               </div>
                             </div>
@@ -2651,36 +2673,61 @@ const App: React.FC = () => {
                         <div className="flex items-center gap-4">
                           {/* Document download requirement */}
                           {(activeLesson.type === 'pdf' || activeLesson.type === 'presentation') && !activeLesson.isCompleted && !isDownloaded && (
-                            <div className="text-sm text-[#D4AF37]/80 flex items-center gap-2 px-4 py-2 rounded-lg bg-yellow-400/10 border border-yellow-400/20">
-                              <Download size={14} /> Download required
+                            <div className="text-sm text-[#D4AF37]/80 flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-yellow-400/15 to-yellow-400/5 border border-yellow-400/30 backdrop-blur-sm">
+                              <Download size={14} /> View document first
                             </div>
                           )}
 
                           {/* Video progress requirement */}
                           {activeLesson.type === 'video' && !activeLesson.isCompleted && videoWatchedPercent < 80 && (
-                            <div className="text-sm text-[#D4AF37]/80 flex items-center gap-2 px-4 py-2 rounded-lg bg-yellow-400/10 border border-yellow-400/20">
+                            <div className="text-sm text-[#D4AF37]/80 flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-yellow-400/15 to-yellow-400/5 border border-yellow-400/30 backdrop-blur-sm">
                               <PlayCircle size={14} /> Watch 80% to complete
                             </div>
                           )}
 
-                          <PrimaryButton
+                          {/* Liquid Yellow Bezel Continue Button */}
+                          <button
                             onClick={() => handleLessonComplete()}
                             disabled={
                               activeLesson.isCompleted ||
                               ((activeLesson.type === 'pdf' || activeLesson.type === 'presentation') && !isDownloaded) ||
                               (activeLesson.type === 'video' && videoWatchedPercent < 80)
                             }
-                            className={`px-8 ${activeLesson.type === 'video' && videoWatchedPercent >= 80 && !activeLesson.isCompleted
-                              ? 'bg-green-500 hover:bg-green-400 border-green-400 shadow-[0_0_20px_rgba(34,197,94,0.3)]'
-                              : ''
-                              }`}
+                            className={`
+                              group relative px-8 py-3.5 rounded-2xl font-helvetica-bold text-sm transition-all duration-300 overflow-hidden
+                              ${activeLesson.isCompleted
+                                ? 'bg-gradient-to-r from-green-500/20 to-green-500/10 border-2 border-green-500/50 text-green-400 cursor-default'
+                                : activeLesson.type === 'video' && videoWatchedPercent >= 80
+                                  ? 'bg-gradient-to-r from-green-500 to-green-400 border-2 border-green-300 text-black shadow-[0_0_30px_rgba(34,197,94,0.4),inset_0_1px_0_rgba(255,255,255,0.3)] hover:shadow-[0_0_40px_rgba(34,197,94,0.6)] active:scale-95'
+                                  : (activeLesson.isCompleted || ((activeLesson.type === 'pdf' || activeLesson.type === 'presentation') && !isDownloaded) || (activeLesson.type === 'video' && videoWatchedPercent < 80))
+                                    ? 'bg-zinc-900/50 border-2 border-zinc-700 text-zinc-500 cursor-not-allowed'
+                                    : 'bg-gradient-to-r from-[#D4AF37] via-[#F5D76E] to-[#D4AF37] border-2 border-[#F5D76E] text-black shadow-[0_0_30px_rgba(212,175,55,0.4),inset_0_1px_0_rgba(255,255,255,0.3)] hover:shadow-[0_0_50px_rgba(212,175,55,0.6)] active:scale-95'
+                              }
+                            `}
                           >
-                            {activeLesson.isCompleted ? (
-                              <><CheckCircle size={18} className="mr-2" /> Completed</>
-                            ) : (
-                              <><ChevronRight size={18} className="mr-2" /> Complete & Next</>
+                            {/* Liquid shine animation */}
+                            {!activeLesson.isCompleted && (
+                              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out" />
                             )}
-                          </PrimaryButton>
+                            {/* Button content */}
+                            <span className="relative z-10 flex items-center gap-2.5">
+                              {activeLesson.isCompleted ? (
+                                <>
+                                  <CheckCircle size={18} />
+                                  <span>Completed</span>
+                                </>
+                              ) : (
+                                <>
+                                  <span>Continue</span>
+                                  <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                                </>
+                              )}
+                            </span>
+                            {/* Glow effect behind button */}
+                            {!activeLesson.isCompleted && !((activeLesson.type === 'pdf' || activeLesson.type === 'presentation') && !isDownloaded) && !(activeLesson.type === 'video' && videoWatchedPercent < 80) && (
+                              <div className="absolute -inset-1 bg-gradient-to-r from-[#D4AF37] to-[#F5D76E] rounded-2xl blur-lg opacity-30 group-hover:opacity-50 transition-opacity -z-10" />
+                            )}
+                          </button>
                         </div>
                       </div>
                     </div>
