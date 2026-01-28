@@ -87,7 +87,7 @@ const getYouTubeVideoId = (url: string) => {
   return urlParams.get('v');
 };
 
-// Liquid Interactive Progress Timeline - Premium unified component
+// Liquid Interactive Progress Timeline - Premium separated design
 interface LiquidProgressTimelineProps {
   courses: Course[];
   totalProgress: number;
@@ -127,12 +127,11 @@ const LiquidProgressTimeline: React.FC<LiquidProgressTimelineProps> = ({ courses
     }
   };
 
-  // Calculate timeline progress to align with node positions
+  // Calculate timeline progress based on completed courses
   const getTimelineProgress = () => {
     if (courses.length === 0) return 0;
     if (courses.length === 1) return courses[0].progress;
 
-    // Find the index of the last completed course and current in-progress course
     let lastCompletedIdx = -1;
     let currentInProgressIdx = -1;
     let currentProgress = 0;
@@ -146,23 +145,18 @@ const LiquidProgressTimeline: React.FC<LiquidProgressTimelineProps> = ({ courses
       }
     });
 
-    // Calculate position based on node positions (0 to 100)
     const totalNodes = courses.length;
     const nodeSpacing = 100 / (totalNodes - 1);
 
     if (lastCompletedIdx === totalNodes - 1) {
-      // All courses completed
       return 100;
     } else if (currentInProgressIdx >= 0) {
-      // Progress up to current course + partial progress within it
       const baseProgress = currentInProgressIdx * nodeSpacing;
       const partialNodeProgress = (currentProgress / 100) * nodeSpacing;
       return baseProgress + partialNodeProgress;
     } else if (lastCompletedIdx >= 0) {
-      // Fill up to last completed node
       return (lastCompletedIdx + 1) * nodeSpacing;
     }
-
     return 0;
   };
 
@@ -171,70 +165,95 @@ const LiquidProgressTimeline: React.FC<LiquidProgressTimelineProps> = ({ courses
 
   return (
     <div className="relative">
-      {/* Scroll buttons - only show for 12+ courses */}
+      {/* Scroll buttons */}
       {needsScroll && (
         <>
           <motion.button
             initial={{ opacity: 0 }}
             animate={{ opacity: canScrollLeft ? 1 : 0 }}
             onClick={() => scroll('left')}
-            className={`absolute -left-3 top-1/2 -translate-y-1/2 z-30 w-8 h-8 rounded-full bg-black/80 border border-white/20 flex items-center justify-center text-white hover:bg-zinc-800 hover:border-[#D4AF37]/50 transition-all shadow-xl ${!canScrollLeft && 'pointer-events-none'}`}
+            className={`absolute -left-4 top-1/2 -translate-y-1/2 z-30 w-9 h-9 rounded-full bg-black/90 border border-[#D4AF37]/30 flex items-center justify-center text-[#D4AF37] hover:bg-[#D4AF37]/10 hover:border-[#D4AF37]/60 transition-all shadow-xl backdrop-blur-sm ${!canScrollLeft && 'pointer-events-none'}`}
           >
-            <ChevronLeft size={16} />
+            <ChevronLeft size={18} />
           </motion.button>
           <motion.button
             initial={{ opacity: 0 }}
             animate={{ opacity: canScrollRight ? 1 : 0 }}
             onClick={() => scroll('right')}
-            className={`absolute -right-3 top-1/2 -translate-y-1/2 z-30 w-8 h-8 rounded-full bg-black/80 border border-white/20 flex items-center justify-center text-white hover:bg-zinc-800 hover:border-[#D4AF37]/50 transition-all shadow-xl ${!canScrollRight && 'pointer-events-none'}`}
+            className={`absolute -right-4 top-1/2 -translate-y-1/2 z-30 w-9 h-9 rounded-full bg-black/90 border border-[#D4AF37]/30 flex items-center justify-center text-[#D4AF37] hover:bg-[#D4AF37]/10 hover:border-[#D4AF37]/60 transition-all shadow-xl backdrop-blur-sm ${!canScrollRight && 'pointer-events-none'}`}
           >
-            <ChevronRight size={16} />
+            <ChevronRight size={18} />
           </motion.button>
         </>
       )}
 
-      {/* Edge fades - only when scrollable */}
+      {/* Edge fades */}
       {needsScroll && (
         <>
-          <div className={`absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-[#111113] to-transparent z-20 pointer-events-none transition-opacity ${canScrollLeft ? 'opacity-100' : 'opacity-0'}`} />
-          <div className={`absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-[#111113] to-transparent z-20 pointer-events-none transition-opacity ${canScrollRight ? 'opacity-100' : 'opacity-0'}`} />
+          <div className={`absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-[#111113] via-[#111113]/80 to-transparent z-20 pointer-events-none transition-opacity ${canScrollLeft ? 'opacity-100' : 'opacity-0'}`} />
+          <div className={`absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-[#111113] via-[#111113]/80 to-transparent z-20 pointer-events-none transition-opacity ${canScrollRight ? 'opacity-100' : 'opacity-0'}`} />
         </>
       )}
 
-      {/* Timeline container */}
+      {/* Main timeline container */}
       <div
         ref={scrollContainerRef}
         onScroll={checkScrollability}
-        className={`px-4 py-6 ${needsScroll ? 'overflow-x-auto' : 'overflow-visible'}`}
+        className={`px-6 pt-4 pb-8 ${needsScroll ? 'overflow-x-auto' : 'overflow-visible'}`}
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
         <div className={`relative mx-auto ${needsScroll ? 'min-w-max' : 'w-full'}`} style={needsScroll ? { width: 'fit-content' } : undefined}>
-          {/* Background track */}
-          <div className="absolute top-1/2 left-6 right-6 h-1 bg-white/[0.08] rounded-full -translate-y-1/2" />
 
-          {/* Animated progress fill */}
-          <motion.div
-            className="absolute top-1/2 left-6 h-1.5 rounded-full -translate-y-1/2 origin-left"
-            style={{
-              background: 'linear-gradient(90deg, #D4AF37 0%, #F5D76E 50%, #D4AF37 100%)',
-              boxShadow: '0 0 20px rgba(212,175,55,0.6), 0 0 40px rgba(212,175,55,0.3)',
-            }}
-            initial={{ width: 0 }}
-            animate={{ width: `calc(${timelineProgress}% - 48px)` }}
-            transition={{ duration: 1.5, ease: "easeOut" }}
-          />
+          {/* SEPARATED PROGRESS BAR - Below the nodes */}
+          <div className="relative mt-28 mx-8">
+            {/* Glass container for the progress bar */}
+            <div className="relative h-4 rounded-full bg-gradient-to-b from-white/[0.03] to-transparent border border-white/[0.06] backdrop-blur-sm overflow-hidden shadow-inner">
+              {/* Inner track */}
+              <div className="absolute inset-1 rounded-full bg-black/40" />
 
-          {/* Liquid glow effect on progress */}
-          <motion.div
-            className="absolute top-1/2 left-6 h-3 rounded-full -translate-y-1/2 opacity-40 blur-sm"
-            style={{ background: 'linear-gradient(90deg, #D4AF37, #F5D76E)' }}
-            initial={{ width: 0 }}
-            animate={{ width: `calc(${timelineProgress}% - 48px)` }}
-            transition={{ duration: 1.5, ease: "easeOut" }}
-          />
+              {/* Animated progress fill */}
+              <motion.div
+                className="absolute top-1 bottom-1 left-1 rounded-full origin-left"
+                style={{
+                  background: 'linear-gradient(90deg, #B8962E 0%, #D4AF37 30%, #F5D76E 50%, #D4AF37 70%, #B8962E 100%)',
+                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.3), 0 0 20px rgba(212,175,55,0.5), 0 0 40px rgba(212,175,55,0.2)',
+                }}
+                initial={{ width: 0 }}
+                animate={{ width: `calc(${timelineProgress}% - 8px)` }}
+                transition={{ duration: 1.5, ease: [0.4, 0, 0.2, 1] }}
+              />
 
-          {/* Module nodes */}
-          <div className={`relative flex items-center ${needsScroll ? 'justify-start' : 'justify-center'} gap-0`}>
+              {/* Shimmer effect */}
+              <motion.div
+                className="absolute top-1 bottom-1 left-1 rounded-full opacity-60 overflow-hidden"
+                style={{ width: `calc(${timelineProgress}% - 8px)` }}
+              >
+                <motion.div
+                  className="absolute inset-0 w-[200%]"
+                  style={{
+                    background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%)',
+                  }}
+                  animate={{ x: ['-100%', '100%'] }}
+                  transition={{ duration: 2, repeat: Infinity, ease: 'linear', repeatDelay: 1 }}
+                />
+              </motion.div>
+            </div>
+
+            {/* Progress percentage badge */}
+            <motion.div
+              className="absolute -right-2 top-1/2 -translate-y-1/2 translate-x-full ml-4"
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.5 }}
+            >
+              <div className="flex items-center gap-2 bg-gradient-to-r from-[#D4AF37]/20 to-transparent border border-[#D4AF37]/30 rounded-full px-3 py-1">
+                <span className="text-sm font-bold text-[#D4AF37]">{Math.round(totalProgress)}%</span>
+              </div>
+            </motion.div>
+          </div>
+
+          {/* FLOATING NODES - Above the progress bar */}
+          <div className={`absolute top-0 left-0 right-0 flex items-start ${needsScroll ? 'justify-start' : 'justify-center'} px-4`}>
             {courses.map((course, idx) => {
               const isCompleted = course.progress === 100;
               const isInProgress = course.progress > 0 && course.progress < 100;
@@ -244,85 +263,135 @@ const LiquidProgressTimeline: React.FC<LiquidProgressTimelineProps> = ({ courses
               const isHovered = hoveredIndex === idx;
 
               // SVG circular progress
-              const circumference = 2 * Math.PI * 20; // radius 20
+              const circumference = 2 * Math.PI * 22;
               const progressOffset = circumference - (course.progress / 100) * circumference;
 
               return (
                 <div
                   key={course.id}
-                  className="flex flex-col items-center px-3 sm:px-4"
-                  style={{ minWidth: '70px' }}
+                  className="flex flex-col items-center relative"
+                  style={{ minWidth: '80px', padding: '0 8px' }}
                 >
-                  {/* Node button */}
+                  {/* Vertical connector line from node to progress bar */}
+                  <motion.div
+                    className="absolute top-[68px] left-1/2 -translate-x-1/2 w-px"
+                    style={{
+                      height: '52px',
+                      background: isCompleted
+                        ? 'linear-gradient(to bottom, #D4AF37, #D4AF37 60%, rgba(212,175,55,0.3))'
+                        : isInProgress
+                          ? 'linear-gradient(to bottom, #D4AF37, rgba(212,175,55,0.5) 60%, rgba(212,175,55,0.2))'
+                          : isLocked
+                            ? 'linear-gradient(to bottom, rgba(255,255,255,0.1), rgba(255,255,255,0.05))'
+                            : 'linear-gradient(to bottom, rgba(255,255,255,0.2), rgba(255,255,255,0.1))',
+                    }}
+                    initial={{ scaleY: 0 }}
+                    animate={{ scaleY: 1 }}
+                    transition={{ duration: 0.5, delay: idx * 0.08 }}
+                  />
+
+                  {/* Connection dot on progress bar */}
+                  <motion.div
+                    className={`absolute top-[116px] left-1/2 -translate-x-1/2 w-2.5 h-2.5 rounded-full ${
+                      isCompleted
+                        ? 'bg-[#D4AF37] shadow-[0_0_8px_rgba(212,175,55,0.8)]'
+                        : isInProgress
+                          ? 'bg-[#D4AF37]/60 shadow-[0_0_6px_rgba(212,175,55,0.4)]'
+                          : isLocked
+                            ? 'bg-zinc-700'
+                            : 'bg-zinc-600'
+                    }`}
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ duration: 0.3, delay: idx * 0.08 + 0.3 }}
+                  />
+
+                  {/* Main node button */}
                   <motion.button
                     onClick={() => onCourseClick(course)}
                     onMouseEnter={() => setHoveredIndex(idx)}
                     onMouseLeave={() => setHoveredIndex(null)}
                     className={`
-                      relative w-12 h-12 sm:w-14 sm:h-14 rounded-full
+                      relative w-14 h-14 sm:w-16 sm:h-16 rounded-full
                       flex items-center justify-center
                       transition-all duration-300 ease-out
-                      ${isCompleted
-                        ? 'cursor-pointer'
-                        : isLocked
-                          ? 'cursor-not-allowed opacity-50'
-                          : 'cursor-pointer'
-                      }
+                      ${isCompleted ? 'cursor-pointer' : isLocked ? 'cursor-not-allowed' : 'cursor-pointer'}
                     `}
-                    whileHover={!isLocked ? { scale: 1.1 } : {}}
+                    whileHover={!isLocked ? { scale: 1.12, y: -4 } : {}}
                     whileTap={!isLocked ? { scale: 0.95 } : {}}
                     disabled={isLocked}
                     title={course.title}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: isLocked ? 0.5 : 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: idx * 0.08 }}
                   >
-                    {/* Outer glow for completed/active */}
+                    {/* Ambient glow */}
                     {(isCompleted || isInProgress) && (
                       <motion.div
-                        className="absolute inset-0 rounded-full"
+                        className="absolute -inset-2 rounded-full"
                         style={{
                           background: isCompleted
-                            ? 'radial-gradient(circle, rgba(212,175,55,0.3) 0%, transparent 70%)'
-                            : 'radial-gradient(circle, rgba(212,175,55,0.2) 0%, transparent 70%)',
+                            ? 'radial-gradient(circle, rgba(212,175,55,0.4) 0%, rgba(212,175,55,0.1) 50%, transparent 70%)'
+                            : 'radial-gradient(circle, rgba(212,175,55,0.25) 0%, rgba(212,175,55,0.05) 50%, transparent 70%)',
                         }}
                         animate={isInProgress ? {
-                          scale: [1, 1.2, 1],
-                          opacity: [0.5, 0.8, 0.5]
+                          scale: [1, 1.15, 1],
+                          opacity: [0.8, 1, 0.8]
                         } : {}}
-                        transition={{ duration: 2, repeat: Infinity }}
+                        transition={{ duration: 2.5, repeat: Infinity }}
                       />
                     )}
 
+                    {/* Glass background */}
+                    <div className={`
+                      absolute inset-0 rounded-full
+                      ${isCompleted
+                        ? 'bg-gradient-to-br from-[#D4AF37]/20 to-[#B8962E]/10'
+                        : isInProgress
+                          ? 'bg-gradient-to-br from-[#D4AF37]/10 to-transparent'
+                          : 'bg-gradient-to-br from-white/[0.04] to-transparent'
+                      }
+                      backdrop-blur-sm border
+                      ${isCompleted
+                        ? 'border-[#D4AF37]/40'
+                        : isInProgress
+                          ? 'border-[#D4AF37]/30'
+                          : isLocked
+                            ? 'border-white/[0.06]'
+                            : 'border-white/10'
+                      }
+                    `} />
+
                     {/* SVG Progress Ring */}
-                    <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 48 48">
+                    <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 56 56">
                       {/* Background ring */}
                       <circle
-                        cx="24"
-                        cy="24"
-                        r="20"
+                        cx="28"
+                        cy="28"
+                        r="22"
                         fill="none"
-                        stroke={isLocked ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.1)'}
+                        stroke={isLocked ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.08)'}
                         strokeWidth="3"
                       />
                       {/* Progress ring */}
                       {!isLocked && (
                         <motion.circle
-                          cx="24"
-                          cy="24"
-                          r="20"
+                          cx="28"
+                          cy="28"
+                          r="22"
                           fill="none"
-                          stroke="url(#goldGradient)"
+                          stroke={`url(#goldGradient-${idx})`}
                           strokeWidth="3.5"
                           strokeLinecap="round"
                           strokeDasharray={circumference}
                           initial={{ strokeDashoffset: circumference }}
                           animate={{ strokeDashoffset: progressOffset }}
-                          transition={{ duration: 1, ease: "easeOut", delay: idx * 0.1 }}
-                          style={{
-                            filter: 'drop-shadow(0 0 6px rgba(212,175,55,0.8))'
-                          }}
+                          transition={{ duration: 1.2, ease: [0.4, 0, 0.2, 1], delay: idx * 0.1 }}
+                          style={{ filter: 'drop-shadow(0 0 8px rgba(212,175,55,0.7))' }}
                         />
                       )}
                       <defs>
-                        <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <linearGradient id={`goldGradient-${idx}`} x1="0%" y1="0%" x2="100%" y2="100%">
                           <stop offset="0%" stopColor="#F5D76E" />
                           <stop offset="50%" stopColor="#D4AF37" />
                           <stop offset="100%" stopColor="#B8962E" />
@@ -330,96 +399,97 @@ const LiquidProgressTimeline: React.FC<LiquidProgressTimelineProps> = ({ courses
                       </defs>
                     </svg>
 
-                    {/* Inner circle content */}
+                    {/* Inner content circle */}
                     <div className={`
-                      relative z-10 w-8 h-8 sm:w-10 sm:h-10 rounded-full
+                      relative z-10 w-9 h-9 sm:w-10 sm:h-10 rounded-full
                       flex items-center justify-center
                       font-helvetica-bold text-sm
-                      transition-all duration-300
+                      transition-all duration-300 shadow-lg
                       ${isCompleted
-                        ? 'bg-gradient-to-br from-[#F5D76E] via-[#D4AF37] to-[#B8962E] text-black shadow-lg'
+                        ? 'bg-gradient-to-br from-[#F5D76E] via-[#D4AF37] to-[#B8962E] text-black'
                         : isInProgress
-                          ? 'bg-[#1a1a1c] text-[#D4AF37] border-2 border-[#D4AF37]/50'
+                          ? 'bg-[#0d0d0e] text-[#D4AF37] ring-2 ring-[#D4AF37]/40'
                           : isLocked
-                            ? 'bg-zinc-900 text-zinc-600 border border-zinc-800'
-                            : 'bg-[#1a1a1c] text-zinc-400 border border-white/10 hover:border-[#D4AF37]/30'
+                            ? 'bg-zinc-900/80 text-zinc-600'
+                            : 'bg-[#0d0d0e] text-zinc-400 ring-1 ring-white/10'
                       }
                     `}>
                       {isCompleted ? (
-                        <CheckCircle size={18} strokeWidth={2.5} />
+                        <CheckCircle size={20} strokeWidth={2.5} />
                       ) : isLocked ? (
                         <Lock size={14} />
                       ) : isInProgress ? (
                         <span className="text-xs font-bold">{course.progress}%</span>
                       ) : (
-                        <span>{idx + 1}</span>
+                        <span className="text-sm">{idx + 1}</span>
                       )}
                     </div>
 
-                    {/* Pulse animation for in-progress */}
+                    {/* Active pulse ring */}
                     {isInProgress && (
                       <motion.div
                         className="absolute inset-0 rounded-full border-2 border-[#D4AF37]"
-                        animate={{
-                          scale: [1, 1.15, 1],
-                          opacity: [0.6, 0, 0.6]
-                        }}
-                        transition={{ duration: 2, repeat: Infinity }}
+                        animate={{ scale: [1, 1.2, 1], opacity: [0.8, 0, 0.8] }}
+                        transition={{ duration: 2.5, repeat: Infinity }}
                       />
                     )}
                   </motion.button>
 
-                  {/* Module label */}
+                  {/* Module code label */}
                   <motion.span
                     className={`
-                      mt-3 text-xs font-semibold tracking-wide
+                      mt-2 text-xs font-bold tracking-wider
                       transition-all duration-300
-                      ${isCompleted
-                        ? 'text-[#D4AF37]'
-                        : isInProgress
-                          ? 'text-[#D4AF37]'
-                          : isLocked
-                            ? 'text-zinc-600'
-                            : 'text-zinc-500'
-                      }
+                      ${isCompleted ? 'text-[#D4AF37]' : isInProgress ? 'text-[#D4AF37]' : isLocked ? 'text-zinc-600' : 'text-zinc-500'}
                     `}
-                    animate={isHovered && !isLocked ? { scale: 1.05 } : { scale: 1 }}
+                    animate={isHovered && !isLocked ? { scale: 1.1, y: -2 } : { scale: 1, y: 0 }}
                   >
                     {moduleCode}
                   </motion.span>
 
-                  {/* Status indicator */}
-                  <motion.span
-                    className={`
-                      text-[10px] mt-1 font-medium uppercase tracking-wider
-                      ${isCompleted
-                        ? 'text-green-400/80'
-                        : isInProgress
-                          ? 'text-[#D4AF37]/70'
-                          : 'text-transparent'
-                      }
-                    `}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                  >
-                    {isCompleted ? 'Done' : isInProgress ? 'Current' : ''}
-                  </motion.span>
+                  {/* Status badge */}
+                  <AnimatePresence>
+                    {(isCompleted || isInProgress) && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.8 }}
+                        className={`
+                          mt-1 px-2 py-0.5 rounded-full text-[9px] font-semibold uppercase tracking-wider
+                          ${isCompleted
+                            ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+                            : 'bg-[#D4AF37]/20 text-[#D4AF37] border border-[#D4AF37]/30'
+                          }
+                        `}
+                      >
+                        {isCompleted ? 'Complete' : 'Active'}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
 
-                  {/* Tooltip on hover */}
+                  {/* Hover tooltip */}
                   <AnimatePresence>
                     {isHovered && !isLocked && (
                       <motion.div
                         initial={{ opacity: 0, y: 10, scale: 0.9 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 5, scale: 0.95 }}
-                        className="absolute -bottom-16 left-1/2 -translate-x-1/2 z-40 pointer-events-none"
+                        className="absolute -top-20 left-1/2 -translate-x-1/2 z-50 pointer-events-none"
                       >
-                        <div className="bg-zinc-900/95 backdrop-blur-xl border border-white/10 rounded-lg px-3 py-2 shadow-2xl whitespace-nowrap">
-                          <p className="text-xs text-white font-medium">{course.title}</p>
-                          <p className="text-[10px] text-zinc-400 mt-0.5">
-                            {isCompleted ? 'Completed' : `${course.progress}% complete`}
-                          </p>
+                        <div className="bg-black/95 backdrop-blur-xl border border-[#D4AF37]/30 rounded-xl px-4 py-3 shadow-2xl shadow-black/50 whitespace-nowrap">
+                          <p className="text-sm text-white font-semibold">{course.title}</p>
+                          <div className="flex items-center gap-2 mt-1.5">
+                            <div className="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden">
+                              <div
+                                className="h-full bg-gradient-to-r from-[#D4AF37] to-[#F5D76E] rounded-full"
+                                style={{ width: `${course.progress}%` }}
+                              />
+                            </div>
+                            <span className="text-xs text-[#D4AF37] font-medium">{course.progress}%</span>
+                          </div>
                         </div>
+                        {/* Tooltip arrow */}
+                        <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-black/95 border-r border-b border-[#D4AF37]/30 rotate-45" />
                       </motion.div>
                     )}
                   </AnimatePresence>
