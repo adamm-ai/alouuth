@@ -34,12 +34,24 @@ export const getCourses = async (req, res) => {
 
       // Get user progress if authenticated
       let userProgress = null;
+      let lessonProgressMap = {}; // Map lesson_id -> progress data
+
       if (req.user) {
         const progressResult = await pool.query(`
           SELECT lp.*
           FROM lesson_progress lp
           WHERE lp.user_id = $1 AND lp.course_id = $2
         `, [req.user.id, course.id]);
+
+        // Build a map of lesson_id to progress for quick lookup
+        progressResult.rows.forEach(p => {
+          lessonProgressMap[p.lesson_id] = {
+            status: p.status,
+            isCompleted: p.status === 'COMPLETED',
+            quizScore: p.quiz_score,
+            passed: p.passed
+          };
+        });
 
         const completedLessons = progressResult.rows.filter(p => p.status === 'COMPLETED').length;
         const totalLessons = lessonsResult.rows.length;
@@ -69,7 +81,9 @@ export const getCourses = async (req, res) => {
           pageCount: l.page_count,
           content: l.content,
           quiz: l.quiz || [],
-          isCompleted: false // Will be set based on user progress
+          isCompleted: lessonProgressMap[l.id]?.isCompleted || false,
+          quizScore: lessonProgressMap[l.id]?.quizScore,
+          passed: lessonProgressMap[l.id]?.passed
         }))
       });
     }

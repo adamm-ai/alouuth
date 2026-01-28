@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   BookOpen,
   Layout,
@@ -7,6 +7,7 @@ import {
   CheckCircle,
   LogOut,
   ChevronRight,
+  ChevronLeft,
   ChevronUp,
   ChevronDown,
   Users,
@@ -86,6 +87,221 @@ const getYouTubeVideoId = (url: string) => {
   return urlParams.get('v');
 };
 
+// Module Progress Indicator Component with elegant scroll
+interface ModuleProgressIndicatorProps {
+  courses: Course[];
+  totalProgress: number;
+}
+
+const ModuleProgressIndicator: React.FC<ModuleProgressIndicatorProps> = ({ courses, totalProgress }) => {
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeftPos, setScrollLeftPos] = useState(0);
+
+  const checkScrollability = useCallback(() => {
+    const container = scrollContainerRef.current;
+    if (container) {
+      setCanScrollLeft(container.scrollLeft > 0);
+      setCanScrollRight(container.scrollLeft < container.scrollWidth - container.clientWidth - 1);
+    }
+  }, []);
+
+  useEffect(() => {
+    checkScrollability();
+    const handleResize = () => checkScrollability();
+    window.addEventListener('resize', handleResize);
+
+    // Auto-scroll to current module on mount
+    const container = scrollContainerRef.current;
+    if (container) {
+      const currentModuleIndex = courses.findIndex((_, idx) => {
+        const moduleProgress = ((idx + 1) / courses.length) * 100;
+        return totalProgress < moduleProgress;
+      });
+      if (currentModuleIndex > 0) {
+        const scrollTarget = Math.max(0, (currentModuleIndex - 1) * 60);
+        setTimeout(() => {
+          container.scrollTo({ left: scrollTarget, behavior: 'smooth' });
+        }, 300);
+      }
+    }
+
+    return () => window.removeEventListener('resize', handleResize);
+  }, [courses.length, checkScrollability, totalProgress]);
+
+  const scroll = (direction: 'left' | 'right') => {
+    const container = scrollContainerRef.current;
+    if (container) {
+      const scrollAmount = 150;
+      container.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true);
+    setStartX(e.pageX - (scrollContainerRef.current?.offsetLeft || 0));
+    setScrollLeftPos(scrollContainerRef.current?.scrollLeft || 0);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging) return;
+    e.preventDefault();
+    const x = e.pageX - (scrollContainerRef.current?.offsetLeft || 0);
+    const walk = (x - startX) * 1.5;
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollLeft = scrollLeftPos - walk;
+    }
+  };
+
+  const handleMouseUp = () => setIsDragging(false);
+  const handleMouseLeave = () => setIsDragging(false);
+
+  // Touch events for mobile
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setIsDragging(true);
+    setStartX(e.touches[0].pageX - (scrollContainerRef.current?.offsetLeft || 0));
+    setScrollLeftPos(scrollContainerRef.current?.scrollLeft || 0);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging) return;
+    const x = e.touches[0].pageX - (scrollContainerRef.current?.offsetLeft || 0);
+    const walk = (x - startX) * 1.5;
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollLeft = scrollLeftPos - walk;
+    }
+  };
+
+  const handleTouchEnd = () => setIsDragging(false);
+
+  return (
+    <div className="relative mt-4 group/scroll">
+      {/* Left fade & navigation button */}
+      <div className={`absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-zinc-900/90 via-zinc-900/50 to-transparent z-10 pointer-events-none transition-opacity duration-300 rounded-l-xl ${canScrollLeft ? 'opacity-100' : 'opacity-0'}`} />
+      <motion.button
+        initial={{ opacity: 0, x: 10 }}
+        animate={{ opacity: canScrollLeft ? 1 : 0, x: canScrollLeft ? 0 : 10 }}
+        onClick={() => scroll('left')}
+        className={`absolute left-1 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-zinc-800/90 border border-white/10 flex items-center justify-center text-white/70 hover:text-white hover:bg-zinc-700/90 hover:border-[#D4AF37]/30 transition-all duration-200 shadow-lg backdrop-blur-sm ${canScrollLeft ? 'pointer-events-auto' : 'pointer-events-none'}`}
+        aria-label="Scroll left"
+      >
+        <ChevronLeft size={16} />
+      </motion.button>
+
+      {/* Right fade & navigation button */}
+      <div className={`absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-zinc-900/90 via-zinc-900/50 to-transparent z-10 pointer-events-none transition-opacity duration-300 rounded-r-xl ${canScrollRight ? 'opacity-100' : 'opacity-0'}`} />
+      <motion.button
+        initial={{ opacity: 0, x: -10 }}
+        animate={{ opacity: canScrollRight ? 1 : 0, x: canScrollRight ? 0 : -10 }}
+        onClick={() => scroll('right')}
+        className={`absolute right-1 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-zinc-800/90 border border-white/10 flex items-center justify-center text-white/70 hover:text-white hover:bg-zinc-700/90 hover:border-[#D4AF37]/30 transition-all duration-200 shadow-lg backdrop-blur-sm ${canScrollRight ? 'pointer-events-auto' : 'pointer-events-none'}`}
+        aria-label="Scroll right"
+      >
+        <ChevronRight size={16} />
+      </motion.button>
+
+      {/* Scrollable container */}
+      <div
+        ref={scrollContainerRef}
+        onScroll={checkScrollability}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseLeave}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        className={`flex gap-2 overflow-x-auto px-3 py-2 ${isDragging ? 'cursor-grabbing select-none' : 'cursor-grab'}`}
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
+      >
+        {courses.map((course, idx) => {
+          const moduleProgress = ((idx + 1) / courses.length) * 100;
+          const isCompleted = totalProgress >= moduleProgress;
+          const isCurrentModule = totalProgress < moduleProgress && (idx === 0 || totalProgress >= ((idx) / courses.length) * 100);
+          const moduleCode = course.code || `BX${idx + 1}`;
+
+          return (
+            <motion.div
+              key={course.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: idx * 0.03, duration: 0.3 }}
+              className={`flex flex-col items-center flex-shrink-0 min-w-[56px] p-2 rounded-xl transition-all duration-300 ${
+                isCurrentModule
+                  ? 'bg-[#D4AF37]/10 ring-1 ring-[#D4AF37]/30'
+                  : 'hover:bg-white/5'
+              }`}
+              title={course.title}
+            >
+              <div className={`relative w-8 h-8 rounded-full flex items-center justify-center text-xs font-helvetica-bold transition-all duration-300 ${
+                isCompleted
+                  ? 'bg-gradient-to-br from-[#D4AF37] to-[#B8962E] text-black shadow-[0_0_20px_rgba(212,175,55,0.4)]'
+                  : isCurrentModule
+                    ? 'bg-[#D4AF37]/20 text-[#D4AF37] ring-2 ring-[#D4AF37]/50'
+                    : 'bg-white/10 text-zinc-500'
+              }`}>
+                {isCompleted ? <CheckCircle size={14} className="text-black" /> : idx + 1}
+                {isCurrentModule && (
+                  <motion.span
+                    className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-[#D4AF37] rounded-full"
+                    animate={{ scale: [1, 1.2, 1], opacity: [1, 0.7, 1] }}
+                    transition={{ duration: 1.5, repeat: Infinity }}
+                  />
+                )}
+              </div>
+              <span
+                className={`text-[10px] mt-1.5 font-medium truncate max-w-[52px] text-center leading-tight ${
+                  isCompleted
+                    ? 'text-[#D4AF37]'
+                    : isCurrentModule
+                      ? 'text-[#D4AF37]/80'
+                      : 'text-zinc-500'
+                }`}
+              >
+                {moduleCode}
+              </span>
+              {isCurrentModule && (
+                <motion.span
+                  className="text-[8px] text-[#D4AF37]/70 mt-0.5 font-medium"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                >
+                  En cours
+                </motion.span>
+              )}
+            </motion.div>
+          );
+        })}
+      </div>
+
+      {/* Scroll hint indicator - only shows when scrollable */}
+      {(canScrollLeft || canScrollRight) && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="flex justify-center mt-2"
+        >
+          <motion.div
+            animate={{ opacity: [0.4, 0.8, 0.4] }}
+            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            className="text-[10px] text-zinc-500 flex items-center gap-2 bg-white/5 px-3 py-1 rounded-full"
+          >
+            <ChevronLeft size={10} />
+            <span>Glisser pour naviguer</span>
+            <ChevronRight size={10} />
+          </motion.div>
+        </motion.div>
+      )}
+    </div>
+  );
+};
+
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<View>('LANDING');
   const [user, setUser] = useState<User | null>(null);
@@ -101,6 +317,7 @@ const App: React.FC = () => {
   const [adminSection, setAdminSection] = useState<AdminSection>('OVERVIEW');
   const [draggedCourseId, setDraggedCourseId] = useState<string | null>(null);
   const [playerSidebarCollapsed, setPlayerSidebarCollapsed] = useState(false); // Persists across lesson navigation
+  const [isAdminPreviewMode, setIsAdminPreviewMode] = useState(false); // Admin preview mode - read-only view
   const [userDashboardStats, setUserDashboardStats] = useState<{
     enrolledCourses: number;
     completedCourses: number;
@@ -304,12 +521,15 @@ const App: React.FC = () => {
       return;
     }
 
-    // Auto-enroll user in course if not already enrolled
-    try {
-      await dataService.enrollInCourse(course.id);
-    } catch (error) {
-      // User might already be enrolled, that's OK
-      console.log('Enrollment:', error);
+    // In preview mode, skip enrollment but allow viewing
+    if (!isAdminPreviewMode) {
+      // Auto-enroll user in course if not already enrolled
+      try {
+        await dataService.enrollInCourse(course.id);
+      } catch (error) {
+        // User might already be enrolled, that's OK
+        console.log('Enrollment:', error);
+      }
     }
 
     setActiveCourse(course);
@@ -353,6 +573,12 @@ const App: React.FC = () => {
   const handleLessonComplete = async (quizScore?: number, totalQuestions?: number) => {
     if (!activeCourse || !activeLesson) return;
 
+    // Block progress saving in preview mode
+    if (isAdminPreviewMode) {
+      alert('Preview Mode: Progress is not saved. Exit preview mode to interact as yourself.');
+      return;
+    }
+
     // 1. Call backend API to persist progress
     try {
       const result = await dataService.completeLesson(activeLesson.id, quizScore, totalQuestions);
@@ -379,17 +605,73 @@ const App: React.FC = () => {
     const completedCount = updatedLessons.filter(l => l.isCompleted).length;
     const newProgress = Math.round((completedCount / updatedLessons.length) * 100);
 
-    // 4. Update Course State
-    const updatedCourse = { ...activeCourse, lessons: updatedLessons, progress: newProgress };
+    // 4. Determine course status based on progress
+    const newStatus = newProgress === 100 ? 'COMPLETED' : newProgress > 0 ? 'IN_PROGRESS' : 'NOT_STARTED';
+
+    // 5. Update Course State with progress AND status
+    const updatedCourse = { ...activeCourse, lessons: updatedLessons, progress: newProgress, status: newStatus };
     setActiveCourse(updatedCourse);
 
-    // 5. Update Global Course List
+    // 6. Update Global Course List
     setCourses(prev => prev.map(c => c.id === updatedCourse.id ? updatedCourse : c));
 
-    // 6. Navigate to next lesson if available
+    // 7. Navigate to next lesson OR handle course completion
     const currentIndex = updatedLessons.findIndex(l => l.id === activeLesson.id);
     if (currentIndex < updatedLessons.length - 1) {
+      // More lessons available - go to next lesson
       setActiveLesson(updatedLessons[currentIndex + 1]);
+    } else if (newProgress === 100) {
+      // Course completed! Find next available course to continue
+      const levelOrder = ['Beginner', 'Intermediate', 'Advanced'];
+      const currentLevelIdx = levelOrder.indexOf(activeCourse.level);
+
+      // First, try to find another incomplete course at the same level
+      const sameLevelCourses = courses.filter(c =>
+        c.level === activeCourse.level &&
+        c.id !== activeCourse.id &&
+        c.progress < 100
+      );
+
+      if (sameLevelCourses.length > 0) {
+        // There's another course at the same level to continue
+        const nextCourse = sameLevelCourses[0];
+        setActiveCourse(nextCourse);
+        setActiveLesson(nextCourse.lessons.find(l => !l.isCompleted) || nextCourse.lessons[0]);
+        return;
+      }
+
+      // Check if next level is now unlocked
+      if (currentLevelIdx < levelOrder.length - 1) {
+        const nextLevel = levelOrder[currentLevelIdx + 1];
+        const nextLevelCourses = courses.filter(c => c.level === nextLevel);
+
+        // Check unlock conditions (all enrolled courses at current and previous levels completed)
+        const canUnlockNextLevel = () => {
+          for (let i = 0; i <= currentLevelIdx; i++) {
+            const levelCourses = courses.filter(c => c.level === levelOrder[i]);
+            const enrolledCourses = levelCourses.filter(c => c.progress > 0 || c.id === activeCourse.id);
+            // Update the activeCourse's progress in our check since it's now 100%
+            const allCompleted = enrolledCourses.every(c =>
+              c.id === activeCourse.id ? true : c.progress === 100
+            );
+            if (enrolledCourses.length > 0 && !allCompleted) {
+              return false;
+            }
+          }
+          return true;
+        };
+
+        if (canUnlockNextLevel() && nextLevelCourses.length > 0) {
+          // Next level is unlocked! Navigate to first course of next level
+          const nextCourse = nextLevelCourses[0];
+          setActiveCourse(nextCourse);
+          setActiveLesson(nextCourse.lessons[0] || null);
+          return;
+        }
+      }
+
+      // No more courses to continue - go back to dashboard
+      setCurrentView('DASHBOARD');
     }
   };
 
@@ -458,12 +740,21 @@ const App: React.FC = () => {
 
 
 
-              <SidebarItem
-                icon={<Layout size={20} />}
-                label="View as User"
-                active={currentView === 'DASHBOARD'}
-                onClick={() => setCurrentView('DASHBOARD')}
-              />
+              {isAdminPreviewMode ? (
+                <SidebarItem
+                  icon={<EyeOff size={20} />}
+                  label="Exit Preview"
+                  active={false}
+                  onClick={() => { setIsAdminPreviewMode(false); setCurrentView('ADMIN'); }}
+                />
+              ) : (
+                <SidebarItem
+                  icon={<Eye size={20} />}
+                  label="Preview Mode"
+                  active={false}
+                  onClick={() => { setIsAdminPreviewMode(true); setCurrentView('DASHBOARD'); }}
+                />
+              )}
             </>
           )}
         </nav>
@@ -485,6 +776,7 @@ const App: React.FC = () => {
             onClick={() => {
               setAuthToken(null); // Clear the JWT token
               setUser(null);
+              setIsAdminPreviewMode(false); // Reset preview mode
               setCurrentView('LANDING');
             }}
             className="flex items-center gap-2.5 text-sm text-zinc-500 hover:text-red-400 transition-all w-full group py-2 px-3 rounded-xl hover:bg-red-500/10"
@@ -955,6 +1247,23 @@ const App: React.FC = () => {
           </button>
         </div>
 
+        {/* Admin Preview Mode Banner */}
+        {isAdminPreviewMode && (
+          <div className="sticky top-0 z-50 bg-gradient-to-r from-amber-500/90 to-yellow-500/90 backdrop-blur-sm border-b border-yellow-400/50 px-4 py-3 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Eye size={20} className="text-black" />
+              <span className="font-helvetica-bold text-black">Preview Mode</span>
+              <span className="text-black/70 text-sm">You are viewing as a learner. Actions are disabled.</span>
+            </div>
+            <button
+              onClick={() => { setIsAdminPreviewMode(false); setCurrentView('ADMIN'); }}
+              className="flex items-center gap-2 px-4 py-1.5 rounded-lg bg-black/20 hover:bg-black/30 text-black font-medium text-sm transition-colors"
+            >
+              <X size={16} /> Exit Preview
+            </button>
+          </div>
+        )}
+
         <div className="p-6 md:p-10 max-w-7xl mx-auto space-y-10">
           {/* Header Section - Enhanced Liquid Glass */}
           <div className="flex flex-col md:flex-row justify-between items-end gap-6 animate-fade-in">
@@ -1069,27 +1378,8 @@ const App: React.FC = () => {
                 ))}
               </div>
 
-              {/* Module indicators - Dynamic based on courses */}
-              <div className="flex justify-between mt-3 overflow-x-auto gap-1">
-                {courses.map((course, idx) => {
-                  const moduleProgress = ((idx + 1) / courses.length) * 100;
-                  const isCompleted = totalProgress >= moduleProgress;
-                  const moduleCode = course.code || `BX${idx + 1}`;
-                  return (
-                    <div key={course.id} className="flex flex-col items-center flex-shrink-0">
-                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-helvetica-bold transition-all duration-300 ${isCompleted
-                        ? 'bg-[#D4AF37] shadow-[0_0_15px_rgba(212,175,55,0.4)]'
-                        : 'bg-white/10 text-zinc-500'
-                        }`}>
-                        {isCompleted ? <CheckCircle size={12} /> : idx + 1}
-                      </div>
-                      <span className={`text-[10px] mt-1 truncate max-w-[40px] ${isCompleted ? 'text-[#D4AF37]' : 'text-zinc-600'}`} title={course.title}>
-                        {moduleCode}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
+              {/* Module indicators - Dynamic with elegant scroll */}
+              <ModuleProgressIndicator courses={courses} totalProgress={totalProgress} />
             </div>
           </div>
 
@@ -1659,7 +1949,22 @@ const App: React.FC = () => {
 
     return (
       <div className="h-screen flex flex-col relative z-20 overflow-hidden">
-        {/* Clean background - no ambient effects */}
+        {/* Admin Preview Mode Banner */}
+        {isAdminPreviewMode && (
+          <div className="sticky top-0 z-50 bg-gradient-to-r from-amber-500/90 to-yellow-500/90 backdrop-blur-sm border-b border-yellow-400/50 px-4 py-3 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Eye size={20} className="text-black" />
+              <span className="font-helvetica-bold text-black">Preview Mode</span>
+              <span className="text-black/70 text-sm hidden sm:inline">Progress will not be saved.</span>
+            </div>
+            <button
+              onClick={() => { setIsAdminPreviewMode(false); setCurrentView('ADMIN'); }}
+              className="flex items-center gap-2 px-4 py-1.5 rounded-lg bg-black/20 hover:bg-black/30 text-black font-medium text-sm transition-colors"
+            >
+              <X size={16} /> Exit Preview
+            </button>
+          </div>
+        )}
 
         {/* Top Nav - Hyper Glass */}
         <div className="relative z-30 sticky top-0">
