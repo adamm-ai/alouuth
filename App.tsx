@@ -87,7 +87,7 @@ const getYouTubeVideoId = (url: string) => {
   return urlParams.get('v');
 };
 
-// Module Progress Indicator Component with elegant scroll
+// Module Progress Indicator Component with elegant centered design
 interface ModuleProgressIndicatorProps {
   courses: Course[];
   totalProgress: number;
@@ -104,38 +104,28 @@ const ModuleProgressIndicator: React.FC<ModuleProgressIndicatorProps> = ({ cours
   const checkScrollability = useCallback(() => {
     const container = scrollContainerRef.current;
     if (container) {
-      setCanScrollLeft(container.scrollLeft > 0);
-      setCanScrollRight(container.scrollLeft < container.scrollWidth - container.clientWidth - 1);
+      const hasOverflow = container.scrollWidth > container.clientWidth;
+      setCanScrollLeft(container.scrollLeft > 1);
+      setCanScrollRight(hasOverflow && container.scrollLeft < container.scrollWidth - container.clientWidth - 1);
     }
   }, []);
 
   useEffect(() => {
-    checkScrollability();
+    // Delay check to ensure DOM is ready
+    const timer = setTimeout(checkScrollability, 100);
     const handleResize = () => checkScrollability();
     window.addEventListener('resize', handleResize);
 
-    // Auto-scroll to current module on mount
-    const container = scrollContainerRef.current;
-    if (container) {
-      const currentModuleIndex = courses.findIndex((_, idx) => {
-        const moduleProgress = ((idx + 1) / courses.length) * 100;
-        return totalProgress < moduleProgress;
-      });
-      if (currentModuleIndex > 0) {
-        const scrollTarget = Math.max(0, (currentModuleIndex - 1) * 60);
-        setTimeout(() => {
-          container.scrollTo({ left: scrollTarget, behavior: 'smooth' });
-        }, 300);
-      }
-    }
-
-    return () => window.removeEventListener('resize', handleResize);
-  }, [courses.length, checkScrollability, totalProgress]);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [courses.length, checkScrollability]);
 
   const scroll = (direction: 'left' | 'right') => {
     const container = scrollContainerRef.current;
     if (container) {
-      const scrollAmount = 150;
+      const scrollAmount = 200;
       container.scrollBy({
         left: direction === 'left' ? -scrollAmount : scrollAmount,
         behavior: 'smooth'
@@ -180,45 +170,64 @@ const ModuleProgressIndicator: React.FC<ModuleProgressIndicatorProps> = ({ cours
 
   const handleTouchEnd = () => setIsDragging(false);
 
+  // Check if content fits without scrolling
+  const needsScroll = courses.length > 8;
+
   return (
-    <div className="relative mt-4 group/scroll">
-      {/* Left fade & navigation button */}
-      <div className={`absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-zinc-900/90 via-zinc-900/50 to-transparent z-10 pointer-events-none transition-opacity duration-300 rounded-l-xl ${canScrollLeft ? 'opacity-100' : 'opacity-0'}`} />
-      <motion.button
-        initial={{ opacity: 0, x: 10 }}
-        animate={{ opacity: canScrollLeft ? 1 : 0, x: canScrollLeft ? 0 : 10 }}
-        onClick={() => scroll('left')}
-        className={`absolute left-1 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-zinc-800/90 border border-white/10 flex items-center justify-center text-white/70 hover:text-white hover:bg-zinc-700/90 hover:border-[#D4AF37]/30 transition-all duration-200 shadow-lg backdrop-blur-sm ${canScrollLeft ? 'pointer-events-auto' : 'pointer-events-none'}`}
-        aria-label="Scroll left"
-      >
-        <ChevronLeft size={16} />
-      </motion.button>
+    <div className="relative mt-6">
+      {/* Navigation buttons - only show when scrollable */}
+      {needsScroll && (
+        <>
+          <motion.button
+            initial={{ opacity: 0 }}
+            animate={{ opacity: canScrollLeft ? 1 : 0.3 }}
+            onClick={() => scroll('left')}
+            disabled={!canScrollLeft}
+            className="absolute -left-2 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-zinc-800/90 border border-white/10 flex items-center justify-center text-white/70 hover:text-white hover:bg-zinc-700 hover:border-[#D4AF37]/40 transition-all duration-200 shadow-xl backdrop-blur-sm disabled:cursor-not-allowed"
+            aria-label="Scroll left"
+          >
+            <ChevronLeft size={20} />
+          </motion.button>
+          <motion.button
+            initial={{ opacity: 0 }}
+            animate={{ opacity: canScrollRight ? 1 : 0.3 }}
+            onClick={() => scroll('right')}
+            disabled={!canScrollRight}
+            className="absolute -right-2 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-zinc-800/90 border border-white/10 flex items-center justify-center text-white/70 hover:text-white hover:bg-zinc-700 hover:border-[#D4AF37]/40 transition-all duration-200 shadow-xl backdrop-blur-sm disabled:cursor-not-allowed"
+            aria-label="Scroll right"
+          >
+            <ChevronRight size={20} />
+          </motion.button>
+        </>
+      )}
 
-      {/* Right fade & navigation button */}
-      <div className={`absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-zinc-900/90 via-zinc-900/50 to-transparent z-10 pointer-events-none transition-opacity duration-300 rounded-r-xl ${canScrollRight ? 'opacity-100' : 'opacity-0'}`} />
-      <motion.button
-        initial={{ opacity: 0, x: -10 }}
-        animate={{ opacity: canScrollRight ? 1 : 0, x: canScrollRight ? 0 : -10 }}
-        onClick={() => scroll('right')}
-        className={`absolute right-1 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-zinc-800/90 border border-white/10 flex items-center justify-center text-white/70 hover:text-white hover:bg-zinc-700/90 hover:border-[#D4AF37]/30 transition-all duration-200 shadow-lg backdrop-blur-sm ${canScrollRight ? 'pointer-events-auto' : 'pointer-events-none'}`}
-        aria-label="Scroll right"
-      >
-        <ChevronRight size={16} />
-      </motion.button>
+      {/* Edge fade gradients - only when scrollable */}
+      {needsScroll && (
+        <>
+          <div className={`absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-[#0f0f10] via-[#0f0f10]/80 to-transparent z-10 pointer-events-none transition-opacity duration-300 ${canScrollLeft ? 'opacity-100' : 'opacity-0'}`} />
+          <div className={`absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-[#0f0f10] via-[#0f0f10]/80 to-transparent z-10 pointer-events-none transition-opacity duration-300 ${canScrollRight ? 'opacity-100' : 'opacity-0'}`} />
+        </>
+      )}
 
-      {/* Scrollable container */}
+      {/* Scrollable/Centered container */}
       <div
         ref={scrollContainerRef}
         onScroll={checkScrollability}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseLeave}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-        className={`flex gap-2 overflow-x-auto px-3 py-2 ${isDragging ? 'cursor-grabbing select-none' : 'cursor-grab'}`}
-        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
+        onMouseDown={needsScroll ? handleMouseDown : undefined}
+        onMouseMove={needsScroll ? handleMouseMove : undefined}
+        onMouseUp={needsScroll ? handleMouseUp : undefined}
+        onMouseLeave={needsScroll ? handleMouseLeave : undefined}
+        onTouchStart={needsScroll ? handleTouchStart : undefined}
+        onTouchMove={needsScroll ? handleTouchMove : undefined}
+        onTouchEnd={needsScroll ? handleTouchEnd : undefined}
+        className={`
+          flex items-center gap-1 sm:gap-2 py-4 px-2
+          ${needsScroll
+            ? `overflow-x-auto ${isDragging ? 'cursor-grabbing select-none' : 'cursor-grab'}`
+            : 'justify-center flex-wrap'
+          }
+        `}
+        style={needsScroll ? { scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' } : undefined}
       >
         {courses.map((course, idx) => {
           const moduleProgress = ((idx + 1) / courses.length) * 100;
@@ -229,50 +238,79 @@ const ModuleProgressIndicator: React.FC<ModuleProgressIndicatorProps> = ({ cours
           return (
             <motion.div
               key={course.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: idx * 0.03, duration: 0.3 }}
-              className={`flex flex-col items-center flex-shrink-0 min-w-[56px] p-2 rounded-xl transition-all duration-300 ${
-                isCurrentModule
-                  ? 'bg-[#D4AF37]/10 ring-1 ring-[#D4AF37]/30'
-                  : 'hover:bg-white/5'
-              }`}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: idx * 0.04, duration: 0.3, ease: "easeOut" }}
+              className={`
+                flex flex-col items-center justify-center flex-shrink-0
+                w-[72px] sm:w-[80px] py-3 px-2 rounded-2xl
+                transition-all duration-300 ease-out
+                ${isCurrentModule
+                  ? 'bg-gradient-to-b from-[#D4AF37]/15 to-[#D4AF37]/5 ring-1 ring-[#D4AF37]/40 shadow-[0_0_20px_rgba(212,175,55,0.15)]'
+                  : 'hover:bg-white/[0.04]'
+                }
+              `}
               title={course.title}
             >
-              <div className={`relative w-8 h-8 rounded-full flex items-center justify-center text-xs font-helvetica-bold transition-all duration-300 ${
-                isCompleted
-                  ? 'bg-gradient-to-br from-[#D4AF37] to-[#B8962E] text-black shadow-[0_0_20px_rgba(212,175,55,0.4)]'
+              {/* Module number circle */}
+              <div className={`
+                relative w-10 h-10 sm:w-11 sm:h-11 rounded-full
+                flex items-center justify-center
+                text-sm font-helvetica-bold
+                transition-all duration-300
+                ${isCompleted
+                  ? 'bg-gradient-to-br from-[#D4AF37] via-[#E5C158] to-[#B8962E] text-black shadow-[0_4px_20px_rgba(212,175,55,0.5)]'
                   : isCurrentModule
-                    ? 'bg-[#D4AF37]/20 text-[#D4AF37] ring-2 ring-[#D4AF37]/50'
-                    : 'bg-white/10 text-zinc-500'
-              }`}>
-                {isCompleted ? <CheckCircle size={14} className="text-black" /> : idx + 1}
+                    ? 'bg-[#D4AF37]/20 text-[#D4AF37] ring-2 ring-[#D4AF37] shadow-[0_0_15px_rgba(212,175,55,0.3)]'
+                    : 'bg-white/[0.08] text-zinc-400 border border-white/10'
+                }
+              `}>
+                {isCompleted ? (
+                  <CheckCircle size={18} className="text-black" strokeWidth={2.5} />
+                ) : (
+                  <span>{idx + 1}</span>
+                )}
+
+                {/* Pulsing indicator for current module */}
                 {isCurrentModule && (
                   <motion.span
-                    className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-[#D4AF37] rounded-full"
-                    animate={{ scale: [1, 1.2, 1], opacity: [1, 0.7, 1] }}
-                    transition={{ duration: 1.5, repeat: Infinity }}
+                    className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-[#D4AF37] rounded-full border-2 border-[#0f0f10]"
+                    animate={{
+                      scale: [1, 1.3, 1],
+                      boxShadow: [
+                        '0 0 0 0 rgba(212,175,55,0.4)',
+                        '0 0 0 6px rgba(212,175,55,0)',
+                        '0 0 0 0 rgba(212,175,55,0)'
+                      ]
+                    }}
+                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
                   />
                 )}
               </div>
-              <span
-                className={`text-[10px] mt-1.5 font-medium truncate max-w-[52px] text-center leading-tight ${
-                  isCompleted
+
+              {/* Module code label */}
+              <span className={`
+                text-[11px] sm:text-xs mt-2 font-semibold tracking-wide
+                text-center leading-tight
+                ${isCompleted
+                  ? 'text-[#D4AF37]'
+                  : isCurrentModule
                     ? 'text-[#D4AF37]'
-                    : isCurrentModule
-                      ? 'text-[#D4AF37]/80'
-                      : 'text-zinc-500'
-                }`}
-              >
+                    : 'text-zinc-500'
+                }
+              `}>
                 {moduleCode}
               </span>
+
+              {/* Current module status */}
               {isCurrentModule && (
                 <motion.span
-                  className="text-[8px] text-[#D4AF37]/70 mt-0.5 font-medium"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
+                  className="text-[9px] text-[#D4AF37]/80 mt-1 font-medium tracking-wide uppercase"
+                  initial={{ opacity: 0, y: 5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
                 >
-                  En cours
+                  In Progress
                 </motion.span>
               )}
             </motion.div>
@@ -280,22 +318,18 @@ const ModuleProgressIndicator: React.FC<ModuleProgressIndicatorProps> = ({ cours
         })}
       </div>
 
-      {/* Scroll hint indicator - only shows when scrollable */}
-      {(canScrollLeft || canScrollRight) && (
+      {/* Scroll hint - only when scrollable */}
+      {needsScroll && (canScrollLeft || canScrollRight) && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="flex justify-center mt-2"
+          className="flex justify-center mt-1"
         >
-          <motion.div
-            animate={{ opacity: [0.4, 0.8, 0.4] }}
-            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-            className="text-[10px] text-zinc-500 flex items-center gap-2 bg-white/5 px-3 py-1 rounded-full"
-          >
-            <ChevronLeft size={10} />
-            <span>Glisser pour naviguer</span>
-            <ChevronRight size={10} />
-          </motion.div>
+          <div className="text-[10px] text-zinc-600 flex items-center gap-2">
+            <ChevronLeft size={12} className="animate-pulse" />
+            <span>Scroll to see more</span>
+            <ChevronRight size={12} className="animate-pulse" />
+          </div>
         </motion.div>
       )}
     </div>
