@@ -127,13 +127,43 @@ const LiquidProgressTimeline: React.FC<LiquidProgressTimelineProps> = ({ courses
     }
   };
 
-  // Calculate timeline progress based on completed courses (not sequential)
+  // Calculate timeline progress to align with node positions
   const getTimelineProgress = () => {
     if (courses.length === 0) return 0;
-    const completedCount = courses.filter(c => c.progress === 100).length;
-    const inProgressCourses = courses.filter(c => c.progress > 0 && c.progress < 100);
-    const partialProgress = inProgressCourses.reduce((sum, c) => sum + c.progress, 0) / 100;
-    return ((completedCount + partialProgress) / courses.length) * 100;
+    if (courses.length === 1) return courses[0].progress;
+
+    // Find the index of the last completed course and current in-progress course
+    let lastCompletedIdx = -1;
+    let currentInProgressIdx = -1;
+    let currentProgress = 0;
+
+    courses.forEach((course, idx) => {
+      if (course.progress === 100) {
+        lastCompletedIdx = idx;
+      } else if (course.progress > 0 && currentInProgressIdx === -1) {
+        currentInProgressIdx = idx;
+        currentProgress = course.progress;
+      }
+    });
+
+    // Calculate position based on node positions (0 to 100)
+    const totalNodes = courses.length;
+    const nodeSpacing = 100 / (totalNodes - 1);
+
+    if (lastCompletedIdx === totalNodes - 1) {
+      // All courses completed
+      return 100;
+    } else if (currentInProgressIdx >= 0) {
+      // Progress up to current course + partial progress within it
+      const baseProgress = currentInProgressIdx * nodeSpacing;
+      const partialNodeProgress = (currentProgress / 100) * nodeSpacing;
+      return baseProgress + partialNodeProgress;
+    } else if (lastCompletedIdx >= 0) {
+      // Fill up to last completed node
+      return (lastCompletedIdx + 1) * nodeSpacing;
+    }
+
+    return 0;
   };
 
   const timelineProgress = getTimelineProgress();
