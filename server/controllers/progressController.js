@@ -1,27 +1,27 @@
 import pool from '../config/database.js';
 
-// Helper: Check if user has completed prerequisite course
+const LEVELS = ['Beginner', 'Intermediate', 'Advanced'];
+
+// Helper: Check if user can access a course based on unlock rules
+// RULES:
+// 1. First course in each level is unlocked (if previous level is complete)
+// 2. Courses unlock sequentially until 2 are completed
+// 3. After completing 2 courses in a level → ALL courses in that level unlock
+// 4. After completing ALL courses in a level → first course of next level unlocks
 async function checkPrerequisites(userId, courseId) {
-  // Get course and its prerequisite
+  // Get the target course info
   let courseResult;
   try {
     courseResult = await pool.query(`
-      SELECT c.id, c.level, c.prerequisite_course_id,
-             pc.title as prereq_title
+      SELECT c.id, c.level, c.order_index, c.title
       FROM courses c
-      LEFT JOIN courses pc ON pc.id = c.prerequisite_course_id
       WHERE c.id = $1
     `, [courseId]);
   } catch (e) {
-    if (e.code === '42703') { // PostgreSQL "column does not exist"
-      console.warn('Prerequisite column missing in courses table, falling back');
-      courseResult = await pool.query(`
-        SELECT id, level FROM courses
-        WHERE id = $1
-      `, [courseId]);
-    } else {
-      throw e;
-    }
+    console.error('Error fetching course:', e);
+    courseResult = await pool.query(`
+      SELECT id, level FROM courses WHERE id = $1
+    `, [courseId]);
   }
 
   if (courseResult.rows.length === 0) {
@@ -29,45 +29,81 @@ async function checkPrerequisites(userId, courseId) {
   }
 
   const course = courseResult.rows[0];
+  const courseLevel = course.level;
+  const levelIndex = LEVELS.indexOf(courseLevel);
 
-  // If course has explicit prerequisite, check it
-  if (course.prerequisite_course_id) {
-    const prereqCheck = await pool.query(`
-      SELECT completed_at FROM enrollments
-      WHERE user_id = $1 AND course_id = $2 AND completed_at IS NOT NULL
-    `, [userId, course.prerequisite_course_id]);
+  // Get all courses in this level, sorted by order_index
+  const levelCoursesResult = await pool.query(`
+    SELECT c.id, c.title, c.order_index
+    FROM courses c
+    WHERE c.level = $1 AND c.is_published = true
+    ORDER BY c.order_index ASC
+  `, [courseLevel]);
 
-    if (prereqCheck.rows.length === 0) {
+  const levelCourses = levelCoursesResult.rows;
+  const courseIndexInLevel = levelCourses.findIndex(c => c.id === courseId);
+
+  // Get user's completed courses in this level
+  const completedInLevelResult = await pool.query(`
+    SELECT c.id
+    FROM enrollments e
+    JOIN courses c ON c.id = e.course_id
+    WHERE e.user_id = $1 AND c.level = $2 AND e.completed_at IS NOT NULL
+  `, [userId, courseLevel]);
+
+  const completedInLevel = completedInLevelResult.rows.length;
+
+  // Check if previous level is fully complete (required for non-Beginner levels)
+  if (levelIndex > 0) {
+    const previousLevel = LEVELS[levelIndex - 1];
+
+    // Get total courses in previous level
+    const prevLevelTotalResult = await pool.query(`
+      SELECT COUNT(*) as count FROM courses WHERE level = $1 AND is_published = true
+    `, [previousLevel]);
+    const prevLevelTotal = parseInt(prevLevelTotalResult.rows[0].count);
+
+    // Get completed courses in previous level
+    const prevLevelCompletedResult = await pool.query(`
+      SELECT COUNT(*) as count
+      FROM enrollments e
+      JOIN courses c ON c.id = e.course_id
+      WHERE e.user_id = $1 AND c.level = $2 AND e.completed_at IS NOT NULL
+    `, [userId, previousLevel]);
+    const prevLevelCompleted = parseInt(prevLevelCompletedResult.rows[0].count);
+
+    // Previous level must be fully complete
+    if (prevLevelTotal > 0 && prevLevelCompleted < prevLevelTotal) {
       return {
         allowed: false,
-        reason: `You must complete "${course.prereq_title}" first`,
-        prerequisiteCourseId: course.prerequisite_course_id
+        reason: `Complete all ${previousLevel} courses first (${prevLevelCompleted}/${prevLevelTotal} done)`
       };
     }
   }
 
-  // Level-based prerequisites: Intermediate requires a completed Beginner, Advanced requires completed Intermediate
-  if (course.level === 'Intermediate') {
-    const beginnerCheck = await pool.query(`
-      SELECT e.id FROM enrollments e
-      JOIN courses c ON c.id = e.course_id
-      WHERE e.user_id = $1 AND c.level = 'Beginner' AND e.completed_at IS NOT NULL
-    `, [userId]);
-
-    if (beginnerCheck.rows.length === 0) {
-      return { allowed: false, reason: 'Complete a Beginner course first to unlock Intermediate courses' };
-    }
+  // Rule: If 2+ courses completed in this level → ALL courses in this level are unlocked
+  if (completedInLevel >= 2) {
+    return { allowed: true };
   }
 
-  if (course.level === 'Advanced') {
-    const intermediateCheck = await pool.query(`
-      SELECT e.id FROM enrollments e
-      JOIN courses c ON c.id = e.course_id
-      WHERE e.user_id = $1 AND c.level = 'Intermediate' AND e.completed_at IS NOT NULL
-    `, [userId]);
+  // Rule: First course in level is always unlocked (if previous level complete)
+  if (courseIndexInLevel === 0) {
+    return { allowed: true };
+  }
 
-    if (intermediateCheck.rows.length === 0) {
-      return { allowed: false, reason: 'Complete an Intermediate course first to unlock Advanced courses' };
+  // Rule: Sequential unlock - check if previous course in level is complete
+  const previousCourse = levelCourses[courseIndexInLevel - 1];
+  if (previousCourse) {
+    const prevCourseCompletedResult = await pool.query(`
+      SELECT e.id FROM enrollments e
+      WHERE e.user_id = $1 AND e.course_id = $2 AND e.completed_at IS NOT NULL
+    `, [userId, previousCourse.id]);
+
+    if (prevCourseCompletedResult.rows.length === 0) {
+      return {
+        allowed: false,
+        reason: `Complete "${previousCourse.title}" first`
+      };
     }
   }
 

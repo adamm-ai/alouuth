@@ -604,40 +604,70 @@ const App: React.FC = () => {
     loadDashboardStats();
   }, [currentView, dashboardStatsLoaded]);
 
-  // Learning Path Enforcement: Check if user can access a course based on level
-  // Updated logic: User must complete ALL ENROLLED courses in previous level to unlock next level
+  // Learning Path Enforcement: Check if user can access a course
+  // UNLOCK RULES:
+  // 1. First course in each level is unlocked (if previous level is complete)
+  // 2. Courses unlock sequentially until 2 are completed in the level
+  // 3. After completing 2 courses in a level → ALL courses in that level unlock
+  // 4. After completing ALL courses in a level → first course of next level unlocks
   const canAccessCourse = (course: Course): { allowed: boolean; reason?: string; progressInfo?: string } => {
-    const levelOrder = ['Beginner', 'Intermediate', 'Advanced'];
-    const courseLevel = levelOrder.indexOf(course.level);
+    const LEVELS = ['Beginner', 'Intermediate', 'Advanced'];
+    const levelIndex = LEVELS.indexOf(course.level);
 
-    // Beginner courses are always accessible
-    if (courseLevel === 0) return { allowed: true };
+    // Helper: Get courses in a level sorted by orderIndex
+    const getCoursesInLevel = (level: string) => {
+      return courses
+        .filter(c => c.level === level)
+        .sort((a, b) => (a.orderIndex ?? 999) - (b.orderIndex ?? 999));
+    };
 
-    // For higher levels, check if ALL ENROLLED previous level courses are completed
-    const previousLevel = levelOrder[courseLevel - 1];
-    const previousLevelCourses = courses.filter(c => c.level === previousLevel);
+    // Helper: Count completed courses in a level
+    const getCompletedCountInLevel = (level: string) => {
+      return getCoursesInLevel(level).filter(c => c.progress === 100).length;
+    };
 
-    // Enrolled courses = those with progress > 0 (user has started them)
-    const enrolledPreviousCourses = previousLevelCourses.filter(c => c.progress > 0);
+    // Helper: Check if a level is fully complete
+    const isLevelFullyComplete = (level: string) => {
+      const levelCourses = getCoursesInLevel(level);
+      return levelCourses.length > 0 && levelCourses.every(c => c.progress === 100);
+    };
 
-    // If user hasn't enrolled in any previous level courses, they need to complete at least one
-    if (enrolledPreviousCourses.length === 0) {
-      return {
-        allowed: false,
-        reason: `Enroll in and complete at least one ${previousLevel} course first to unlock ${course.level} courses.`,
-        progressInfo: `0 ${previousLevel} courses enrolled`
-      };
+    // Get courses in the target course's level
+    const levelCourses = getCoursesInLevel(course.level);
+    const courseIndexInLevel = levelCourses.findIndex(c => c.id === course.id);
+    const completedInLevel = getCompletedCountInLevel(course.level);
+
+    // Check if previous level is fully complete (required for non-Beginner levels)
+    if (levelIndex > 0) {
+      const previousLevel = LEVELS[levelIndex - 1];
+      if (!isLevelFullyComplete(previousLevel)) {
+        const prevLevelCourses = getCoursesInLevel(previousLevel);
+        const completedPrevious = getCompletedCountInLevel(previousLevel);
+        return {
+          allowed: false,
+          reason: `Complete all ${previousLevel} courses to unlock ${course.level} courses.`,
+          progressInfo: `${completedPrevious}/${prevLevelCourses.length} ${previousLevel} courses completed`
+        };
+      }
     }
 
-    // Count completed enrolled courses (100% progress)
-    const completedEnrolledCourses = enrolledPreviousCourses.filter(c => c.progress >= 100);
+    // Rule: If 2+ courses completed in this level → ALL courses in this level are unlocked
+    if (completedInLevel >= 2) {
+      return { allowed: true };
+    }
 
-    // All enrolled courses must be completed to unlock next level
-    if (completedEnrolledCourses.length < enrolledPreviousCourses.length) {
+    // Rule: First course in level is always unlocked (if previous level complete)
+    if (courseIndexInLevel === 0) {
+      return { allowed: true };
+    }
+
+    // Rule: Sequential unlock - previous course in level must be complete
+    const previousCourse = levelCourses[courseIndexInLevel - 1];
+    if (previousCourse && previousCourse.progress < 100) {
       return {
         allowed: false,
-        reason: `Complete all enrolled ${previousLevel} courses to unlock ${course.level} courses.`,
-        progressInfo: `${completedEnrolledCourses.length}/${enrolledPreviousCourses.length} ${previousLevel} courses completed`
+        reason: `Complete "${previousCourse.title}" first to unlock this course.`,
+        progressInfo: `Complete ${2 - completedInLevel} more course(s) to unlock all ${course.level} courses`
       };
     }
 
@@ -1294,64 +1324,105 @@ const App: React.FC = () => {
   };
 
   const DashboardView = () => {
-    // Course-level locking logic
-    // Updated: User must complete ALL ENROLLED courses (progress > 0) in previous level
+    // Helper functions
     const isCourseCompleted = (course: Course) => course.progress === 100;
-    const isCourseEnrolled = (course: Course) => course.progress > 0;
 
-    const getBeginnerCourses = () => courses.filter(c => c.level === 'Beginner');
-    const getIntermediateCourses = () => courses.filter(c => c.level === 'Intermediate');
-    const getAdvancedCourses = () => courses.filter(c => c.level === 'Advanced');
+    // Course-level locking logic
+    // NEW LOGIC:
+    // 1. First course in each level is unlocked (if previous level is complete)
+    // 2. Courses unlock sequentially until 2 are completed
+    // 3. After completing 2 courses in a level → ALL courses in that level unlock
+    // 4. After completing ALL courses in a level → first course of next level unlocks
 
-    // Get enrolled courses for each level
-    const getEnrolledBeginnerCourses = () => getBeginnerCourses().filter(isCourseEnrolled);
-    const getEnrolledIntermediateCourses = () => getIntermediateCourses().filter(isCourseEnrolled);
+    const LEVELS = ['Beginner', 'Intermediate', 'Advanced'];
 
-    // All ENROLLED courses must be completed to unlock next level
-    const allEnrolledBeginnerCompleted = () => {
-      const enrolledBeginner = getEnrolledBeginnerCourses();
-      // Must have at least one enrolled course and all enrolled must be completed
-      return enrolledBeginner.length > 0 && enrolledBeginner.every(isCourseCompleted);
+    const getCoursesInLevel = (level: string) => {
+      return courses
+        .filter(c => c.level === level)
+        .sort((a, b) => (a.orderIndex ?? 999) - (b.orderIndex ?? 999));
     };
 
-    const allEnrolledIntermediateCompleted = () => {
-      const enrolledIntermediate = getEnrolledIntermediateCourses();
-      return enrolledIntermediate.length > 0 && enrolledIntermediate.every(isCourseCompleted);
+    const getCompletedCountInLevel = (level: string) => {
+      return getCoursesInLevel(level).filter(c => c.progress === 100).length;
     };
 
-    const isLevelUnlocked = (level: string) => {
-      if (level === 'Beginner') return true;
-      if (level === 'Intermediate') return allEnrolledBeginnerCompleted();
-      if (level === 'Advanced') return allEnrolledBeginnerCompleted() && allEnrolledIntermediateCompleted();
-      return true;
+    const isLevelFullyComplete = (level: string) => {
+      const levelCourses = getCoursesInLevel(level);
+      return levelCourses.length > 0 && levelCourses.every(c => c.progress === 100);
     };
 
-    const isCourseUnlocked = (course: Course) => isLevelUnlocked(course.level);
+    const isPreviousLevelComplete = (level: string) => {
+      const levelIndex = LEVELS.indexOf(level);
+      if (levelIndex <= 0) return true; // Beginner has no previous level
+      return isLevelFullyComplete(LEVELS[levelIndex - 1]);
+    };
 
-    const getLockedMessage = (level: string) => {
-      if (level === 'Intermediate') {
-        const enrolledBeginner = getEnrolledBeginnerCourses();
-        if (enrolledBeginner.length === 0) {
-          return `Enroll in and complete at least one Beginner course to unlock`;
-        }
-        const completedCount = enrolledBeginner.filter(isCourseCompleted).length;
-        return `Complete all enrolled Beginner courses (${completedCount}/${enrolledBeginner.length} completed)`;
+    const isCourseUnlocked = (course: Course) => {
+      const levelCourses = getCoursesInLevel(course.level);
+      const courseIndexInLevel = levelCourses.findIndex(c => c.id === course.id);
+      const completedInLevel = getCompletedCountInLevel(course.level);
+
+      // Check if previous level is fully complete (required for non-Beginner levels)
+      if (!isPreviousLevelComplete(course.level)) {
+        return false;
       }
-      if (level === 'Advanced') {
-        if (!allEnrolledBeginnerCompleted()) {
-          const enrolledBeginner = getEnrolledBeginnerCourses();
-          if (enrolledBeginner.length === 0) {
-            return `Enroll in and complete Beginner courses first`;
-          }
-          const completedCount = enrolledBeginner.filter(isCourseCompleted).length;
-          return `Complete all enrolled Beginner courses (${completedCount}/${enrolledBeginner.length} completed)`;
+
+      // Rule: If 2+ courses completed in this level → ALL courses in this level are unlocked
+      if (completedInLevel >= 2) {
+        return true;
+      }
+
+      // Rule: First course in level is always unlocked (if previous level complete)
+      if (courseIndexInLevel === 0) {
+        return true;
+      }
+
+      // Rule: Sequential unlock - previous course in level must be complete
+      const previousCourse = levelCourses[courseIndexInLevel - 1];
+      return previousCourse && previousCourse.progress === 100;
+    };
+
+    const getLockedMessage = (course: Course) => {
+      const levelCourses = getCoursesInLevel(course.level);
+      const courseIndexInLevel = levelCourses.findIndex(c => c.id === course.id);
+      const completedInLevel = getCompletedCountInLevel(course.level);
+
+      // Check previous level first
+      if (!isPreviousLevelComplete(course.level)) {
+        const levelIndex = LEVELS.indexOf(course.level);
+        const previousLevel = LEVELS[levelIndex - 1];
+        const previousLevelCourses = getCoursesInLevel(previousLevel);
+        const completedPrevious = getCompletedCountInLevel(previousLevel);
+        return `Complete all ${previousLevel} courses (${completedPrevious}/${previousLevelCourses.length}) to unlock`;
+      }
+
+      // Within level locking
+      if (completedInLevel < 2 && courseIndexInLevel > 0) {
+        const previousCourse = levelCourses[courseIndexInLevel - 1];
+        if (previousCourse && previousCourse.progress < 100) {
+          return `Complete "${previousCourse.title}" first`;
         }
-        const enrolledIntermediate = getEnrolledIntermediateCourses();
-        if (enrolledIntermediate.length === 0) {
-          return `Enroll in and complete at least one Intermediate course to unlock`;
+        if (completedInLevel < 2) {
+          return `Complete ${2 - completedInLevel} more course(s) to unlock all ${course.level} courses`;
         }
-        const completedCount = enrolledIntermediate.filter(isCourseCompleted).length;
-        return `Complete all enrolled Intermediate courses (${completedCount}/${enrolledIntermediate.length} completed)`;
+      }
+
+      return '';
+    };
+
+    // Legacy compatibility - check if entire level is accessible
+    const isLevelUnlocked = (level: string) => {
+      return isPreviousLevelComplete(level);
+    };
+
+    // For backward compatibility with existing code
+    const getLockedMessageForLevel = (level: string) => {
+      if (!isPreviousLevelComplete(level)) {
+        const levelIndex = LEVELS.indexOf(level);
+        const previousLevel = LEVELS[levelIndex - 1];
+        const previousLevelCourses = getCoursesInLevel(previousLevel);
+        const completedPrevious = getCompletedCountInLevel(previousLevel);
+        return `Complete all ${previousLevel} courses (${completedPrevious}/${previousLevelCourses.length}) to unlock`;
       }
       return '';
     };
