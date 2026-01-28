@@ -169,24 +169,20 @@ const LiquidProgressTimeline: React.FC<LiquidProgressTimelineProps> = ({ courses
       {/* Scroll buttons */}
       {needsScroll && (
         <>
-          <motion.button
+          <button
             type="button"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: canScrollLeft ? 1 : 0 }}
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); scroll('left'); }}
-            className={`absolute -left-5 top-1/2 -translate-y-1/2 z-30 w-10 h-10 rounded-full bg-black/90 border border-[#D4AF37]/30 flex items-center justify-center text-[#D4AF37] hover:bg-[#D4AF37]/10 hover:border-[#D4AF37]/60 transition-all shadow-xl backdrop-blur-sm ${!canScrollLeft && 'pointer-events-none'}`}
+            className={`absolute -left-5 top-1/2 -translate-y-1/2 z-30 w-10 h-10 rounded-full bg-black/90 border border-[#D4AF37]/30 flex items-center justify-center text-[#D4AF37] hover:bg-[#D4AF37]/10 hover:border-[#D4AF37]/60 transition-all shadow-xl backdrop-blur-sm ${!canScrollLeft ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
           >
             <ChevronLeft size={20} />
-          </motion.button>
-          <motion.button
+          </button>
+          <button
             type="button"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: canScrollRight ? 1 : 0 }}
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); scroll('right'); }}
-            className={`absolute -right-5 top-1/2 -translate-y-1/2 z-30 w-10 h-10 rounded-full bg-black/90 border border-[#D4AF37]/30 flex items-center justify-center text-[#D4AF37] hover:bg-[#D4AF37]/10 hover:border-[#D4AF37]/60 transition-all shadow-xl backdrop-blur-sm ${!canScrollRight && 'pointer-events-none'}`}
+            className={`absolute -right-5 top-1/2 -translate-y-1/2 z-30 w-10 h-10 rounded-full bg-black/90 border border-[#D4AF37]/30 flex items-center justify-center text-[#D4AF37] hover:bg-[#D4AF37]/10 hover:border-[#D4AF37]/60 transition-all shadow-xl backdrop-blur-sm ${!canScrollRight ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
           >
             <ChevronRight size={20} />
-          </motion.button>
+          </button>
         </>
       )}
 
@@ -228,7 +224,7 @@ const LiquidProgressTimeline: React.FC<LiquidProgressTimelineProps> = ({ courses
                   style={{ width: `${nodeWidth}px` }}
                 >
                   {/* Main node button - 25% bigger (w-15 h-15 equivalent) */}
-                  <motion.button
+                  <button
                     type="button"
                     onClick={(e) => {
                       e.preventDefault();
@@ -243,15 +239,11 @@ const LiquidProgressTimeline: React.FC<LiquidProgressTimelineProps> = ({ courses
                       relative w-[60px] h-[60px] rounded-full
                       flex items-center justify-center
                       transition-all duration-300 ease-out
-                      ${isCompleted ? 'cursor-pointer' : isLocked ? 'cursor-not-allowed' : 'cursor-pointer'}
+                      ${isCompleted ? 'cursor-pointer' : isLocked ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}
+                      ${!isLocked ? 'hover:scale-110 active:scale-95' : ''}
                     `}
-                    whileHover={!isLocked ? { scale: 1.12 } : {}}
-                    whileTap={!isLocked ? { scale: 0.95 } : {}}
                     disabled={isLocked}
                     title={course.title}
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: isLocked ? 0.5 : 1, scale: 1 }}
-                    transition={{ duration: 0.4, delay: idx * 0.05 }}
                   >
                     {/* Outer glow for completed/active */}
                     {(isCompleted || isInProgress) && (
@@ -328,7 +320,7 @@ const LiquidProgressTimeline: React.FC<LiquidProgressTimelineProps> = ({ courses
                         transition={{ duration: 2, repeat: Infinity }}
                       />
                     )}
-                  </motion.button>
+                  </button>
 
                   {/* Module label - bigger text */}
                   <motion.span
@@ -1798,38 +1790,26 @@ const App: React.FC = () => {
                                 {course.description}
                               </p>
                               {course.description && course.description.length > 80 && (
-                                <div
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setExpandedDescriptions(prev => {
+                                      const newSet = new Set(prev);
+                                      if (newSet.has(course.id)) {
+                                        newSet.delete(course.id);
+                                      } else {
+                                        newSet.add(course.id);
+                                      }
+                                      return newSet;
+                                    });
                                   }}
-                                  onClickCapture={(e) => {
-                                    e.stopPropagation();
-                                  }}
+                                  className={`text-xs font-medium mb-3 ${courseUnlocked
+                                    ? 'text-[#D4AF37]/80 hover:text-[#D4AF37]'
+                                    : 'text-zinc-600'
+                                    } transition-colors cursor-pointer`}
                                 >
-                                  <button
-                                    type="button"
-                                    onClick={(e) => {
-                                      e.preventDefault();
-                                      e.stopPropagation();
-                                      setExpandedDescriptions(prev => {
-                                        const newSet = new Set(prev);
-                                        if (newSet.has(course.id)) {
-                                          newSet.delete(course.id);
-                                        } else {
-                                          newSet.add(course.id);
-                                        }
-                                        return newSet;
-                                      });
-                                    }}
-                                    className={`text-xs font-medium mb-3 ${courseUnlocked
-                                      ? 'text-[#D4AF37]/80 hover:text-[#D4AF37]'
-                                      : 'text-zinc-600'
-                                      } transition-colors cursor-pointer`}
-                                  >
-                                    {expandedDescriptions.has(course.id) ? '← Show less' : 'Read more →'}
-                                  </button>
-                                </div>
+                                  {expandedDescriptions.has(course.id) ? '← Show less' : 'Read more →'}
+                                </button>
                               )}
 
                               {/* Stats Row */}
