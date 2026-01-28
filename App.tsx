@@ -943,6 +943,7 @@ const App: React.FC = () => {
             </div>
           </div>
           <button
+            type="button"
             onClick={() => {
               setAuthToken(null); // Clear the JWT token
               setUser(null);
@@ -989,6 +990,7 @@ const App: React.FC = () => {
 
     return (
       <button
+        type="button"
         onClick={handleClick}
         className={`
         relative w-full flex items-center gap-3 px-4 py-2 rounded-xl transition-all duration-300 overflow-hidden
@@ -1172,7 +1174,7 @@ const App: React.FC = () => {
       <div className="min-h-screen flex items-center justify-center relative z-10 p-4">
         <GlassCard className="max-w-md w-full p-8 md:p-10 relative overflow-hidden transition-all duration-500 border-t border-white/20">
           <div className="flex justify-between items-center mb-6">
-            <button onClick={() => setCurrentView('LANDING')} className="text-zinc-500 hover:text-white flex items-center gap-2 text-sm transition-colors">
+            <button type="button" onClick={() => setCurrentView('LANDING')} className="text-zinc-500 hover:text-white flex items-center gap-2 text-sm transition-colors">
               <ArrowLeft size={16} /> Back
             </button>
           </div>
@@ -1180,6 +1182,7 @@ const App: React.FC = () => {
           {/* Login/Register Tabs */}
           <div className="flex mb-8 bg-zinc-900/50 rounded-xl p-1">
             <button
+              type="button"
               onClick={() => { setAuthMode('login'); setError(''); }}
               className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${authMode === 'login'
                 ? 'bg-yellow-400 text-black'
@@ -1189,6 +1192,7 @@ const App: React.FC = () => {
               Sign In
             </button>
             <button
+              type="button"
               onClick={() => { setAuthMode('register'); setError(''); }}
               className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${authMode === 'register'
                 ? 'bg-yellow-400 text-black'
@@ -1454,7 +1458,7 @@ const App: React.FC = () => {
         {/* Mobile Header */}
         <div className="md:hidden p-4 flex justify-between items-center bg-[#0c0c0e] border-b border-white/[0.04] sticky top-0 z-40">
           <span className="font-helvetica-bold">Amini Academy</span>
-          <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+          <button type="button" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
             {mobileMenuOpen ? <X /> : <Menu />}
           </button>
         </div>
@@ -1468,6 +1472,7 @@ const App: React.FC = () => {
               <span className="text-black/70 text-sm">You are viewing as a learner. Actions are disabled.</span>
             </div>
             <button
+              type="button"
               onClick={() => { setIsAdminPreviewMode(false); setCurrentView('ADMIN'); }}
               className="flex items-center gap-2 px-4 py-1.5 rounded-lg bg-black/20 hover:bg-black/30 text-black font-medium text-sm transition-colors"
             >
@@ -1684,10 +1689,10 @@ const App: React.FC = () => {
                             }`}
                         >
                           {/* Card Background with Glassmorphism */}
-                          <div className="absolute inset-0 bg-gradient-to-br from-zinc-900/90 via-zinc-900/80 to-black/90 backdrop-blur-xl border border-white/10 rounded-3xl group-hover:border-[#D4AF37]/50 transition-colors duration-500" />
+                          <div className="absolute inset-0 bg-gradient-to-br from-zinc-900/90 via-zinc-900/80 to-black/90 backdrop-blur-xl border border-white/10 rounded-3xl group-hover:border-[#D4AF37]/50 transition-colors duration-500 pointer-events-none" />
 
                           {/* Ambient Glow Effect */}
-                          <div className="absolute -inset-px bg-gradient-to-br from-yellow-400/0 via-transparent to-yellow-400/0 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 blur-xl" />
+                          <div className="absolute -inset-px bg-gradient-to-br from-yellow-400/0 via-transparent to-yellow-400/0 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 blur-xl pointer-events-none" />
 
                           <div className="relative">
                             {/* Image Container with Aspect Ratio - Clickable area for navigation */}
@@ -2081,6 +2086,7 @@ const App: React.FC = () => {
     // Hyper Glass Card for curriculum items
     const CurriculumItem = ({ lesson, idx, isActive, isLocked, isCompleted, onClick }: any) => (
       <button
+        type="button"
         onClick={onClick}
         disabled={isLocked}
         className={`
@@ -2184,6 +2190,7 @@ const App: React.FC = () => {
               <span className="text-black/70 text-sm hidden sm:inline">Progress will not be saved.</span>
             </div>
             <button
+              type="button"
               onClick={() => { setIsAdminPreviewMode(false); setCurrentView('ADMIN'); }}
               className="flex items-center gap-2 px-4 py-1.5 rounded-lg bg-black/20 hover:bg-black/30 text-black font-medium text-sm transition-colors"
             >
@@ -2198,6 +2205,7 @@ const App: React.FC = () => {
           <div className="relative h-20 flex items-center justify-between px-6 border-b border-white/[0.06] bg-[#0a0a0b]">
             <div className="flex items-center gap-5">
               <button
+                type="button"
                 onClick={() => setCurrentView('DASHBOARD')}
                 className="group flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all duration-300"
               >
@@ -2274,6 +2282,7 @@ const App: React.FC = () => {
                       <p className="text-[11px] text-zinc-500 mt-1">{totalCount} lessons • {activeCourse?.totalDuration}</p>
                     </div>
                     <button
+                      type="button"
                       onClick={() => setPlayerSidebarCollapsed(!playerSidebarCollapsed)}
                       className="p-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-all"
                     >
@@ -2301,6 +2310,7 @@ const App: React.FC = () => {
                     if (playerSidebarCollapsed) {
                       return (
                         <button
+                          type="button"
                           key={lesson.id}
                           onClick={() => !isLocked && setActiveLesson(lesson)}
                           disabled={isLocked}
@@ -2420,6 +2430,7 @@ const App: React.FC = () => {
                             </div>
                             {/* Download Button - Yellow Liquid Style */}
                             <button
+                              type="button"
                               onClick={() => {
                                 downloadResource();
                                 setIsDownloaded(true);
@@ -2468,6 +2479,7 @@ const App: React.FC = () => {
                             </p>
                             <div className="flex items-center gap-4">
                               <button
+                                type="button"
                                 onClick={() => window.open(activeLesson.fileUrl, '_blank')}
                                 className="text-xs text-[#D4AF37] hover:text-yellow-400 flex items-center gap-1.5 transition-colors"
                               >
@@ -2540,6 +2552,7 @@ const App: React.FC = () => {
                             <div className="space-y-3 mb-10">
                               {activeLesson.quiz[currentQIdx].options.map((opt, idx) => (
                                 <button
+                                  type="button"
                                   key={idx}
                                   onClick={() => handleQuizAnswer(idx)}
                                   className={`
@@ -2620,6 +2633,7 @@ const App: React.FC = () => {
                               </div>
                               <div className="flex gap-4 justify-center pt-4">
                                 <button
+                                  type="button"
                                   onClick={() => { setQuizState('INTRO'); setCurrentQIdx(0); setQuizAnswers([]); setQuizPassed(null); }}
                                   className="px-8 py-3 rounded-xl font-helvetica-bold text-sm text-zinc-400 border border-white/20 bg-white/5 hover:bg-white/10 hover:text-white transition-all"
                                 >
@@ -2629,6 +2643,7 @@ const App: React.FC = () => {
                                 </button>
                                 {passed && (
                                   <button
+                                    type="button"
                                     onClick={() => handleLessonComplete(quizScore, activeLesson?.quiz?.length)}
                                     className="group relative px-8 py-3 rounded-xl font-helvetica-bold text-sm overflow-hidden
                                       bg-gradient-to-r from-[#D4AF37] via-[#F5D76E] to-[#D4AF37] border-2 border-[#F5D76E] text-black
@@ -2704,6 +2719,7 @@ const App: React.FC = () => {
 
                           {/* Liquid Yellow Bezel Continue Button */}
                           <button
+                            type="button"
                             onClick={() => handleLessonComplete()}
                             disabled={
                               activeLesson.isCompleted ||
@@ -2777,7 +2793,7 @@ const App: React.FC = () => {
                   <p className="text-xs text-zinc-500">{completedCount}/{totalCount} completed</p>
                 </div>
               </div>
-              <button className="p-3 rounded-xl bg-white/5 border border-white/10">
+              <button type="button" className="p-3 rounded-xl bg-white/5 border border-white/10">
                 <Menu size={20} className="text-zinc-400" />
               </button>
             </div>
@@ -3192,12 +3208,14 @@ const App: React.FC = () => {
             <div className="w-80 bg-[linear-gradient(180deg,#131315_0%,#0a0a0b_100%)] border-r border-white/[0.05] flex flex-col">
               <div className="flex border-b border-white/5">
                 <button
+                  type="button"
                   onClick={() => setEditorTab('DETAILS')}
                   className={`flex-1 py-4 text-sm font-medium transition-colors ${editorTab === 'DETAILS' ? 'text-[#D4AF37] border-b-2 border-yellow-400 bg-yellow-400/5' : 'text-zinc-400 hover:text-white'}`}
                 >
                   Details
                 </button>
                 <button
+                  type="button"
                   onClick={() => setEditorTab('CURRICULUM')}
                   className={`flex-1 py-4 text-sm font-medium transition-colors ${editorTab === 'CURRICULUM' ? 'text-[#D4AF37] border-b-2 border-yellow-400 bg-yellow-400/5' : 'text-zinc-400 hover:text-white'}`}
                 >
@@ -3214,6 +3232,7 @@ const App: React.FC = () => {
                       <div className="aspect-video rounded-xl bg-zinc-800 overflow-hidden mb-3 relative group border border-white/10">
                         <img src={editingCourse.thumbnail} className="w-full h-full object-cover" />
                         <button
+                          type="button"
                           onClick={() => setEditingCourse({ ...editingCourse, thumbnail: '' })}
                           className="absolute top-2 right-2 p-1.5 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500"
                         >
@@ -4617,6 +4636,7 @@ const App: React.FC = () => {
                     <h3 className="text-xl font-helvetica-bold">Ministry Training Progress</h3>
                     {selectedMinistry && (
                       <button
+                        type="button"
                         onClick={() => setSelectedMinistry(null)}
                         className="text-sm text-[#D4AF37] hover:text-yellow-300 flex items-center gap-1"
                       >
@@ -4629,6 +4649,7 @@ const App: React.FC = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                       {ministryStats.length > 0 ? ministryStats.map((ministry, idx) => (
                         <button
+                          type="button"
                           key={idx}
                           onClick={() => setSelectedMinistry(ministry.name)}
                           className="p-4 rounded-xl bg-white/5 border border-white/10 hover:border-[#D4AF37]/50 hover:bg-white/10 transition-all text-left group"
