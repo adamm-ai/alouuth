@@ -87,19 +87,18 @@ const getYouTubeVideoId = (url: string) => {
   return urlParams.get('v');
 };
 
-// Module Progress Indicator Component with elegant centered design
-interface ModuleProgressIndicatorProps {
+// Liquid Interactive Progress Timeline - Premium unified component
+interface LiquidProgressTimelineProps {
   courses: Course[];
   totalProgress: number;
+  onCourseClick: (course: Course) => void;
 }
 
-const ModuleProgressIndicator: React.FC<ModuleProgressIndicatorProps> = ({ courses, totalProgress }) => {
+const LiquidProgressTimeline: React.FC<LiquidProgressTimelineProps> = ({ courses, totalProgress, onCourseClick }) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
-  const [startX, setStartX] = useState(0);
-  const [scrollLeftPos, setScrollLeftPos] = useState(0);
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
   const checkScrollability = useCallback(() => {
     const container = scrollContainerRef.current;
@@ -111,11 +110,9 @@ const ModuleProgressIndicator: React.FC<ModuleProgressIndicatorProps> = ({ cours
   }, []);
 
   useEffect(() => {
-    // Delay check to ensure DOM is ready
     const timer = setTimeout(checkScrollability, 100);
     const handleResize = () => checkScrollability();
     window.addEventListener('resize', handleResize);
-
     return () => {
       clearTimeout(timer);
       window.removeEventListener('resize', handleResize);
@@ -125,213 +122,280 @@ const ModuleProgressIndicator: React.FC<ModuleProgressIndicatorProps> = ({ cours
   const scroll = (direction: 'left' | 'right') => {
     const container = scrollContainerRef.current;
     if (container) {
-      const scrollAmount = 200;
-      container.scrollBy({
-        left: direction === 'left' ? -scrollAmount : scrollAmount,
-        behavior: 'smooth'
-      });
+      container.scrollBy({ left: direction === 'left' ? -200 : 200, behavior: 'smooth' });
     }
   };
 
-  const handleMouseDown = (e: React.MouseEvent) => {
-    setIsDragging(true);
-    setStartX(e.pageX - (scrollContainerRef.current?.offsetLeft || 0));
-    setScrollLeftPos(scrollContainerRef.current?.scrollLeft || 0);
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging) return;
-    e.preventDefault();
-    const x = e.pageX - (scrollContainerRef.current?.offsetLeft || 0);
-    const walk = (x - startX) * 1.5;
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollLeft = scrollLeftPos - walk;
+  // Calculate cumulative progress for the timeline
+  const getCumulativeProgress = () => {
+    let completedCourses = 0;
+    for (const course of courses) {
+      if (course.progress === 100) completedCourses++;
+      else break; // Stop at first incomplete
     }
+    // Add partial progress of current course
+    const currentCourse = courses[completedCourses];
+    const partialProgress = currentCourse ? (currentCourse.progress / 100) : 0;
+    return ((completedCourses + partialProgress) / courses.length) * 100;
   };
 
-  const handleMouseUp = () => setIsDragging(false);
-  const handleMouseLeave = () => setIsDragging(false);
-
-  // Touch events for mobile
-  const handleTouchStart = (e: React.TouchEvent) => {
-    setIsDragging(true);
-    setStartX(e.touches[0].pageX - (scrollContainerRef.current?.offsetLeft || 0));
-    setScrollLeftPos(scrollContainerRef.current?.scrollLeft || 0);
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isDragging) return;
-    const x = e.touches[0].pageX - (scrollContainerRef.current?.offsetLeft || 0);
-    const walk = (x - startX) * 1.5;
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollLeft = scrollLeftPos - walk;
-    }
-  };
-
-  const handleTouchEnd = () => setIsDragging(false);
-
-  // Check if content fits without scrolling
-  const needsScroll = courses.length > 8;
+  const timelineProgress = getCumulativeProgress();
 
   return (
-    <div className="relative mt-6">
-      {/* Navigation buttons - only show when scrollable */}
-      {needsScroll && (
+    <div className="relative">
+      {/* Scroll buttons */}
+      {courses.length > 6 && (
         <>
           <motion.button
             initial={{ opacity: 0 }}
-            animate={{ opacity: canScrollLeft ? 1 : 0.3 }}
+            animate={{ opacity: canScrollLeft ? 1 : 0 }}
             onClick={() => scroll('left')}
-            disabled={!canScrollLeft}
-            className="absolute -left-2 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-zinc-800/90 border border-white/10 flex items-center justify-center text-white/70 hover:text-white hover:bg-zinc-700 hover:border-[#D4AF37]/40 transition-all duration-200 shadow-xl backdrop-blur-sm disabled:cursor-not-allowed"
-            aria-label="Scroll left"
+            className={`absolute -left-3 top-1/2 -translate-y-1/2 z-30 w-8 h-8 rounded-full bg-black/80 border border-white/20 flex items-center justify-center text-white hover:bg-zinc-800 hover:border-[#D4AF37]/50 transition-all shadow-xl ${!canScrollLeft && 'pointer-events-none'}`}
           >
-            <ChevronLeft size={20} />
+            <ChevronLeft size={16} />
           </motion.button>
           <motion.button
             initial={{ opacity: 0 }}
-            animate={{ opacity: canScrollRight ? 1 : 0.3 }}
+            animate={{ opacity: canScrollRight ? 1 : 0 }}
             onClick={() => scroll('right')}
-            disabled={!canScrollRight}
-            className="absolute -right-2 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-zinc-800/90 border border-white/10 flex items-center justify-center text-white/70 hover:text-white hover:bg-zinc-700 hover:border-[#D4AF37]/40 transition-all duration-200 shadow-xl backdrop-blur-sm disabled:cursor-not-allowed"
-            aria-label="Scroll right"
+            className={`absolute -right-3 top-1/2 -translate-y-1/2 z-30 w-8 h-8 rounded-full bg-black/80 border border-white/20 flex items-center justify-center text-white hover:bg-zinc-800 hover:border-[#D4AF37]/50 transition-all shadow-xl ${!canScrollRight && 'pointer-events-none'}`}
           >
-            <ChevronRight size={20} />
+            <ChevronRight size={16} />
           </motion.button>
         </>
       )}
 
-      {/* Edge fade gradients - only when scrollable */}
-      {needsScroll && (
-        <>
-          <div className={`absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-[#0f0f10] via-[#0f0f10]/80 to-transparent z-10 pointer-events-none transition-opacity duration-300 ${canScrollLeft ? 'opacity-100' : 'opacity-0'}`} />
-          <div className={`absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-[#0f0f10] via-[#0f0f10]/80 to-transparent z-10 pointer-events-none transition-opacity duration-300 ${canScrollRight ? 'opacity-100' : 'opacity-0'}`} />
-        </>
-      )}
+      {/* Edge fades */}
+      <div className={`absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-[#111113] to-transparent z-20 pointer-events-none transition-opacity ${canScrollLeft ? 'opacity-100' : 'opacity-0'}`} />
+      <div className={`absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-[#111113] to-transparent z-20 pointer-events-none transition-opacity ${canScrollRight ? 'opacity-100' : 'opacity-0'}`} />
 
-      {/* Scrollable/Centered container */}
+      {/* Timeline container */}
       <div
         ref={scrollContainerRef}
         onScroll={checkScrollability}
-        onMouseDown={needsScroll ? handleMouseDown : undefined}
-        onMouseMove={needsScroll ? handleMouseMove : undefined}
-        onMouseUp={needsScroll ? handleMouseUp : undefined}
-        onMouseLeave={needsScroll ? handleMouseLeave : undefined}
-        onTouchStart={needsScroll ? handleTouchStart : undefined}
-        onTouchMove={needsScroll ? handleTouchMove : undefined}
-        onTouchEnd={needsScroll ? handleTouchEnd : undefined}
-        className={`
-          flex items-center gap-1 sm:gap-2 py-4 px-2
-          ${needsScroll
-            ? `overflow-x-auto ${isDragging ? 'cursor-grabbing select-none' : 'cursor-grab'}`
-            : 'justify-center flex-wrap'
-          }
-        `}
-        style={needsScroll ? { scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' } : undefined}
+        className="overflow-x-auto px-4 py-6"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
-        {courses.map((course, idx) => {
-          const moduleProgress = ((idx + 1) / courses.length) * 100;
-          const isCompleted = totalProgress >= moduleProgress;
-          const isCurrentModule = totalProgress < moduleProgress && (idx === 0 || totalProgress >= ((idx) / courses.length) * 100);
-          const moduleCode = course.code || `BX${idx + 1}`;
+        <div className="relative min-w-max mx-auto" style={{ width: 'fit-content' }}>
+          {/* Background track */}
+          <div className="absolute top-1/2 left-6 right-6 h-1 bg-white/[0.08] rounded-full -translate-y-1/2" />
 
-          return (
-            <motion.div
-              key={course.id}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: idx * 0.04, duration: 0.3, ease: "easeOut" }}
-              className={`
-                flex flex-col items-center justify-center flex-shrink-0
-                w-[72px] sm:w-[80px] py-3 px-2 rounded-2xl
-                transition-all duration-300 ease-out
-                ${isCurrentModule
-                  ? 'bg-gradient-to-b from-[#D4AF37]/15 to-[#D4AF37]/5 ring-1 ring-[#D4AF37]/40 shadow-[0_0_20px_rgba(212,175,55,0.15)]'
-                  : 'hover:bg-white/[0.04]'
-                }
-              `}
-              title={course.title}
-            >
-              {/* Module number circle */}
-              <div className={`
-                relative w-10 h-10 sm:w-11 sm:h-11 rounded-full
-                flex items-center justify-center
-                text-sm font-helvetica-bold
-                transition-all duration-300
-                ${isCompleted
-                  ? 'bg-gradient-to-br from-[#D4AF37] via-[#E5C158] to-[#B8962E] text-black shadow-[0_4px_20px_rgba(212,175,55,0.5)]'
-                  : isCurrentModule
-                    ? 'bg-[#D4AF37]/20 text-[#D4AF37] ring-2 ring-[#D4AF37] shadow-[0_0_15px_rgba(212,175,55,0.3)]'
-                    : 'bg-white/[0.08] text-zinc-400 border border-white/10'
-                }
-              `}>
-                {isCompleted ? (
-                  <CheckCircle size={18} className="text-black" strokeWidth={2.5} />
-                ) : (
-                  <span>{idx + 1}</span>
-                )}
+          {/* Animated progress fill */}
+          <motion.div
+            className="absolute top-1/2 left-6 h-1.5 rounded-full -translate-y-1/2 origin-left"
+            style={{
+              background: 'linear-gradient(90deg, #D4AF37 0%, #F5D76E 50%, #D4AF37 100%)',
+              boxShadow: '0 0 20px rgba(212,175,55,0.6), 0 0 40px rgba(212,175,55,0.3)',
+            }}
+            initial={{ width: 0 }}
+            animate={{ width: `calc(${timelineProgress}% - 48px)` }}
+            transition={{ duration: 1.5, ease: "easeOut" }}
+          />
 
-                {/* Pulsing indicator for current module */}
-                {isCurrentModule && (
-                  <motion.span
-                    className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-[#D4AF37] rounded-full border-2 border-[#0f0f10]"
-                    animate={{
-                      scale: [1, 1.3, 1],
-                      boxShadow: [
-                        '0 0 0 0 rgba(212,175,55,0.4)',
-                        '0 0 0 6px rgba(212,175,55,0)',
-                        '0 0 0 0 rgba(212,175,55,0)'
-                      ]
-                    }}
-                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                  />
-                )}
-              </div>
+          {/* Liquid glow effect on progress */}
+          <motion.div
+            className="absolute top-1/2 left-6 h-3 rounded-full -translate-y-1/2 opacity-40 blur-sm"
+            style={{ background: 'linear-gradient(90deg, #D4AF37, #F5D76E)' }}
+            initial={{ width: 0 }}
+            animate={{ width: `calc(${timelineProgress}% - 48px)` }}
+            transition={{ duration: 1.5, ease: "easeOut" }}
+          />
 
-              {/* Module code label */}
-              <span className={`
-                text-[11px] sm:text-xs mt-2 font-semibold tracking-wide
-                text-center leading-tight
-                ${isCompleted
-                  ? 'text-[#D4AF37]'
-                  : isCurrentModule
-                    ? 'text-[#D4AF37]'
-                    : 'text-zinc-500'
-                }
-              `}>
-                {moduleCode}
-              </span>
+          {/* Module nodes */}
+          <div className="relative flex items-center justify-center gap-0">
+            {courses.map((course, idx) => {
+              const isCompleted = course.progress === 100;
+              const isInProgress = course.progress > 0 && course.progress < 100;
+              const isLocked = idx > 0 && courses[idx - 1].progress < 100;
+              const moduleCode = course.code || `BX${idx + 1}`;
+              const isHovered = hoveredIndex === idx;
 
-              {/* Current module status */}
-              {isCurrentModule && (
-                <motion.span
-                  className="text-[9px] text-[#D4AF37]/80 mt-1 font-medium tracking-wide uppercase"
-                  initial={{ opacity: 0, y: 5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2 }}
+              // SVG circular progress
+              const circumference = 2 * Math.PI * 20; // radius 20
+              const progressOffset = circumference - (course.progress / 100) * circumference;
+
+              return (
+                <div
+                  key={course.id}
+                  className="flex flex-col items-center px-3 sm:px-4"
+                  style={{ minWidth: '70px' }}
                 >
-                  In Progress
-                </motion.span>
-              )}
-            </motion.div>
-          );
-        })}
-      </div>
+                  {/* Node button */}
+                  <motion.button
+                    onClick={() => onCourseClick(course)}
+                    onMouseEnter={() => setHoveredIndex(idx)}
+                    onMouseLeave={() => setHoveredIndex(null)}
+                    className={`
+                      relative w-12 h-12 sm:w-14 sm:h-14 rounded-full
+                      flex items-center justify-center
+                      transition-all duration-300 ease-out
+                      ${isCompleted
+                        ? 'cursor-pointer'
+                        : isLocked
+                          ? 'cursor-not-allowed opacity-50'
+                          : 'cursor-pointer'
+                      }
+                    `}
+                    whileHover={!isLocked ? { scale: 1.1 } : {}}
+                    whileTap={!isLocked ? { scale: 0.95 } : {}}
+                    disabled={isLocked}
+                    title={course.title}
+                  >
+                    {/* Outer glow for completed/active */}
+                    {(isCompleted || isInProgress) && (
+                      <motion.div
+                        className="absolute inset-0 rounded-full"
+                        style={{
+                          background: isCompleted
+                            ? 'radial-gradient(circle, rgba(212,175,55,0.3) 0%, transparent 70%)'
+                            : 'radial-gradient(circle, rgba(212,175,55,0.2) 0%, transparent 70%)',
+                        }}
+                        animate={isInProgress ? {
+                          scale: [1, 1.2, 1],
+                          opacity: [0.5, 0.8, 0.5]
+                        } : {}}
+                        transition={{ duration: 2, repeat: Infinity }}
+                      />
+                    )}
 
-      {/* Scroll hint - only when scrollable */}
-      {needsScroll && (canScrollLeft || canScrollRight) && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="flex justify-center mt-1"
-        >
-          <div className="text-[10px] text-zinc-600 flex items-center gap-2">
-            <ChevronLeft size={12} className="animate-pulse" />
-            <span>Scroll to see more</span>
-            <ChevronRight size={12} className="animate-pulse" />
+                    {/* SVG Progress Ring */}
+                    <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 48 48">
+                      {/* Background ring */}
+                      <circle
+                        cx="24"
+                        cy="24"
+                        r="20"
+                        fill="none"
+                        stroke={isLocked ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.1)'}
+                        strokeWidth="3"
+                      />
+                      {/* Progress ring */}
+                      {!isLocked && (
+                        <motion.circle
+                          cx="24"
+                          cy="24"
+                          r="20"
+                          fill="none"
+                          stroke="url(#goldGradient)"
+                          strokeWidth="3.5"
+                          strokeLinecap="round"
+                          strokeDasharray={circumference}
+                          initial={{ strokeDashoffset: circumference }}
+                          animate={{ strokeDashoffset: progressOffset }}
+                          transition={{ duration: 1, ease: "easeOut", delay: idx * 0.1 }}
+                          style={{
+                            filter: 'drop-shadow(0 0 6px rgba(212,175,55,0.8))'
+                          }}
+                        />
+                      )}
+                      <defs>
+                        <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stopColor="#F5D76E" />
+                          <stop offset="50%" stopColor="#D4AF37" />
+                          <stop offset="100%" stopColor="#B8962E" />
+                        </linearGradient>
+                      </defs>
+                    </svg>
+
+                    {/* Inner circle content */}
+                    <div className={`
+                      relative z-10 w-8 h-8 sm:w-10 sm:h-10 rounded-full
+                      flex items-center justify-center
+                      font-helvetica-bold text-sm
+                      transition-all duration-300
+                      ${isCompleted
+                        ? 'bg-gradient-to-br from-[#F5D76E] via-[#D4AF37] to-[#B8962E] text-black shadow-lg'
+                        : isInProgress
+                          ? 'bg-[#1a1a1c] text-[#D4AF37] border-2 border-[#D4AF37]/50'
+                          : isLocked
+                            ? 'bg-zinc-900 text-zinc-600 border border-zinc-800'
+                            : 'bg-[#1a1a1c] text-zinc-400 border border-white/10 hover:border-[#D4AF37]/30'
+                      }
+                    `}>
+                      {isCompleted ? (
+                        <CheckCircle size={18} strokeWidth={2.5} />
+                      ) : isLocked ? (
+                        <Lock size={14} />
+                      ) : isInProgress ? (
+                        <span className="text-xs font-bold">{course.progress}%</span>
+                      ) : (
+                        <span>{idx + 1}</span>
+                      )}
+                    </div>
+
+                    {/* Pulse animation for in-progress */}
+                    {isInProgress && (
+                      <motion.div
+                        className="absolute inset-0 rounded-full border-2 border-[#D4AF37]"
+                        animate={{
+                          scale: [1, 1.15, 1],
+                          opacity: [0.6, 0, 0.6]
+                        }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                      />
+                    )}
+                  </motion.button>
+
+                  {/* Module label */}
+                  <motion.span
+                    className={`
+                      mt-3 text-xs font-semibold tracking-wide
+                      transition-all duration-300
+                      ${isCompleted
+                        ? 'text-[#D4AF37]'
+                        : isInProgress
+                          ? 'text-[#D4AF37]'
+                          : isLocked
+                            ? 'text-zinc-600'
+                            : 'text-zinc-500'
+                      }
+                    `}
+                    animate={isHovered && !isLocked ? { scale: 1.05 } : { scale: 1 }}
+                  >
+                    {moduleCode}
+                  </motion.span>
+
+                  {/* Status indicator */}
+                  <motion.span
+                    className={`
+                      text-[10px] mt-1 font-medium uppercase tracking-wider
+                      ${isCompleted
+                        ? 'text-green-400/80'
+                        : isInProgress
+                          ? 'text-[#D4AF37]/70'
+                          : 'text-transparent'
+                      }
+                    `}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                  >
+                    {isCompleted ? 'Done' : isInProgress ? 'Current' : ''}
+                  </motion.span>
+
+                  {/* Tooltip on hover */}
+                  <AnimatePresence>
+                    {isHovered && !isLocked && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10, scale: 0.9 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 5, scale: 0.95 }}
+                        className="absolute -bottom-16 left-1/2 -translate-x-1/2 z-40 pointer-events-none"
+                      >
+                        <div className="bg-zinc-900/95 backdrop-blur-xl border border-white/10 rounded-lg px-3 py-2 shadow-2xl whitespace-nowrap">
+                          <p className="text-xs text-white font-medium">{course.title}</p>
+                          <p className="text-[10px] text-zinc-400 mt-0.5">
+                            {isCompleted ? 'Completed' : `${course.progress}% complete`}
+                          </p>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              );
+            })}
           </div>
-        </motion.div>
-      )}
+        </div>
+      </div>
     </div>
   );
 };
@@ -1381,39 +1445,46 @@ const App: React.FC = () => {
             </div>
           </div>
 
-          {/* Progress Banner - Liquid Glass */}
+          {/* Liquid Interactive Progress Timeline */}
           <div className="relative group">
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-yellow-500/20 via-yellow-400/10 to-green-500/20 rounded-[24px] blur-lg opacity-60" />
-            <div className="relative rounded-3xl overflow-hidden backdrop-blur-2xl bg-gradient-to-r from-white/[0.06] via-white/[0.03] to-white/[0.06] border border-white/10 p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h3 className="text-lg font-helvetica-bold text-white">Bajan-X Program Overall Progress</h3>
-                  <p className="text-sm text-zinc-400">Complete all {courses.length} modules to earn your certification</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-2xl font-helvetica-bold text-[#D4AF37]">{totalProgress}%</span>
-                  <span className="text-zinc-500">complete</span>
+            {/* Ambient glow */}
+            <div className="absolute -inset-1 bg-gradient-to-r from-[#D4AF37]/20 via-transparent to-[#D4AF37]/20 rounded-[28px] blur-2xl opacity-50 group-hover:opacity-70 transition-opacity duration-700" />
+
+            <div className="relative rounded-3xl overflow-hidden bg-gradient-to-b from-[#111113] to-[#0c0c0e] border border-white/[0.08]">
+              {/* Header */}
+              <div className="px-6 pt-6 pb-2">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-helvetica-bold text-white flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-[#D4AF37] shadow-[0_0_10px_rgba(212,175,55,0.8)]" />
+                      Bajan-X Program
+                    </h3>
+                    <p className="text-sm text-zinc-500 mt-1">Complete all {courses.length} modules to earn your certification</p>
+                  </div>
+                  <div className="text-right">
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-3xl font-helvetica-bold text-[#D4AF37]">{totalProgress}</span>
+                      <span className="text-lg text-[#D4AF37]/60">%</span>
+                    </div>
+                    <span className="text-xs text-zinc-600 uppercase tracking-wider">Complete</span>
+                  </div>
                 </div>
               </div>
 
-              {/* Progress Bar */}
-              <div className="relative h-3 bg-white/5 rounded-full overflow-hidden">
-                <div
-                  className="absolute inset-y-0 left-0 bg-[#D4AF37] rounded-full shadow-[0_0_15px_rgba(250,204,21,0.5)] transition-all duration-1000"
-                  style={{ width: `${totalProgress}%` }}
-                />
-                {/* Milestone markers */}
-                {[25, 50, 75].map(milestone => (
-                  <div
-                    key={milestone}
-                    className={`absolute top-0 bottom-0 w-0.5 ${totalProgress >= milestone ? 'bg-white/40' : 'bg-white/10'}`}
-                    style={{ left: `${milestone}%` }}
-                  />
-                ))}
-              </div>
+              {/* Interactive Timeline */}
+              <LiquidProgressTimeline
+                courses={courses}
+                totalProgress={totalProgress}
+                onCourseClick={handleStartCourse}
+              />
 
-              {/* Module indicators - Dynamic with elegant scroll */}
-              <ModuleProgressIndicator courses={courses} totalProgress={totalProgress} />
+              {/* Footer hint */}
+              <div className="px-6 pb-4 pt-2 flex justify-center">
+                <p className="text-[11px] text-zinc-600 flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-zinc-600" />
+                  Click any module to continue learning
+                </p>
+              </div>
             </div>
           </div>
 
