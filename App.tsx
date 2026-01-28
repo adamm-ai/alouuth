@@ -441,10 +441,12 @@ const App: React.FC = () => {
   const [playerSidebarCollapsed, setPlayerSidebarCollapsed] = useState(false); // Persists across lesson navigation
   const [isAdminPreviewMode, setIsAdminPreviewMode] = useState(false); // Admin preview mode - read-only view
   const [userDashboardStats, setUserDashboardStats] = useState<{
+    totalCourses: number;
     enrolledCourses: number;
     completedCourses: number;
     lessonsCompleted: number;
     averageQuizScore: number;
+    completionPercentage: number;
   } | null>(null);
 
   // Restore session on page load/refresh
@@ -580,7 +582,17 @@ const App: React.FC = () => {
     loadAdminStats();
   }, [currentView, adminStatsLoaded]);
 
-  // Load dashboard stats when dashboard view is active (only once)
+  // Function to refresh dashboard stats (can be called anytime)
+  const refreshDashboardStats = async () => {
+    try {
+      const dashboardData = await dataService.getDashboardStats();
+      setUserDashboardStats(dashboardData.stats);
+    } catch (err) {
+      console.error('Failed to refresh dashboard stats:', err);
+    }
+  };
+
+  // Load dashboard stats when dashboard view is active (only once initially)
   useEffect(() => {
     if (currentView !== 'DASHBOARD' || dashboardStatsLoaded) return;
     const loadDashboardStats = async () => {
@@ -767,7 +779,12 @@ const App: React.FC = () => {
     // 6. Update Global Course List
     setCourses(prev => prev.map(c => c.id === updatedCourse.id ? updatedCourse : c));
 
-    // 7. Navigate to next lesson OR handle course completion
+    // 7. If course just completed, refresh dashboard stats for accurate completion percentage
+    if (newProgress === 100) {
+      refreshDashboardStats();
+    }
+
+    // 8. Navigate to next lesson OR handle course completion
     const currentIndex = updatedLessons.findIndex(l => l.id === activeLesson.id);
     if (currentIndex < updatedLessons.length - 1) {
       // More lessons available - go to next lesson
@@ -1418,15 +1435,16 @@ const App: React.FC = () => {
       return '';
     };
 
-    // Calculate total progress (use API stats if available)
-    const totalProgress = userDashboardStats
-      ? Math.round((userDashboardStats.completedCourses / Math.max(userDashboardStats.enrolledCourses, 1)) * 100)
+    // Calculate total progress = (completed courses / total courses) * 100
+    // Use API completionPercentage if available, otherwise calculate from courses array
+    const totalProgress = userDashboardStats?.completionPercentage !== undefined
+      ? userDashboardStats.completionPercentage
       : courses.length > 0
-        ? Math.round(courses.reduce((sum, c) => sum + (c.progress || 0), 0) / courses.length)
+        ? Math.round((courses.filter(c => c.progress === 100).length / courses.length) * 100)
         : 0;
 
     const completedCourses = userDashboardStats?.completedCourses || courses.filter(isCourseCompleted).length;
-    const enrolledCount = userDashboardStats?.enrolledCourses || courses.length;
+    const totalCoursesCount = userDashboardStats?.totalCourses || courses.length;
     const lessonsCompleted = userDashboardStats?.lessonsCompleted || 0;
     const avgQuizScore = userDashboardStats?.averageQuizScore || 0;
 
@@ -1485,7 +1503,7 @@ const App: React.FC = () => {
               <div className="relative group">
                 <div className="absolute -inset-0.5 bg-gradient-to-r from-white/20 to-white/5 rounded-2xl blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 <div className="relative bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-xl border border-white/10 rounded-2xl p-4 text-center min-w-[80px]">
-                  <div className="text-3xl font-helvetica-bold text-white">{completedCourses}<span className="text-lg text-zinc-500">/{enrolledCount || courses.length}</span></div>
+                  <div className="text-3xl font-helvetica-bold text-white">{completedCourses}<span className="text-lg text-zinc-500">/{totalCoursesCount}</span></div>
                   <div className="text-[10px] text-zinc-500 uppercase tracking-widest">Courses</div>
                 </div>
               </div>

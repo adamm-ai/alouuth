@@ -425,6 +425,11 @@ export const getCourseProgress = async (req, res) => {
 // Get user's overall dashboard stats
 export const getDashboardStats = async (req, res) => {
   try {
+    // Get TOTAL courses count (all published courses in the system)
+    const totalCoursesResult = await pool.query(
+      'SELECT COUNT(*) as count FROM courses WHERE is_published = true'
+    );
+
     // Get enrolled courses count
     const enrolledResult = await pool.query(
       'SELECT COUNT(*) as count FROM enrollments WHERE user_id = $1',
@@ -468,12 +473,18 @@ export const getDashboardStats = async (req, res) => {
       LIMIT 5
     `, [req.user.id]);
 
+    const totalCourses = parseInt(totalCoursesResult.rows[0].count);
+    const completedCourses = parseInt(completedResult.rows[0].count);
+
     res.json({
       stats: {
+        totalCourses: totalCourses,
         enrolledCourses: parseInt(enrolledResult.rows[0].count),
-        completedCourses: parseInt(completedResult.rows[0].count),
+        completedCourses: completedCourses,
         lessonsCompleted: parseInt(lessonsResult.rows[0].count),
-        averageQuizScore: Math.round(parseFloat(quizResult.rows[0].avg_score) || 0)
+        averageQuizScore: Math.round(parseFloat(quizResult.rows[0].avg_score) || 0),
+        // Completion percentage = completed / total * 100
+        completionPercentage: totalCourses > 0 ? Math.round((completedCourses / totalCourses) * 100) : 0
       },
       currentCourses: currentCoursesResult.rows.map(c => ({
         ...c,
