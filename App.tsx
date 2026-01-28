@@ -92,9 +92,10 @@ interface LiquidProgressTimelineProps {
   courses: Course[];
   totalProgress: number;
   onCourseClick: (course: Course) => void;
+  isCourseUnlocked: (course: Course) => boolean;
 }
 
-const LiquidProgressTimeline: React.FC<LiquidProgressTimelineProps> = ({ courses, totalProgress, onCourseClick }) => {
+const LiquidProgressTimeline: React.FC<LiquidProgressTimelineProps> = ({ courses, totalProgress, onCourseClick, isCourseUnlocked }) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
@@ -126,25 +127,22 @@ const LiquidProgressTimeline: React.FC<LiquidProgressTimelineProps> = ({ courses
     }
   };
 
-  // Calculate cumulative progress for the timeline
-  const getCumulativeProgress = () => {
-    let completedCourses = 0;
-    for (const course of courses) {
-      if (course.progress === 100) completedCourses++;
-      else break; // Stop at first incomplete
-    }
-    // Add partial progress of current course
-    const currentCourse = courses[completedCourses];
-    const partialProgress = currentCourse ? (currentCourse.progress / 100) : 0;
-    return ((completedCourses + partialProgress) / courses.length) * 100;
+  // Calculate timeline progress based on completed courses (not sequential)
+  const getTimelineProgress = () => {
+    if (courses.length === 0) return 0;
+    const completedCount = courses.filter(c => c.progress === 100).length;
+    const inProgressCourses = courses.filter(c => c.progress > 0 && c.progress < 100);
+    const partialProgress = inProgressCourses.reduce((sum, c) => sum + c.progress, 0) / 100;
+    return ((completedCount + partialProgress) / courses.length) * 100;
   };
 
-  const timelineProgress = getCumulativeProgress();
+  const timelineProgress = getTimelineProgress();
+  const needsScroll = courses.length > 12;
 
   return (
     <div className="relative">
-      {/* Scroll buttons */}
-      {courses.length > 6 && (
+      {/* Scroll buttons - only show for 12+ courses */}
+      {needsScroll && (
         <>
           <motion.button
             initial={{ opacity: 0 }}
@@ -165,18 +163,22 @@ const LiquidProgressTimeline: React.FC<LiquidProgressTimelineProps> = ({ courses
         </>
       )}
 
-      {/* Edge fades */}
-      <div className={`absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-[#111113] to-transparent z-20 pointer-events-none transition-opacity ${canScrollLeft ? 'opacity-100' : 'opacity-0'}`} />
-      <div className={`absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-[#111113] to-transparent z-20 pointer-events-none transition-opacity ${canScrollRight ? 'opacity-100' : 'opacity-0'}`} />
+      {/* Edge fades - only when scrollable */}
+      {needsScroll && (
+        <>
+          <div className={`absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-[#111113] to-transparent z-20 pointer-events-none transition-opacity ${canScrollLeft ? 'opacity-100' : 'opacity-0'}`} />
+          <div className={`absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-[#111113] to-transparent z-20 pointer-events-none transition-opacity ${canScrollRight ? 'opacity-100' : 'opacity-0'}`} />
+        </>
+      )}
 
       {/* Timeline container */}
       <div
         ref={scrollContainerRef}
         onScroll={checkScrollability}
-        className="overflow-x-auto px-4 py-6"
+        className={`px-4 py-6 ${needsScroll ? 'overflow-x-auto' : 'overflow-visible'}`}
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
-        <div className="relative min-w-max mx-auto" style={{ width: 'fit-content' }}>
+        <div className={`relative mx-auto ${needsScroll ? 'min-w-max' : 'w-full'}`} style={needsScroll ? { width: 'fit-content' } : undefined}>
           {/* Background track */}
           <div className="absolute top-1/2 left-6 right-6 h-1 bg-white/[0.08] rounded-full -translate-y-1/2" />
 
@@ -202,11 +204,12 @@ const LiquidProgressTimeline: React.FC<LiquidProgressTimelineProps> = ({ courses
           />
 
           {/* Module nodes */}
-          <div className="relative flex items-center justify-center gap-0">
+          <div className={`relative flex items-center ${needsScroll ? 'justify-start' : 'justify-center'} gap-0`}>
             {courses.map((course, idx) => {
               const isCompleted = course.progress === 100;
               const isInProgress = course.progress > 0 && course.progress < 100;
-              const isLocked = idx > 0 && courses[idx - 1].progress < 100;
+              const isUnlocked = isCourseUnlocked(course);
+              const isLocked = !isUnlocked;
               const moduleCode = course.code || `BX${idx + 1}`;
               const isHovered = hoveredIndex === idx;
 
@@ -1476,6 +1479,7 @@ const App: React.FC = () => {
                 courses={courses}
                 totalProgress={totalProgress}
                 onCourseClick={handleStartCourse}
+                isCourseUnlocked={isCourseUnlocked}
               />
 
               {/* Footer hint */}
