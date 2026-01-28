@@ -170,17 +170,19 @@ const LiquidProgressTimeline: React.FC<LiquidProgressTimelineProps> = ({ courses
       {needsScroll && (
         <>
           <motion.button
+            type="button"
             initial={{ opacity: 0 }}
             animate={{ opacity: canScrollLeft ? 1 : 0 }}
-            onClick={() => scroll('left')}
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); scroll('left'); }}
             className={`absolute -left-5 top-1/2 -translate-y-1/2 z-30 w-10 h-10 rounded-full bg-black/90 border border-[#D4AF37]/30 flex items-center justify-center text-[#D4AF37] hover:bg-[#D4AF37]/10 hover:border-[#D4AF37]/60 transition-all shadow-xl backdrop-blur-sm ${!canScrollLeft && 'pointer-events-none'}`}
           >
             <ChevronLeft size={20} />
           </motion.button>
           <motion.button
+            type="button"
             initial={{ opacity: 0 }}
             animate={{ opacity: canScrollRight ? 1 : 0 }}
-            onClick={() => scroll('right')}
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); scroll('right'); }}
             className={`absolute -right-5 top-1/2 -translate-y-1/2 z-30 w-10 h-10 rounded-full bg-black/90 border border-[#D4AF37]/30 flex items-center justify-center text-[#D4AF37] hover:bg-[#D4AF37]/10 hover:border-[#D4AF37]/60 transition-all shadow-xl backdrop-blur-sm ${!canScrollRight && 'pointer-events-none'}`}
           >
             <ChevronRight size={20} />
@@ -227,7 +229,14 @@ const LiquidProgressTimeline: React.FC<LiquidProgressTimelineProps> = ({ courses
                 >
                   {/* Main node button - 25% bigger (w-15 h-15 equivalent) */}
                   <motion.button
-                    onClick={() => onCourseClick(course)}
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      if (!isLocked) {
+                        onCourseClick(course);
+                      }
+                    }}
                     onMouseEnter={() => setHoveredIndex(idx)}
                     onMouseLeave={() => setHoveredIndex(null)}
                     className={`
@@ -1678,10 +1687,9 @@ const App: React.FC = () => {
                         <div
                           key={course.id}
                           className={`group relative rounded-3xl overflow-hidden transition-all duration-500 ${courseUnlocked
-                            ? 'cursor-pointer hover:-translate-y-2 hover:shadow-[0_20px_60px_-15px_rgba(250,204,21,0.3)]'
-                            : 'opacity-60 cursor-not-allowed'
+                            ? 'hover:-translate-y-2 hover:shadow-[0_20px_60px_-15px_rgba(250,204,21,0.3)]'
+                            : 'opacity-60'
                             }`}
-                          onClick={() => courseUnlocked && handleStartCourse(course)}
                         >
                           {/* Card Background with Glassmorphism */}
                           <div className="absolute inset-0 bg-gradient-to-br from-zinc-900/90 via-zinc-900/80 to-black/90 backdrop-blur-xl border border-white/10 rounded-3xl group-hover:border-[#D4AF37]/50 transition-colors duration-500" />
@@ -1690,8 +1698,11 @@ const App: React.FC = () => {
                           <div className="absolute -inset-px bg-gradient-to-br from-yellow-400/0 via-transparent to-yellow-400/0 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 blur-xl" />
 
                           <div className="relative">
-                            {/* Image Container with Aspect Ratio */}
-                            <div className="relative aspect-[16/10] overflow-hidden">
+                            {/* Image Container with Aspect Ratio - Clickable area for navigation */}
+                            <div
+                              className={`relative aspect-[16/10] overflow-hidden ${courseUnlocked ? 'cursor-pointer' : 'cursor-not-allowed'}`}
+                              onClick={() => courseUnlocked && handleStartCourse(course)}
+                            >
                               {/* Background Image */}
                               <img
                                 src={course.thumbnail}
@@ -1787,28 +1798,38 @@ const App: React.FC = () => {
                                 {course.description}
                               </p>
                               {course.description && course.description.length > 80 && (
-                                <button
-                                  type="button"
+                                <div
                                   onClick={(e) => {
                                     e.preventDefault();
                                     e.stopPropagation();
-                                    setExpandedDescriptions(prev => {
-                                      const newSet = new Set(prev);
-                                      if (newSet.has(course.id)) {
-                                        newSet.delete(course.id);
-                                      } else {
-                                        newSet.add(course.id);
-                                      }
-                                      return newSet;
-                                    });
                                   }}
-                                  className={`text-xs font-medium mb-3 ${courseUnlocked
-                                    ? 'text-[#D4AF37]/80 hover:text-[#D4AF37]'
-                                    : 'text-zinc-600'
-                                    } transition-colors cursor-pointer`}
+                                  onClickCapture={(e) => {
+                                    e.stopPropagation();
+                                  }}
                                 >
-                                  {expandedDescriptions.has(course.id) ? '← Show less' : 'Read more →'}
-                                </button>
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      setExpandedDescriptions(prev => {
+                                        const newSet = new Set(prev);
+                                        if (newSet.has(course.id)) {
+                                          newSet.delete(course.id);
+                                        } else {
+                                          newSet.add(course.id);
+                                        }
+                                        return newSet;
+                                      });
+                                    }}
+                                    className={`text-xs font-medium mb-3 ${courseUnlocked
+                                      ? 'text-[#D4AF37]/80 hover:text-[#D4AF37]'
+                                      : 'text-zinc-600'
+                                      } transition-colors cursor-pointer`}
+                                  >
+                                    {expandedDescriptions.has(course.id) ? '← Show less' : 'Read more →'}
+                                  </button>
+                                </div>
                               )}
 
                               {/* Stats Row */}
@@ -1846,13 +1867,17 @@ const App: React.FC = () => {
                                         <span className="text-xs text-zinc-500">Ready to start</span>
                                       )}
                                     </div>
-                                    <span className={`flex items-center gap-1 text-sm font-helvetica-bold transition-all duration-300 ${course.progress > 0
-                                      ? 'text-[#D4AF37] group-hover:text-yellow-300'
-                                      : 'text-white group-hover:text-[#D4AF37]'
-                                      } group-hover:translate-x-1`}>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleStartCourse(course)}
+                                      className={`flex items-center gap-1 text-sm font-helvetica-bold transition-all duration-300 cursor-pointer ${course.progress > 0
+                                        ? 'text-[#D4AF37] group-hover:text-yellow-300'
+                                        : 'text-white group-hover:text-[#D4AF37]'
+                                        } group-hover:translate-x-1`}
+                                    >
                                       {course.progress > 0 ? 'Continue' : 'Start Course'}
                                       <ChevronRight size={16} className="transition-transform group-hover:translate-x-0.5" />
-                                    </span>
+                                    </button>
                                   </>
                                 ) : (
                                   <span className="flex items-center gap-2 text-sm text-zinc-600">
