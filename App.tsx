@@ -1788,7 +1788,9 @@ const App: React.FC = () => {
                               </p>
                               {course.description && course.description.length > 80 && (
                                 <button
+                                  type="button"
                                   onClick={(e) => {
+                                    e.preventDefault();
                                     e.stopPropagation();
                                     setExpandedDescriptions(prev => {
                                       const newSet = new Set(prev);
@@ -1803,7 +1805,7 @@ const App: React.FC = () => {
                                   className={`text-xs font-medium mb-3 ${courseUnlocked
                                     ? 'text-[#D4AF37]/80 hover:text-[#D4AF37]'
                                     : 'text-zinc-600'
-                                    } transition-colors`}
+                                    } transition-colors cursor-pointer`}
                                 >
                                   {expandedDescriptions.has(course.id) ? '← Show less' : 'Read more →'}
                                 </button>
