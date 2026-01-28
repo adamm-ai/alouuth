@@ -162,7 +162,7 @@ const LiquidProgressTimeline: React.FC<LiquidProgressTimelineProps> = ({ courses
 
   const timelineProgress = getTimelineProgress();
   const needsScroll = courses.length > 12;
-  const nodeWidth = 72; // Width of each node container in pixels
+  const nodeWidth = 90; // Width of each node container - 25% bigger
 
   return (
     <div className="relative">
@@ -173,17 +173,17 @@ const LiquidProgressTimeline: React.FC<LiquidProgressTimelineProps> = ({ courses
             initial={{ opacity: 0 }}
             animate={{ opacity: canScrollLeft ? 1 : 0 }}
             onClick={() => scroll('left')}
-            className={`absolute -left-4 top-1/2 -translate-y-1/2 z-30 w-9 h-9 rounded-full bg-black/90 border border-[#D4AF37]/30 flex items-center justify-center text-[#D4AF37] hover:bg-[#D4AF37]/10 hover:border-[#D4AF37]/60 transition-all shadow-xl backdrop-blur-sm ${!canScrollLeft && 'pointer-events-none'}`}
+            className={`absolute -left-5 top-1/2 -translate-y-1/2 z-30 w-10 h-10 rounded-full bg-black/90 border border-[#D4AF37]/30 flex items-center justify-center text-[#D4AF37] hover:bg-[#D4AF37]/10 hover:border-[#D4AF37]/60 transition-all shadow-xl backdrop-blur-sm ${!canScrollLeft && 'pointer-events-none'}`}
           >
-            <ChevronLeft size={18} />
+            <ChevronLeft size={20} />
           </motion.button>
           <motion.button
             initial={{ opacity: 0 }}
             animate={{ opacity: canScrollRight ? 1 : 0 }}
             onClick={() => scroll('right')}
-            className={`absolute -right-4 top-1/2 -translate-y-1/2 z-30 w-9 h-9 rounded-full bg-black/90 border border-[#D4AF37]/30 flex items-center justify-center text-[#D4AF37] hover:bg-[#D4AF37]/10 hover:border-[#D4AF37]/60 transition-all shadow-xl backdrop-blur-sm ${!canScrollRight && 'pointer-events-none'}`}
+            className={`absolute -right-5 top-1/2 -translate-y-1/2 z-30 w-10 h-10 rounded-full bg-black/90 border border-[#D4AF37]/30 flex items-center justify-center text-[#D4AF37] hover:bg-[#D4AF37]/10 hover:border-[#D4AF37]/60 transition-all shadow-xl backdrop-blur-sm ${!canScrollRight && 'pointer-events-none'}`}
           >
-            <ChevronRight size={18} />
+            <ChevronRight size={20} />
           </motion.button>
         </>
       )}
@@ -191,8 +191,8 @@ const LiquidProgressTimeline: React.FC<LiquidProgressTimelineProps> = ({ courses
       {/* Edge fades */}
       {needsScroll && (
         <>
-          <div className={`absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-[#111113] via-[#111113]/80 to-transparent z-20 pointer-events-none transition-opacity ${canScrollLeft ? 'opacity-100' : 'opacity-0'}`} />
-          <div className={`absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-[#111113] via-[#111113]/80 to-transparent z-20 pointer-events-none transition-opacity ${canScrollRight ? 'opacity-100' : 'opacity-0'}`} />
+          <div className={`absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-[#111113] via-[#111113]/80 to-transparent z-20 pointer-events-none transition-opacity ${canScrollLeft ? 'opacity-100' : 'opacity-0'}`} />
+          <div className={`absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-[#111113] via-[#111113]/80 to-transparent z-20 pointer-events-none transition-opacity ${canScrollRight ? 'opacity-100' : 'opacity-0'}`} />
         </>
       )}
 
@@ -200,13 +200,13 @@ const LiquidProgressTimeline: React.FC<LiquidProgressTimelineProps> = ({ courses
       <div
         ref={scrollContainerRef}
         onScroll={checkScrollability}
-        className={`px-4 py-6 ${needsScroll ? 'overflow-x-auto' : 'overflow-visible'}`}
+        className={`px-6 py-8 ${needsScroll ? 'overflow-x-auto' : 'overflow-visible'}`}
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
-        <div className={`flex flex-col items-center mx-auto ${needsScroll ? 'w-fit' : 'w-full'}`}>
+        <div className={`flex flex-col items-center justify-center mx-auto ${needsScroll ? 'w-fit' : 'w-full'}`}>
 
-          {/* ROW 1: Course Nodes */}
-          <div className={`flex items-center ${needsScroll ? 'justify-start' : 'justify-center'}`}>
+          {/* ROW 1: Course Nodes - 25% bigger */}
+          <div className={`flex items-center justify-center`}>
             {courses.map((course, idx) => {
               const isCompleted = course.progress === 100;
               const isInProgress = course.progress > 0 && course.progress < 100;
@@ -215,8 +215,8 @@ const LiquidProgressTimeline: React.FC<LiquidProgressTimelineProps> = ({ courses
               const moduleCode = course.code || `BX${idx + 1}`;
               const isHovered = hoveredIndex === idx;
 
-              // SVG circular progress
-              const circumference = 2 * Math.PI * 20;
+              // SVG circular progress - larger radius
+              const circumference = 2 * Math.PI * 24;
               const progressOffset = circumference - (course.progress / 100) * circumference;
 
               return (
@@ -225,18 +225,18 @@ const LiquidProgressTimeline: React.FC<LiquidProgressTimelineProps> = ({ courses
                   className="flex flex-col items-center"
                   style={{ width: `${nodeWidth}px` }}
                 >
-                  {/* Main node button */}
+                  {/* Main node button - 25% bigger (w-15 h-15 equivalent) */}
                   <motion.button
                     onClick={() => onCourseClick(course)}
                     onMouseEnter={() => setHoveredIndex(idx)}
                     onMouseLeave={() => setHoveredIndex(null)}
                     className={`
-                      relative w-12 h-12 rounded-full
+                      relative w-[60px] h-[60px] rounded-full
                       flex items-center justify-center
                       transition-all duration-300 ease-out
                       ${isCompleted ? 'cursor-pointer' : isLocked ? 'cursor-not-allowed' : 'cursor-pointer'}
                     `}
-                    whileHover={!isLocked ? { scale: 1.15 } : {}}
+                    whileHover={!isLocked ? { scale: 1.12 } : {}}
                     whileTap={!isLocked ? { scale: 0.95 } : {}}
                     disabled={isLocked}
                     title={course.title}
@@ -247,7 +247,7 @@ const LiquidProgressTimeline: React.FC<LiquidProgressTimelineProps> = ({ courses
                     {/* Outer glow for completed/active */}
                     {(isCompleted || isInProgress) && (
                       <motion.div
-                        className="absolute -inset-1 rounded-full"
+                        className="absolute -inset-2 rounded-full"
                         style={{
                           background: isCompleted
                             ? 'radial-gradient(circle, rgba(212,175,55,0.5) 0%, transparent 70%)'
@@ -258,24 +258,24 @@ const LiquidProgressTimeline: React.FC<LiquidProgressTimelineProps> = ({ courses
                       />
                     )}
 
-                    {/* SVG Progress Ring */}
-                    <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 48 48">
+                    {/* SVG Progress Ring - bigger */}
+                    <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 60 60">
                       <circle
-                        cx="24" cy="24" r="20" fill="none"
+                        cx="30" cy="30" r="24" fill="none"
                         stroke={isLocked ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.12)'}
-                        strokeWidth="2.5"
+                        strokeWidth="3"
                       />
                       {!isLocked && (
                         <motion.circle
-                          cx="24" cy="24" r="20" fill="none"
+                          cx="30" cy="30" r="24" fill="none"
                           stroke="url(#goldGradientRing)"
-                          strokeWidth="3"
+                          strokeWidth="3.5"
                           strokeLinecap="round"
                           strokeDasharray={circumference}
                           initial={{ strokeDashoffset: circumference }}
                           animate={{ strokeDashoffset: progressOffset }}
                           transition={{ duration: 1, ease: [0.4, 0, 0.2, 1], delay: idx * 0.08 }}
-                          style={{ filter: 'drop-shadow(0 0 6px rgba(212,175,55,0.8))' }}
+                          style={{ filter: 'drop-shadow(0 0 8px rgba(212,175,55,0.8))' }}
                         />
                       )}
                       <defs>
@@ -287,10 +287,10 @@ const LiquidProgressTimeline: React.FC<LiquidProgressTimelineProps> = ({ courses
                       </defs>
                     </svg>
 
-                    {/* Inner circle content */}
+                    {/* Inner circle content - bigger */}
                     <div className={`
-                      relative z-10 w-8 h-8 rounded-full flex items-center justify-center
-                      font-bold text-xs transition-all duration-300
+                      relative z-10 w-10 h-10 rounded-full flex items-center justify-center
+                      font-bold text-sm transition-all duration-300
                       ${isCompleted
                         ? 'bg-gradient-to-br from-[#F5D76E] via-[#D4AF37] to-[#B8962E] text-black shadow-lg shadow-[#D4AF37]/30'
                         : isInProgress
@@ -301,9 +301,9 @@ const LiquidProgressTimeline: React.FC<LiquidProgressTimelineProps> = ({ courses
                       }
                     `}>
                       {isCompleted ? (
-                        <CheckCircle size={16} strokeWidth={2.5} />
+                        <CheckCircle size={20} strokeWidth={2.5} />
                       ) : isLocked ? (
-                        <Lock size={12} />
+                        <Lock size={14} />
                       ) : isInProgress ? (
                         <span>{course.progress}%</span>
                       ) : (
@@ -321,9 +321,9 @@ const LiquidProgressTimeline: React.FC<LiquidProgressTimelineProps> = ({ courses
                     )}
                   </motion.button>
 
-                  {/* Module label */}
+                  {/* Module label - bigger text */}
                   <motion.span
-                    className={`mt-2 text-[11px] font-semibold tracking-wide transition-colors
+                    className={`mt-3 text-xs font-semibold tracking-wide transition-colors
                       ${isCompleted ? 'text-[#D4AF37]' : isInProgress ? 'text-[#D4AF37]' : isLocked ? 'text-zinc-600' : 'text-zinc-500'}
                     `}
                     animate={isHovered && !isLocked ? { scale: 1.1 } : { scale: 1 }}
@@ -338,7 +338,7 @@ const LiquidProgressTimeline: React.FC<LiquidProgressTimelineProps> = ({ courses
                         initial={{ opacity: 0, y: 5 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 5 }}
-                        className="absolute -top-14 left-1/2 -translate-x-1/2 z-50 pointer-events-none"
+                        className="absolute -top-16 left-1/2 -translate-x-1/2 z-50 pointer-events-none"
                       >
                         <div className="bg-black/95 backdrop-blur-xl border border-[#D4AF37]/40 rounded-lg px-3 py-2 shadow-2xl whitespace-nowrap">
                           <p className="text-xs text-white font-medium">{course.title}</p>
@@ -352,13 +352,13 @@ const LiquidProgressTimeline: React.FC<LiquidProgressTimelineProps> = ({ courses
             })}
           </div>
 
-          {/* ROW 2: Progress Bar - Perfectly aligned below nodes */}
+          {/* ROW 2: Progress Bar - 25% bigger, perfectly centered */}
           <div
-            className="relative mt-6"
+            className="relative mt-8 flex justify-center"
             style={{ width: `${courses.length * nodeWidth}px` }}
           >
-            {/* Track background with glass effect */}
-            <div className="relative h-2 rounded-full bg-white/[0.04] border border-white/[0.08] overflow-hidden">
+            {/* Track background with glass effect - bigger height */}
+            <div className="relative h-2.5 w-full rounded-full bg-white/[0.04] border border-white/[0.08] overflow-hidden">
               {/* Inner shadow */}
               <div className="absolute inset-0 rounded-full shadow-inner" style={{ boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.4)' }} />
 
@@ -367,7 +367,7 @@ const LiquidProgressTimeline: React.FC<LiquidProgressTimelineProps> = ({ courses
                 className="absolute inset-y-0 left-0 rounded-full"
                 style={{
                   background: 'linear-gradient(90deg, #B8962E 0%, #D4AF37 25%, #F5D76E 50%, #D4AF37 75%, #B8962E 100%)',
-                  boxShadow: '0 0 12px rgba(212,175,55,0.6), 0 0 24px rgba(212,175,55,0.3), inset 0 1px 0 rgba(255,255,255,0.3)',
+                  boxShadow: '0 0 14px rgba(212,175,55,0.6), 0 0 28px rgba(212,175,55,0.3), inset 0 1px 0 rgba(255,255,255,0.3)',
                 }}
                 initial={{ width: '0%' }}
                 animate={{ width: `${timelineProgress}%` }}
@@ -388,7 +388,7 @@ const LiquidProgressTimeline: React.FC<LiquidProgressTimelineProps> = ({ courses
               </motion.div>
             </div>
 
-            {/* Node position markers on the bar */}
+            {/* Node position markers on the bar - bigger */}
             <div className="absolute inset-0 flex">
               {courses.map((course, idx) => {
                 const isCompleted = course.progress === 100;
@@ -399,11 +399,11 @@ const LiquidProgressTimeline: React.FC<LiquidProgressTimelineProps> = ({ courses
                 return (
                   <div key={course.id} className="flex-1 flex justify-center">
                     <motion.div
-                      className={`w-3 h-3 rounded-full -mt-0.5 border-2 transition-all
+                      className={`w-3.5 h-3.5 rounded-full -mt-0.5 border-2 transition-all
                         ${isCompleted
-                          ? 'bg-[#D4AF37] border-[#F5D76E] shadow-[0_0_8px_rgba(212,175,55,0.8)]'
+                          ? 'bg-[#D4AF37] border-[#F5D76E] shadow-[0_0_10px_rgba(212,175,55,0.8)]'
                           : isInProgress
-                            ? 'bg-[#D4AF37]/70 border-[#D4AF37] shadow-[0_0_6px_rgba(212,175,55,0.5)]'
+                            ? 'bg-[#D4AF37]/70 border-[#D4AF37] shadow-[0_0_8px_rgba(212,175,55,0.5)]'
                             : isLocked
                               ? 'bg-zinc-800 border-zinc-700'
                               : 'bg-zinc-700 border-zinc-600'
@@ -417,30 +417,7 @@ const LiquidProgressTimeline: React.FC<LiquidProgressTimelineProps> = ({ courses
                 );
               })}
             </div>
-
-            {/* Percentage badge */}
-            <motion.div
-              className="absolute -right-16 top-1/2 -translate-y-1/2"
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.8 }}
-            >
-              <div className="bg-[#D4AF37]/15 border border-[#D4AF37]/40 rounded-full px-3 py-1">
-                <span className="text-sm font-bold text-[#D4AF37]">{Math.round(totalProgress)}%</span>
-              </div>
-            </motion.div>
           </div>
-
-          {/* Click hint */}
-          <motion.p
-            className="mt-4 text-[10px] text-zinc-500 flex items-center gap-1.5"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1 }}
-          >
-            <span className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]" />
-            Click any module to continue learning
-          </motion.p>
         </div>
       </div>
     </div>
