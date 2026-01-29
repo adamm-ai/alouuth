@@ -4555,71 +4555,168 @@ const App: React.FC = () => {
                   </div>
                 )}
 
-                {/* Analytics Section */}
+                {/* Analytics Section - Using Real Data */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  <GlassCard className="lg:col-span-2 p-8">
+                  {/* Ministry Learner Distribution - Real Data */}
+                  <div className="lg:col-span-2 relative rounded-2xl overflow-hidden bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-xl border border-white/[0.1] p-6">
+                    <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#D4AF37]/30 to-transparent" />
                     <div className="flex justify-between items-center mb-6">
-                      <h3 className="text-xl font-helvetica-bold">Ministry Engagement</h3>
-                      <div className="flex gap-2">
-                        <button className="px-3 py-1 text-xs rounded-full bg-white/10 text-white">Weekly</button>
-                        <button className="px-3 py-1 text-xs rounded-full hover:bg-white/5 text-zinc-400">Monthly</button>
-                      </div>
+                      <h3 className="text-xl font-helvetica-bold flex items-center gap-2">
+                        <BarChart3 size={20} className="text-[#D4AF37]" />
+                        Ministry Learner Distribution
+                      </h3>
+                      <button
+                        type="button"
+                        onClick={() => setAdminSection('ANALYTICS')}
+                        className="text-xs text-[#D4AF37] hover:text-yellow-300 flex items-center gap-1"
+                      >
+                        View Full Analytics <ChevronRight size={14} />
+                      </button>
                     </div>
                     <div className="h-64 w-full">
                       <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={adminStats} barSize={40}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
-                          <XAxis dataKey="name" stroke="#64748b" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
+                        <BarChart
+                          data={ministryStats.length > 0 ? ministryStats.map((m, i) => ({
+                            name: m.name?.length > 15 ? m.name.split(' ').map((w: string) => w[0]).join('').substring(0, 6) : m.name?.substring(0, 12) || `M${i + 1}`,
+                            fullName: m.name,
+                            total: m.totalLearners,
+                            active: m.activeLearners || 0
+                          })) : []}
+                          barSize={24}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" stroke="#ffffff08" vertical={false} />
+                          <XAxis dataKey="name" stroke="#64748b" tick={{ fontSize: 9 }} axisLine={false} tickLine={false} angle={-45} textAnchor="end" height={60} />
                           <YAxis stroke="#64748b" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
                           <Tooltip
-                            cursor={{ fill: '#ffffff05' }}
-                            contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '12px', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}
-                            itemStyle={{ color: '#fff' }}
+                            cursor={{ fill: '#ffffff08' }}
+                            contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.95)', border: '1px solid rgba(212, 175, 55, 0.3)', borderRadius: '12px', boxShadow: '0 10px 40px rgba(0,0,0,0.5)', backdropFilter: 'blur(10px)' }}
+                            labelStyle={{ color: '#D4AF37', fontWeight: 'bold', marginBottom: '4px' }}
+                            itemStyle={{ color: '#fff', fontSize: '12px' }}
+                            formatter={(value: number, name: string) => [value, name === 'total' ? 'Total Learners' : 'Active']}
+                            labelFormatter={(label: string, payload: any[]) => payload[0]?.payload?.fullName || label}
                           />
-                          <Bar dataKey="value" radius={[8, 8, 8, 8]}>
-                            {adminStats.map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={['#FACC15', '#CA8A04', '#FEF08A', '#713F12'][index % 4]} />
-                            ))}
-                          </Bar>
+                          <Bar dataKey="total" name="Total" radius={[4, 4, 0, 0]} fill="#D4AF37" />
+                          <Bar dataKey="active" name="Active" radius={[4, 4, 0, 0]} fill="#22C55E" />
                         </BarChart>
                       </ResponsiveContainer>
                     </div>
-                  </GlassCard>
+                    <div className="flex justify-center gap-6 mt-4 text-xs">
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-sm bg-[#D4AF37]" />
+                        <span className="text-zinc-400">Total Learners</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-sm bg-green-500" />
+                        <span className="text-zinc-400">Active Learners</span>
+                      </div>
+                    </div>
+                  </div>
 
-                  <GlassCard className="p-8">
-                    <h3 className="text-xl font-helvetica-bold mb-6">Content Types</h3>
-                    <div className="h-64 w-full relative">
+                  {/* Content Library Donut - Real Data */}
+                  <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-xl border border-white/[0.1] p-6">
+                    <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-purple-500/30 to-transparent" />
+                    <h3 className="text-xl font-helvetica-bold flex items-center gap-2 mb-6">
+                      <PieChartIcon size={20} className="text-purple-400" />
+                      Content Library
+                    </h3>
+                    <div className="h-48 w-full relative">
                       <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
                           <Pie
-                            data={[
-                              { name: 'Video', value: 45, fill: '#FACC15' },
-                              { name: 'Reading', value: 30, fill: '#FFFFFF' },
-                              { name: 'Quizzes', value: 25, fill: '#A16207' },
+                            data={contentStats.length > 0 ? contentStats : [
+                              { name: 'Video', value: 45 },
+                              { name: 'PDF', value: 30 },
+                              { name: 'Quiz', value: 25 },
                             ]}
-                            innerRadius={60}
-                            outerRadius={80}
-                            paddingAngle={5}
+                            innerRadius={55}
+                            outerRadius={75}
+                            paddingAngle={4}
                             dataKey="value"
                           >
-                            <Cell fill="#FACC15" />
-                            <Cell fill="#FFFFFF" />
-                            <Cell fill="#A16207" />
+                            {(contentStats.length > 0 ? contentStats : [1, 2, 3, 4]).map((_, index) => (
+                              <Cell key={`cell-${index}`} fill={['#D4AF37', '#3B82F6', '#8B5CF6', '#22C55E'][index % 4]} />
+                            ))}
                           </Pie>
-                          <Tooltip contentStyle={{ backgroundColor: '#0f172a', border: 'none', borderRadius: '8px' }} />
+                          <Tooltip
+                            contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
+                            formatter={(value: number, name: string) => [`${value} lessons`, name]}
+                          />
                         </PieChart>
                       </ResponsiveContainer>
                       <div className="absolute inset-0 flex items-center justify-center flex-col pointer-events-none">
-                        <span className="text-3xl font-helvetica-bold text-white">100%</span>
-                        <span className="text-xs text-zinc-400">Balanced</span>
+                        <span className="text-3xl font-helvetica-bold text-white">{fullStats?.totalLessons || '—'}</span>
+                        <span className="text-xs text-zinc-400">Lessons</span>
                       </div>
                     </div>
-                    <div className="flex justify-center gap-4 text-xs">
-                      <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-yellow-400"></div> Video</div>
-                      <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-white"></div> Docs</div>
-                      <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-yellow-700"></div> Quiz</div>
+                    <div className="grid grid-cols-2 gap-2 mt-4">
+                      {(contentStats.length > 0 ? contentStats : [
+                        { name: 'Video', count: '—' },
+                        { name: 'PDF', count: '—' },
+                        { name: 'Quiz', count: '—' },
+                        { name: 'Text', count: '—' },
+                      ]).slice(0, 4).map((c, idx) => (
+                        <div key={idx} className="flex items-center gap-2 p-2 rounded-lg bg-white/5">
+                          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: ['#D4AF37', '#3B82F6', '#8B5CF6', '#22C55E'][idx % 4] }} />
+                          <span className="text-xs text-zinc-400 truncate">{c.name}</span>
+                          <span className="text-xs font-medium text-white ml-auto">{c.count || c.value}</span>
+                        </div>
+                      ))}
                     </div>
-                  </GlassCard>
+                  </div>
+                </div>
+
+                {/* Quick Ministry Performance - Top 5 */}
+                <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-xl border border-white/[0.1] p-6">
+                  <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-green-500/30 to-transparent" />
+                  <div className="flex justify-between items-center mb-5">
+                    <h3 className="text-xl font-helvetica-bold flex items-center gap-2">
+                      <Trophy size={20} className="text-[#D4AF37]" />
+                      Top Performing Ministries
+                    </h3>
+                    <button
+                      type="button"
+                      onClick={() => setAdminSection('ANALYTICS')}
+                      className="text-xs text-[#D4AF37] hover:text-yellow-300 flex items-center gap-1"
+                    >
+                      View All <ChevronRight size={14} />
+                    </button>
+                  </div>
+                  <div className="space-y-3">
+                    {ministryStats.length > 0 ? [...ministryStats]
+                      .sort((a, b) => {
+                        const rateA = a.totalLearners > 0 ? (a.coursesCompleted / a.totalLearners) * 100 : 0;
+                        const rateB = b.totalLearners > 0 ? (b.coursesCompleted / b.totalLearners) * 100 : 0;
+                        return rateB - rateA;
+                      })
+                      .slice(0, 5)
+                      .map((ministry, idx) => {
+                        const completionRate = ministry.totalLearners > 0 ? Math.round((ministry.coursesCompleted / ministry.totalLearners) * 100) : 0;
+                        return (
+                          <div key={idx} className="flex items-center gap-4 p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-all">
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-helvetica-bold ${
+                              idx === 0 ? 'bg-gradient-to-br from-yellow-400 to-yellow-600 text-black' :
+                              idx === 1 ? 'bg-gradient-to-br from-zinc-300 to-zinc-500 text-black' :
+                              idx === 2 ? 'bg-gradient-to-br from-amber-600 to-amber-800 text-white' :
+                              'bg-white/10 text-zinc-400'
+                            }`}>
+                              {idx + 1}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="font-medium text-white truncate">{ministry.name}</div>
+                              <div className="text-xs text-zinc-500">{ministry.totalLearners} learners • {ministry.activeLearners || 0} active</div>
+                            </div>
+                            <div className="text-right">
+                              <div className={`text-lg font-helvetica-bold ${completionRate >= 70 ? 'text-green-400' : completionRate >= 40 ? 'text-[#D4AF37]' : 'text-zinc-400'}`}>
+                                {completionRate}%
+                              </div>
+                              <div className="text-xs text-zinc-500">completion</div>
+                            </div>
+                          </div>
+                        );
+                      }) : (
+                      <div className="text-center text-zinc-500 py-8">No ministry data available yet</div>
+                    )}
+                  </div>
                 </div>
 
                 {/* Manage Courses (Enhanced List) */}
