@@ -47,6 +47,7 @@ import {
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from 'recharts';
 import { LiquidBackground } from './components/LiquidBackground';
+import { LandingBackground } from './components/LandingBackground';
 import { GlassCard, PrimaryButton, SecondaryButton, ProgressBar, Badge, FileDropZone, IconButton, ToastProvider, useToast, LiquidVideoFrame } from './components/UIComponents';
 import { AnimatePresence, Reorder, motion, LayoutGroup } from 'framer-motion';
 import { PageTransition } from './components/PageTransition';
@@ -1043,18 +1044,20 @@ const App: React.FC = () => {
 
     return (
       <div className="relative z-10 w-full" style={{ minHeight: '100vh' }}>
-        {/* ===== NAVIGATION ===== */}
-        <nav className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-xl border-b border-white/5">
-          <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+        {/* ===== NAVIGATION - Premium Glass ===== */}
+        <nav className="fixed top-0 left-0 right-0 z-50">
+          <div className="absolute inset-0 bg-gradient-to-b from-black/90 via-black/70 to-transparent backdrop-blur-2xl" />
+          <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[#D4AF37]/20 to-transparent" />
+          <div className="relative max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
             <div className="text-lg font-helvetica-bold tracking-wide">
-              <span className="text-[#D4AF37]">AMINI</span>
+              <span className="text-[#D4AF37] drop-shadow-[0_0_10px_rgba(212,175,55,0.3)]">AMINI</span>
               <span className="text-white/60 ml-1 font-helvetica-light">ACADEMY</span>
             </div>
             <div className="hidden md:flex items-center gap-6">
               <button type="button" onClick={() => scrollTo('paths')} className="text-sm text-zinc-400 hover:text-white transition-colors">Paths</button>
               <button type="button" onClick={() => scrollTo('certification')} className="text-sm text-zinc-400 hover:text-white transition-colors">Certification</button>
               <button type="button" onClick={() => scrollTo('support')} className="text-sm text-zinc-400 hover:text-white transition-colors">Support</button>
-              <button type="button" onClick={() => setCurrentView('AUTH')} className="px-5 py-2 text-sm font-medium rounded-full border border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black transition-all">
+              <button type="button" onClick={() => setCurrentView('AUTH')} className="px-5 py-2 text-sm font-medium rounded-full border border-[#D4AF37]/50 text-[#D4AF37] bg-[#D4AF37]/10 backdrop-blur-sm hover:bg-[#D4AF37] hover:text-black transition-all shadow-[0_0_20px_rgba(212,175,55,0.1)] hover:shadow-[0_0_30px_rgba(212,175,55,0.3)]">
                 Sign In
               </button>
             </div>
@@ -1063,11 +1066,11 @@ const App: React.FC = () => {
             </button>
           </div>
           {mobileMenuOpen && (
-            <div className="md:hidden bg-black/95 border-b border-white/5 px-6 py-4 space-y-3">
+            <div className="md:hidden bg-black/95 backdrop-blur-2xl border-b border-white/5 px-6 py-4 space-y-3">
               <button type="button" onClick={() => { scrollTo('paths'); setMobileMenuOpen(false); }} className="block text-zinc-400 hover:text-white py-2 w-full text-left">Paths</button>
               <button type="button" onClick={() => { scrollTo('certification'); setMobileMenuOpen(false); }} className="block text-zinc-400 hover:text-white py-2 w-full text-left">Certification</button>
               <button type="button" onClick={() => { scrollTo('support'); setMobileMenuOpen(false); }} className="block text-zinc-400 hover:text-white py-2 w-full text-left">Support</button>
-              <button type="button" onClick={() => setCurrentView('AUTH')} className="w-full py-2.5 mt-2 text-sm font-medium rounded-full border border-[#D4AF37] text-[#D4AF37]">Sign In</button>
+              <button type="button" onClick={() => setCurrentView('AUTH')} className="w-full py-2.5 mt-2 text-sm font-medium rounded-full border border-[#D4AF37] text-[#D4AF37] bg-[#D4AF37]/10">Sign In</button>
             </div>
           )}
         </nav>
@@ -1075,45 +1078,48 @@ const App: React.FC = () => {
         {/* ===== HERO ===== */}
         <section className="min-h-screen flex flex-col items-center justify-center px-6 pt-16 relative">
           <div className="max-w-4xl mx-auto text-center">
-            {/* Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#D4AF37]/20 bg-[#D4AF37]/5 mb-8">
-              <div className="w-2 h-2 rounded-full bg-[#D4AF37] animate-pulse" />
-              <span className="text-xs font-medium text-[#D4AF37] tracking-wide">BARBADOS GOVERNMENT INITIATIVE</span>
+            {/* Premium Glass Badge */}
+            <div className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full border border-[#D4AF37]/30 bg-gradient-to-r from-[#D4AF37]/15 via-[#D4AF37]/5 to-transparent backdrop-blur-xl mb-8 shadow-[0_0_30px_rgba(212,175,55,0.15),inset_0_1px_0_rgba(255,255,255,0.1)]">
+              <div className="w-2.5 h-2.5 rounded-full bg-[#D4AF37] animate-pulse shadow-[0_0_10px_rgba(212,175,55,0.8)]" />
+              <span className="text-xs font-semibold text-[#D4AF37] tracking-wider">BARBADOS GOVERNMENT INITIATIVE</span>
             </div>
 
             {/* Title */}
             <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-helvetica-bold leading-[1.1] mb-6">
-              <span className="text-white">Learn to Build with</span>
+              <span className="text-white drop-shadow-[0_2px_10px_rgba(255,255,255,0.1)]">Learn to Build with</span>
               <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#D4AF37] to-[#F5D76E]">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#F5D76E] via-[#D4AF37] to-[#B8962E] drop-shadow-[0_0_30px_rgba(212,175,55,0.3)]">
                 Digital Infrastructure
               </span>
             </h1>
 
             {/* Subtitle */}
             <p className="text-lg text-zinc-400 max-w-2xl mx-auto mb-10">
-              The central hub for public servants to learn <span className="text-white">Bridge</span>, <span className="text-white">ChatBB</span>, and <span className="text-white">Bajan-X</span>.
+              The central hub for public servants to learn <span className="text-white font-medium">Bridge</span>, <span className="text-white font-medium">ChatBB</span>, and <span className="text-white font-medium">Bajan-X</span>.
             </p>
 
-            {/* CTAs */}
+            {/* Premium Glass CTAs */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button type="button" onClick={() => setCurrentView('AUTH')} className="px-8 py-3.5 rounded-full bg-[#D4AF37] text-black font-bold hover:bg-[#F5D76E] transition-colors">
-                Start Learning
+              <button type="button" onClick={() => setCurrentView('AUTH')} className="group relative px-8 py-4 rounded-full bg-gradient-to-r from-[#D4AF37] to-[#F5D76E] text-black font-bold overflow-hidden shadow-[0_0_30px_rgba(212,175,55,0.3)] hover:shadow-[0_0_50px_rgba(212,175,55,0.5)] transition-all duration-300">
+                <span className="relative z-10">Start Learning</span>
+                <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
               </button>
-              <button type="button" onClick={() => scrollTo('paths')} className="px-8 py-3.5 rounded-full border border-white/20 text-white font-medium hover:bg-white/5 transition-colors">
+              <button type="button" onClick={() => scrollTo('paths')} className="px-8 py-4 rounded-full border border-white/20 bg-white/5 backdrop-blur-xl text-white font-medium hover:bg-white/10 hover:border-white/30 transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">
                 Explore Paths
               </button>
             </div>
           </div>
 
           {/* Scroll indicator */}
-          <button type="button" onClick={() => scrollTo('paths')} className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-zinc-500 hover:text-[#D4AF37] transition-colors cursor-pointer">
-            <span className="text-[10px] uppercase tracking-[0.2em]">Scroll</span>
-            <ChevronDown size={20} className="animate-bounce" />
+          <button type="button" onClick={() => scrollTo('paths')} className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-zinc-500 hover:text-[#D4AF37] transition-colors cursor-pointer group">
+            <span className="text-[10px] uppercase tracking-[0.2em] group-hover:tracking-[0.3em] transition-all">Scroll</span>
+            <div className="w-8 h-12 rounded-full border border-white/20 flex items-start justify-center p-2 group-hover:border-[#D4AF37]/50 transition-colors">
+              <div className="w-1 h-2 rounded-full bg-[#D4AF37] animate-bounce" />
+            </div>
           </button>
         </section>
 
-        {/* ===== LEARNING PATHS ===== */}
+        {/* ===== LEARNING PATHS - Premium Glass Cards ===== */}
         <section id="paths" className="py-32 px-6 scroll-mt-20">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
@@ -1121,87 +1127,109 @@ const App: React.FC = () => {
               <p className="text-zinc-400 max-w-xl mx-auto">Choose the path that matches your role. Build comprehensive expertise across all platforms.</p>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-6">
-              {/* Bridge */}
-              <div className="group p-8 rounded-2xl border border-white/10 bg-white/[0.02] hover:border-white/20 transition-all">
-                <span className="text-4xl mb-5 block">🔗</span>
-                <div className="inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-zinc-800 text-zinc-500 mb-4">Coming Soon</div>
-                <h3 className="text-xl font-bold text-white mb-2">Bridge Platform</h3>
-                <p className="text-sm text-zinc-500 mb-5">Connect government datasets with AI-powered insights</p>
-                <ul className="space-y-2 text-sm text-zinc-400">
-                  <li className="flex items-center gap-2"><span className="text-[#D4AF37]">•</span>Navigate knowledge graphs</li>
-                  <li className="flex items-center gap-2"><span className="text-[#D4AF37]">•</span>Natural language queries</li>
-                  <li className="flex items-center gap-2"><span className="text-[#D4AF37]">•</span>Extract government insights</li>
-                </ul>
+            <div className="grid md:grid-cols-3 gap-8">
+              {/* Bridge - Premium Glass */}
+              <div className="group relative rounded-3xl overflow-hidden transition-all duration-500 hover:-translate-y-2">
+                <div className="absolute inset-0 bg-gradient-to-br from-white/[0.08] via-white/[0.02] to-transparent backdrop-blur-2xl border border-white/[0.08] rounded-3xl group-hover:border-white/20 transition-colors" />
+                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="relative p-8">
+                  <span className="text-4xl mb-5 block drop-shadow-lg">🔗</span>
+                  <div className="inline-block px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-zinc-800/80 text-zinc-400 border border-zinc-700/50 backdrop-blur-sm mb-4">Coming Soon</div>
+                  <h3 className="text-xl font-bold text-white mb-2">Bridge Platform</h3>
+                  <p className="text-sm text-zinc-500 mb-5">Connect government datasets with AI-powered insights</p>
+                  <ul className="space-y-2.5 text-sm text-zinc-400">
+                    <li className="flex items-center gap-2"><span className="text-[#D4AF37]">◆</span>Navigate knowledge graphs</li>
+                    <li className="flex items-center gap-2"><span className="text-[#D4AF37]">◆</span>Natural language queries</li>
+                    <li className="flex items-center gap-2"><span className="text-[#D4AF37]">◆</span>Extract government insights</li>
+                  </ul>
+                </div>
               </div>
 
-              {/* ChatBB */}
-              <div className="group p-8 rounded-2xl border border-white/10 bg-white/[0.02] hover:border-white/20 transition-all">
-                <span className="text-4xl mb-5 block">💬</span>
-                <div className="inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-zinc-800 text-zinc-500 mb-4">Coming Soon</div>
-                <h3 className="text-xl font-bold text-white mb-2">ChatBB</h3>
-                <p className="text-sm text-zinc-500 mb-5">AI-powered citizen service tools via WhatsApp</p>
-                <ul className="space-y-2 text-sm text-zinc-400">
-                  <li className="flex items-center gap-2"><span className="text-[#D4AF37]">•</span>Citizen query handling</li>
-                  <li className="flex items-center gap-2"><span className="text-[#D4AF37]">•</span>Content management</li>
-                  <li className="flex items-center gap-2"><span className="text-[#D4AF37]">•</span>Data privacy & classification</li>
-                </ul>
+              {/* ChatBB - Premium Glass */}
+              <div className="group relative rounded-3xl overflow-hidden transition-all duration-500 hover:-translate-y-2">
+                <div className="absolute inset-0 bg-gradient-to-br from-white/[0.08] via-white/[0.02] to-transparent backdrop-blur-2xl border border-white/[0.08] rounded-3xl group-hover:border-white/20 transition-colors" />
+                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="relative p-8">
+                  <span className="text-4xl mb-5 block drop-shadow-lg">💬</span>
+                  <div className="inline-block px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-zinc-800/80 text-zinc-400 border border-zinc-700/50 backdrop-blur-sm mb-4">Coming Soon</div>
+                  <h3 className="text-xl font-bold text-white mb-2">ChatBB</h3>
+                  <p className="text-sm text-zinc-500 mb-5">AI-powered citizen service tools via WhatsApp</p>
+                  <ul className="space-y-2.5 text-sm text-zinc-400">
+                    <li className="flex items-center gap-2"><span className="text-[#D4AF37]">◆</span>Citizen query handling</li>
+                    <li className="flex items-center gap-2"><span className="text-[#D4AF37]">◆</span>Content management</li>
+                    <li className="flex items-center gap-2"><span className="text-[#D4AF37]">◆</span>Data privacy & classification</li>
+                  </ul>
+                </div>
               </div>
 
-              {/* Bajan-X - Active */}
-              <div className="group p-8 rounded-2xl border border-[#D4AF37]/30 bg-[#D4AF37]/5 hover:border-[#D4AF37]/50 transition-all relative overflow-hidden">
-                <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[#D4AF37] to-[#F5D76E]" />
-                <span className="text-4xl mb-5 block">🔌</span>
-                <div className="inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-[#D4AF37]/20 text-[#D4AF37] mb-4">Available Now</div>
-                <h3 className="text-xl font-bold text-white mb-2">Bajan-X</h3>
-                <p className="text-sm text-zinc-400 mb-5">Build and publish government APIs</p>
-                <ul className="space-y-2 text-sm text-zinc-400 mb-6">
-                  <li className="flex items-center gap-2"><span className="text-[#D4AF37]">•</span>API design principles</li>
-                  <li className="flex items-center gap-2"><span className="text-[#D4AF37]">•</span>Dataset documentation</li>
-                  <li className="flex items-center gap-2"><span className="text-[#D4AF37]">•</span>Access control & monitoring</li>
-                </ul>
-                <button type="button" onClick={() => setCurrentView('AUTH')} className="w-full py-2.5 rounded-lg bg-[#D4AF37] text-black text-sm font-bold hover:bg-[#F5D76E] transition-colors">
-                  Start Training →
-                </button>
+              {/* Bajan-X - Active Premium Glass with Gold Glow */}
+              <div className="group relative rounded-3xl overflow-hidden transition-all duration-500 hover:-translate-y-2">
+                <div className="absolute -inset-1 bg-gradient-to-br from-[#D4AF37]/30 via-[#D4AF37]/10 to-transparent rounded-3xl blur-xl opacity-50 group-hover:opacity-80 transition-opacity" />
+                <div className="absolute inset-0 bg-gradient-to-br from-[#D4AF37]/[0.12] via-[#D4AF37]/[0.04] to-transparent backdrop-blur-2xl border border-[#D4AF37]/30 rounded-3xl group-hover:border-[#D4AF37]/50 transition-colors" />
+                <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-[#B8962E] via-[#D4AF37] to-[#F5D76E]" />
+                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#D4AF37]/50 to-transparent" />
+                <div className="relative p-8">
+                  <span className="text-4xl mb-5 block drop-shadow-[0_0_20px_rgba(212,175,55,0.3)]">🔌</span>
+                  <div className="inline-block px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#D4AF37]/20 text-[#D4AF37] border border-[#D4AF37]/30 backdrop-blur-sm mb-4 shadow-[0_0_15px_rgba(212,175,55,0.2)]">Available Now</div>
+                  <h3 className="text-xl font-bold text-white mb-2">Bajan-X</h3>
+                  <p className="text-sm text-zinc-400 mb-5">Build and publish government APIs</p>
+                  <ul className="space-y-2.5 text-sm text-zinc-400 mb-6">
+                    <li className="flex items-center gap-2"><span className="text-[#D4AF37]">◆</span>API design principles</li>
+                    <li className="flex items-center gap-2"><span className="text-[#D4AF37]">◆</span>Dataset documentation</li>
+                    <li className="flex items-center gap-2"><span className="text-[#D4AF37]">◆</span>Access control & monitoring</li>
+                  </ul>
+                  <button type="button" onClick={() => setCurrentView('AUTH')} className="w-full py-3 rounded-xl bg-gradient-to-r from-[#B8962E] via-[#D4AF37] to-[#F5D76E] text-black text-sm font-bold hover:shadow-[0_0_40px_rgba(212,175,55,0.4)] transition-all duration-300 relative overflow-hidden group/btn">
+                    <span className="relative z-10">Start Training →</span>
+                    <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0 translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-700" />
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* ===== CERTIFICATION ===== */}
-        <section id="certification" className="py-32 px-6 border-t border-white/5 scroll-mt-20">
-          <div className="max-w-4xl mx-auto">
+        {/* ===== CERTIFICATION - Premium Glass ===== */}
+        <section id="certification" className="py-32 px-6 scroll-mt-20 relative">
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#D4AF37]/[0.02] to-transparent pointer-events-none" />
+          <div className="max-w-4xl mx-auto relative">
             <div className="text-center mb-16">
               <h2 className="text-3xl md:text-4xl font-helvetica-bold mb-4">Certification</h2>
               <p className="text-zinc-400">Earn credentials that demonstrate your expertise</p>
             </div>
 
             <div className="space-y-6">
-              {/* Champion */}
-              <div className="p-8 rounded-2xl border border-[#D4AF37]/20 bg-[#D4AF37]/5">
-                <div className="flex items-start gap-6">
-                  <span className="text-4xl">🥇</span>
+              {/* Champion - Premium Glass */}
+              <div className="group relative rounded-3xl overflow-hidden">
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-[#D4AF37]/20 via-[#D4AF37]/10 to-transparent rounded-3xl blur-lg opacity-50 group-hover:opacity-80 transition-opacity" />
+                <div className="absolute inset-0 bg-gradient-to-br from-[#D4AF37]/[0.08] via-[#D4AF37]/[0.02] to-transparent backdrop-blur-2xl border border-[#D4AF37]/20 rounded-3xl group-hover:border-[#D4AF37]/40 transition-colors" />
+                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#D4AF37]/40 to-transparent" />
+                <div className="relative p-8 flex items-start gap-6">
+                  <span className="text-5xl drop-shadow-[0_0_20px_rgba(212,175,55,0.3)]">🥇</span>
                   <div className="flex-1">
                     <h3 className="text-xl font-bold text-white mb-2">Bajan-X Champion</h3>
                     <p className="text-sm text-zinc-400 mb-4">Complete all 8 Bajan-X courses, submit a capstone project, and pass the final assessment with 80%+</p>
-                    <button type="button" onClick={() => setCurrentView('AUTH')} className="text-sm text-[#D4AF37] hover:underline">Learn more →</button>
+                    <button type="button" onClick={() => setCurrentView('AUTH')} className="text-sm text-[#D4AF37] hover:text-[#F5D76E] transition-colors font-medium">Learn more →</button>
                   </div>
                 </div>
               </div>
 
-              {/* Superuser */}
-              <div className="p-8 rounded-2xl border border-white/10 bg-white/[0.02]">
-                <div className="flex items-start gap-6">
-                  <span className="text-4xl">🏆</span>
+              {/* Superuser - Premium Glass */}
+              <div className="group relative rounded-3xl overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-white/[0.06] via-white/[0.02] to-transparent backdrop-blur-2xl border border-white/10 rounded-3xl group-hover:border-white/20 transition-colors" />
+                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+                <div className="relative p-8 flex items-start gap-6">
+                  <span className="text-5xl drop-shadow-lg">🏆</span>
                   <div className="flex-1">
                     <h3 className="text-xl font-bold text-white mb-2">Certified Superuser</h3>
                     <p className="text-sm text-zinc-400 mb-4">Complete all three learning paths (Bridge, ChatBB, Bajan-X) to lead digital transformation in your ministry</p>
                     <div className="flex flex-wrap gap-2 mb-4">
-                      <span className="px-2 py-1 rounded text-xs bg-white/5 text-zinc-400">Advanced Training</span>
-                      <span className="px-2 py-1 rounded text-xs bg-white/5 text-zinc-400">Priority Support</span>
-                      <span className="px-2 py-1 rounded text-xs bg-white/5 text-zinc-400">Exclusive Network</span>
+                      <span className="px-3 py-1 rounded-full text-xs bg-white/5 text-zinc-400 border border-white/10 backdrop-blur-sm">Advanced Training</span>
+                      <span className="px-3 py-1 rounded-full text-xs bg-white/5 text-zinc-400 border border-white/10 backdrop-blur-sm">Priority Support</span>
+                      <span className="px-3 py-1 rounded-full text-xs bg-white/5 text-zinc-400 border border-white/10 backdrop-blur-sm">Exclusive Network</span>
                     </div>
-                    <button type="button" onClick={() => setCurrentView('AUTH')} className="text-sm text-[#D4AF37] hover:underline">Learn more →</button>
+                    <button type="button" onClick={() => setCurrentView('AUTH')} className="text-sm text-[#D4AF37] hover:text-[#F5D76E] transition-colors font-medium">Learn more →</button>
                   </div>
                 </div>
               </div>
@@ -1209,26 +1237,34 @@ const App: React.FC = () => {
           </div>
         </section>
 
-        {/* ===== SUPPORT ===== */}
-        <section id="support" className="py-32 px-6 border-t border-white/5 scroll-mt-20">
+        {/* ===== SUPPORT - Premium Glass ===== */}
+        <section id="support" className="py-32 px-6 scroll-mt-20">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-16">
               <h2 className="text-3xl md:text-4xl font-helvetica-bold mb-4">Support</h2>
               <p className="text-zinc-400">Get help when you need it</p>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-6">
-              <div className="p-8 rounded-2xl border border-white/10 bg-white/[0.02] text-center">
-                <span className="text-3xl mb-4 block">📅</span>
-                <h3 className="font-bold text-white mb-2">Office Hours</h3>
-                <p className="text-sm text-zinc-400 mb-1">Weekly sessions with instructors</p>
-                <p className="text-sm text-white font-medium">Thursdays, 2-5 PM</p>
+            <div className="grid md:grid-cols-2 gap-8">
+              <div className="group relative rounded-3xl overflow-hidden transition-all duration-500 hover:-translate-y-1">
+                <div className="absolute inset-0 bg-gradient-to-br from-white/[0.06] via-white/[0.02] to-transparent backdrop-blur-2xl border border-white/10 rounded-3xl group-hover:border-[#D4AF37]/30 transition-colors" />
+                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover:via-[#D4AF37]/40 transition-colors" />
+                <div className="relative p-8 text-center">
+                  <span className="text-4xl mb-4 block drop-shadow-lg">📅</span>
+                  <h3 className="font-bold text-white mb-2">Office Hours</h3>
+                  <p className="text-sm text-zinc-400 mb-1">Weekly sessions with instructors</p>
+                  <p className="text-sm text-[#D4AF37] font-medium">Thursdays, 2-5 PM</p>
+                </div>
               </div>
-              <div className="p-8 rounded-2xl border border-white/10 bg-white/[0.02] text-center">
-                <span className="text-3xl mb-4 block">📚</span>
-                <h3 className="font-bold text-white mb-2">Documentation</h3>
-                <p className="text-sm text-zinc-400 mb-1">Step-by-step tutorials</p>
-                <p className="text-sm text-white font-medium">Searchable knowledge base</p>
+              <div className="group relative rounded-3xl overflow-hidden transition-all duration-500 hover:-translate-y-1">
+                <div className="absolute inset-0 bg-gradient-to-br from-white/[0.06] via-white/[0.02] to-transparent backdrop-blur-2xl border border-white/10 rounded-3xl group-hover:border-[#D4AF37]/30 transition-colors" />
+                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover:via-[#D4AF37]/40 transition-colors" />
+                <div className="relative p-8 text-center">
+                  <span className="text-4xl mb-4 block drop-shadow-lg">📚</span>
+                  <h3 className="font-bold text-white mb-2">Documentation</h3>
+                  <p className="text-sm text-zinc-400 mb-1">Step-by-step tutorials</p>
+                  <p className="text-sm text-[#D4AF37] font-medium">Searchable knowledge base</p>
+                </div>
               </div>
             </div>
           </div>
@@ -5017,7 +5053,8 @@ const App: React.FC = () => {
   return (
     <ToastProvider>
       <div className="font-helvetica text-slate-50 selection:bg-yellow-400/30 h-screen overflow-hidden animate-page-entrance">
-        <LiquidBackground />
+        {/* Use enhanced interactive background on landing, regular on other pages */}
+        {currentView === 'LANDING' ? <LandingBackground /> : <LiquidBackground />}
 
         {/* Sidebar for authenticated views except player */}
         {(currentView === 'DASHBOARD' || currentView === 'ADMIN') && <Sidebar />}
