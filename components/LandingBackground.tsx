@@ -6,17 +6,29 @@ interface Point {
   y: number;
   originX: number;
   originY: number;
-  opacity: number;
-  targetOpacity: number;
+  brightness: number;
+  targetBrightness: number;
 }
 
 export const LandingBackground: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const animationRef = useRef<number>();
+  const animationRef = useRef<number>(0);
   const pointsRef = useRef<Point[]>([]);
-  const mouseRef = useRef({ x: -1000, y: -1000 });
-  const noise3D = useRef(createNoise3D()).current;
+  const mouseRef = useRef({ x: -9999, y: -9999 });
+  const noise3DRef = useRef<ReturnType<typeof createNoise3D> | null>(null);
   const timeRef = useRef(0);
+  const configRef = useRef({
+    gridSpacing: 45,
+    noiseScale: 0.0008,
+    timeSpeed: 0.00012,
+    distortionStrength: 20,
+    connectionDistance: 75,
+    mouseRadius: 180,
+    nodeSize: 1.8,
+    baseBrightness: 0.15,
+    maxBrightness: 1.0,
+    transitionSpeed: 0.06,
+  });
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -25,37 +37,37 @@ export const LandingBackground: React.FC = () => {
     const ctx = canvas.getContext('2d', { alpha: false });
     if (!ctx) return;
 
-    let width = window.innerWidth;
-    let height = window.innerHeight;
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    // Initialize noise only once
+    if (!noise3DRef.current) {
+      noise3DRef.current = createNoise3D();
+    }
+    const noise3D = noise3DRef.current;
 
-    const config = {
-      gridSpacing: 40,
-      noiseScale: 0.0008,
-      timeSpeed: 0.00015,
-      distortionStrength: 25,
-      connectionDistance: 70,
-      mouseRadius: 200, // Radius of mouse influence (increased for smoother effect)
-      nodeSize: 2, // Size of the dots
-      baseOpacity: 0.12, // Dim base opacity when mouse is away
-      maxOpacity: 1, // Full brightness when mouse is near
-    };
+    let width = 0;
+    let height = 0;
+    let dpr = 1;
+    let cols = 0;
+    let rows = 0;
+    const config = configRef.current;
 
     const resize = () => {
       width = window.innerWidth;
       height = window.innerHeight;
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+
       canvas.width = width * dpr;
       canvas.height = height * dpr;
       canvas.style.width = `${width}px`;
       canvas.style.height = `${height}px`;
-      ctx.scale(dpr, dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
       initPoints();
     };
 
     const initPoints = () => {
+      cols = Math.ceil(width / config.gridSpacing) + 2;
+      rows = Math.ceil(height / config.gridSpacing) + 2;
       const points: Point[] = [];
-      const cols = Math.ceil(width / config.gridSpacing) + 2;
-      const rows = Math.ceil(height / config.gridSpacing) + 2;
 
       for (let i = 0; i < cols; i++) {
         for (let j = 0; j < rows; j++) {
@@ -66,8 +78,8 @@ export const LandingBackground: React.FC = () => {
             y,
             originX: x,
             originY: y,
-            opacity: config.baseOpacity, // Start dim
-            targetOpacity: config.baseOpacity,
+            brightness: config.baseBrightness,
+            targetBrightness: config.baseBrightness,
           });
         }
       }
@@ -75,28 +87,29 @@ export const LandingBackground: React.FC = () => {
     };
 
     const handleMouseMove = (e: MouseEvent) => {
-      mouseRef.current = { x: e.clientX, y: e.clientY };
+      mouseRef.current.x = e.clientX;
+      mouseRef.current.y = e.clientY;
     };
 
     const handleMouseLeave = () => {
-      mouseRef.current = { x: -1000, y: -1000 };
+      mouseRef.current.x = -9999;
+      mouseRef.current.y = -9999;
     };
 
     const animate = () => {
       timeRef.current += config.timeSpeed;
       const time = timeRef.current;
-      const mouse = mouseRef.current;
+      const mouseX = mouseRef.current.x;
+      const mouseY = mouseRef.current.y;
+      const points = pointsRef.current;
+      const pointCount = points.length;
 
-      // Deep black background
+      // Clear with black
       ctx.fillStyle = '#000000';
       ctx.fillRect(0, 0, width, height);
 
-      const points = pointsRef.current;
-      const cols = Math.ceil(width / config.gridSpacing) + 2;
-      const rows = Math.ceil(height / config.gridSpacing) + 2;
-
-      // Update points position and opacity based on mouse
-      for (let i = 0; i < points.length; i++) {
+      // Update all points
+      for (let i = 0; i < pointCount; i++) {
         const p = points[i];
 
         // Noise-based movement
@@ -105,29 +118,31 @@ export const LandingBackground: React.FC = () => {
         p.x = p.originX + noiseX * config.distortionStrength;
         p.y = p.originY + noiseY * config.distortionStrength;
 
-        // Calculate distance from mouse
-        const dx = p.x - mouse.x;
-        const dy = p.y - mouse.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
+        // Calculate mouse distance and brightness
+        const dx = p.x - mouseX;
+        const dy = p.y - mouseY;
+        const distSq = dx * dx + dy * dy;
+        const radiusSq = config.mouseRadius * config.mouseRadius;
 
-        // Light up near mouse - INVERTED: brighter when close, dim when far
-        if (dist < config.mouseRadius) {
-          // Smooth falloff - closer = brighter
+        if (distSq < radiusSq) {
+          const dist = Math.sqrt(distSq);
           const proximity = 1 - (dist / config.mouseRadius);
-          const brightnessBoost = proximity * proximity * proximity; // Cubic for smoother center glow
-          p.targetOpacity = config.baseOpacity + (config.maxOpacity - config.baseOpacity) * brightnessBoost;
+          // Smooth cubic falloff for natural glow
+          const boost = proximity * proximity * (3 - 2 * proximity);
+          p.targetBrightness = config.baseBrightness + (config.maxBrightness - config.baseBrightness) * boost;
         } else {
-          p.targetOpacity = config.baseOpacity; // Return to dim state
+          p.targetBrightness = config.baseBrightness;
         }
 
-        // Smooth opacity transition (slightly slower for elegant fade)
-        p.opacity += (p.targetOpacity - p.opacity) * 0.08;
+        // Smooth transition
+        p.brightness += (p.targetBrightness - p.brightness) * config.transitionSpeed;
       }
 
-      // Draw grid lines with additive blending
+      // Draw with additive blending
       ctx.globalCompositeOperation = 'lighter';
-      ctx.lineWidth = 0.5;
+      ctx.lineWidth = 0.4;
 
+      // Draw grid lines
       for (let i = 0; i < cols; i++) {
         for (let j = 0; j < rows; j++) {
           const idx = i * rows + j;
@@ -136,49 +151,42 @@ export const LandingBackground: React.FC = () => {
 
           // Right connection
           if (i < cols - 1) {
-            const rightIdx = (i + 1) * rows + j;
-            const neighbor = points[rightIdx];
+            const neighbor = points[idx + rows];
             if (neighbor) {
-              drawLine(ctx, p, neighbor, config.connectionDistance);
+              drawLine(ctx, p, neighbor, config);
             }
           }
 
           // Bottom connection
           if (j < rows - 1) {
-            const bottomIdx = i * rows + (j + 1);
-            const neighbor = points[bottomIdx];
+            const neighbor = points[idx + 1];
             if (neighbor) {
-              drawLine(ctx, p, neighbor, config.connectionDistance);
+              drawLine(ctx, p, neighbor, config);
             }
           }
         }
       }
 
-      // Draw nodes (dots) at intersections
-      for (let i = 0; i < points.length; i++) {
+      // Draw nodes
+      for (let i = 0; i < pointCount; i++) {
         const p = points[i];
-        if (p.opacity < 0.02) continue;
+        const alpha = p.brightness * 0.7;
 
-        const alpha = p.opacity;
+        if (alpha < 0.02) continue;
 
-        // Dynamic glow size based on brightness
-        const glowSize = config.nodeSize * (2 + alpha * 2);
+        // Simple glow - no gradient for performance
+        const glowAlpha = alpha * 0.4;
+        if (glowAlpha > 0.01) {
+          ctx.fillStyle = `rgba(212, 175, 55, ${glowAlpha})`;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, config.nodeSize * 2.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
 
-        // Outer glow - more visible when lit up
-        const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, glowSize);
-        gradient.addColorStop(0, `rgba(212, 175, 55, ${alpha * 0.7})`);
-        gradient.addColorStop(0.4, `rgba(212, 175, 55, ${alpha * 0.25})`);
-        gradient.addColorStop(1, 'rgba(212, 175, 55, 0)');
-
-        ctx.fillStyle = gradient;
+        // Core dot
+        ctx.fillStyle = `rgba(255, 215, 80, ${alpha})`;
         ctx.beginPath();
-        ctx.arc(p.x, p.y, glowSize, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Core dot - brighter center
-        ctx.fillStyle = `rgba(255, 220, 100, ${alpha * 0.9})`;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, config.nodeSize * 0.6, 0, Math.PI * 2);
+        ctx.arc(p.x, p.y, config.nodeSize * 0.7, 0, Math.PI * 2);
         ctx.fill();
       }
 
@@ -186,16 +194,22 @@ export const LandingBackground: React.FC = () => {
       animationRef.current = requestAnimationFrame(animate);
     };
 
-    const drawLine = (ctx: CanvasRenderingContext2D, p1: Point, p2: Point, maxDist: number) => {
-      const dist = Math.hypot(p2.x - p1.x, p2.y - p1.y);
-      if (dist > maxDist * 1.4) return;
+    const drawLine = (
+      ctx: CanvasRenderingContext2D,
+      p1: Point,
+      p2: Point,
+      config: typeof configRef.current
+    ) => {
+      const dx = p2.x - p1.x;
+      const dy = p2.y - p1.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const maxDist = config.connectionDistance * 1.3;
 
-      let alpha = 1 - (dist / (maxDist * 1.4));
-      alpha = alpha * alpha;
+      if (dist > maxDist) return;
 
-      // Combine both points' opacity for line visibility - use average for smoother gradients
-      const combinedOpacity = (p1.opacity + p2.opacity) / 2;
-      alpha *= combinedOpacity * 0.6;
+      const distFactor = 1 - (dist / maxDist);
+      const combinedBrightness = (p1.brightness + p2.brightness) * 0.5;
+      const alpha = distFactor * distFactor * combinedBrightness * 0.5;
 
       if (alpha < 0.008) return;
 
@@ -206,10 +220,15 @@ export const LandingBackground: React.FC = () => {
       ctx.stroke();
     };
 
+    // Initialize
     resize();
+
+    // Event listeners
     window.addEventListener('resize', resize);
-    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
     window.addEventListener('mouseleave', handleMouseLeave);
+
+    // Start animation
     animationRef.current = requestAnimationFrame(animate);
 
     return () => {
@@ -224,19 +243,14 @@ export const LandingBackground: React.FC = () => {
 
   return (
     <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-      {/* Base black */}
       <div className="absolute inset-0 bg-black" />
-
-      {/* Canvas */}
       <canvas ref={canvasRef} className="absolute inset-0" />
 
-      {/* Subtle ambient glow - top (reduced) */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_40%_at_50%_-10%,rgba(212,175,55,0.04),transparent_60%)]" />
-
-      {/* Subtle ambient glow - bottom (reduced) */}
+      {/* Subtle ambient glow - very reduced */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_40%_at_50%_-10%,rgba(212,175,55,0.05),transparent_60%)]" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_100%_50%_at_50%_110%,rgba(212,175,55,0.03),transparent_50%)]" />
 
-      {/* Soft vignette */}
+      {/* Vignette */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.5)_70%,rgba(0,0,0,0.85)_100%)]" />
     </div>
   );
