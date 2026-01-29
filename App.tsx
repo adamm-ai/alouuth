@@ -1040,7 +1040,6 @@ const App: React.FC = () => {
   const LandingView = () => {
     const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-    // Smooth scroll handler
     const scrollTo = (id: string) => {
       const el = document.getElementById(id);
       const container = scrollContainerRef.current;
@@ -1050,317 +1049,333 @@ const App: React.FC = () => {
       }
     };
 
+    // Liquid Glass Card Component
+    const LiquidGlassCard = ({ children, className = '', gold = false, hover = true }: { children: React.ReactNode; className?: string; gold?: boolean; hover?: boolean }) => (
+      <div className={`group relative ${hover ? 'transition-all duration-700 hover:-translate-y-3 hover:scale-[1.02]' : ''} ${className}`}>
+        {/* Outer glow */}
+        <div className={`absolute -inset-[2px] rounded-[28px] ${gold ? 'bg-gradient-to-br from-[#D4AF37]/40 via-[#D4AF37]/20 to-[#D4AF37]/5' : 'bg-gradient-to-br from-white/20 via-white/5 to-transparent'} blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700`} />
+
+        {/* Glass layers */}
+        <div className={`absolute inset-0 rounded-[26px] ${gold ? 'bg-gradient-to-br from-[#D4AF37]/[0.15] via-[#D4AF37]/[0.05] to-black/40' : 'bg-gradient-to-br from-white/[0.12] via-white/[0.04] to-black/30'} backdrop-blur-3xl`} />
+        <div className={`absolute inset-0 rounded-[26px] border ${gold ? 'border-[#D4AF37]/30 group-hover:border-[#D4AF37]/60' : 'border-white/[0.12] group-hover:border-white/25'} transition-colors duration-500`} />
+
+        {/* Inner highlight - top edge */}
+        <div className={`absolute inset-x-4 top-0 h-[1px] ${gold ? 'bg-gradient-to-r from-transparent via-[#D4AF37]/60 to-transparent' : 'bg-gradient-to-r from-transparent via-white/30 to-transparent'}`} />
+
+        {/* Inner shadow gradient */}
+        <div className="absolute inset-0 rounded-[26px] bg-gradient-to-b from-white/[0.08] via-transparent to-black/20 pointer-events-none" />
+
+        {/* Light refraction effect */}
+        <div className={`absolute top-0 left-0 right-0 h-1/2 rounded-t-[26px] bg-gradient-to-b ${gold ? 'from-[#D4AF37]/[0.08]' : 'from-white/[0.06]'} to-transparent pointer-events-none`} />
+
+        {/* Content */}
+        <div className="relative z-10">{children}</div>
+
+        {/* Bottom reflection */}
+        <div className={`absolute inset-x-8 bottom-0 h-[1px] ${gold ? 'bg-gradient-to-r from-transparent via-[#D4AF37]/20 to-transparent' : 'bg-gradient-to-r from-transparent via-white/10 to-transparent'}`} />
+      </div>
+    );
+
     return (
-      <div ref={scrollContainerRef} className="absolute inset-0 overflow-y-auto overflow-x-hidden z-10 scroll-smooth">
-        {/* ===== NAVIGATION ===== */}
+      <div ref={scrollContainerRef} className="absolute inset-0 overflow-y-auto overflow-x-hidden z-10">
+        {/* ===== NAVIGATION - Liquid Glass ===== */}
         <nav className="fixed top-0 left-0 right-0 z-50">
-          <div className="absolute inset-0 bg-gradient-to-b from-black/95 via-black/80 to-transparent backdrop-blur-2xl" />
-          <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[#D4AF37]/20 to-transparent" />
-          <div className="relative max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-            <div className="text-lg font-helvetica-bold tracking-wide">
-              <span className="text-[#D4AF37] drop-shadow-[0_0_10px_rgba(212,175,55,0.3)]">AMINI</span>
-              <span className="text-white/60 ml-1 font-helvetica-light">ACADEMY</span>
+          <div className="absolute inset-0 bg-gradient-to-b from-black/90 via-black/70 to-transparent backdrop-blur-2xl" />
+          <div className="absolute inset-x-0 bottom-0 h-[1px] bg-gradient-to-r from-transparent via-[#D4AF37]/30 to-transparent" />
+          <div className="relative max-w-7xl mx-auto px-8 h-20 flex items-center justify-between">
+            <div className="text-xl font-helvetica-bold tracking-wider">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#F5D76E] via-[#D4AF37] to-[#B8962E] drop-shadow-[0_0_20px_rgba(212,175,55,0.5)]">AMINI</span>
+              <span className="text-white/50 ml-2 font-helvetica-light tracking-widest">ACADEMY</span>
             </div>
-            <div className="hidden md:flex items-center gap-6">
-              <button type="button" onClick={() => scrollTo('paths')} className="text-sm text-zinc-400 hover:text-white transition-colors">Paths</button>
-              <button type="button" onClick={() => scrollTo('certification')} className="text-sm text-zinc-400 hover:text-white transition-colors">Certification</button>
-              <button type="button" onClick={() => scrollTo('support')} className="text-sm text-zinc-400 hover:text-white transition-colors">Support</button>
-              <button type="button" onClick={() => setCurrentView('AUTH')} className="px-5 py-2 text-sm font-medium rounded-full border border-[#D4AF37]/50 text-[#D4AF37] bg-[#D4AF37]/10 backdrop-blur-sm hover:bg-[#D4AF37] hover:text-black transition-all shadow-[0_0_20px_rgba(212,175,55,0.1)] hover:shadow-[0_0_30px_rgba(212,175,55,0.3)]">
-                Sign In
+            <div className="hidden md:flex items-center gap-8">
+              <button type="button" onClick={() => scrollTo('paths')} className="text-sm text-zinc-400 hover:text-white transition-all duration-300 hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">Paths</button>
+              <button type="button" onClick={() => scrollTo('certification')} className="text-sm text-zinc-400 hover:text-white transition-all duration-300">Certification</button>
+              <button type="button" onClick={() => scrollTo('support')} className="text-sm text-zinc-400 hover:text-white transition-all duration-300">Support</button>
+              <button type="button" onClick={() => setCurrentView('AUTH')} className="relative px-6 py-2.5 text-sm font-semibold rounded-full overflow-hidden group/nav">
+                <div className="absolute inset-0 bg-gradient-to-r from-[#D4AF37]/20 to-[#D4AF37]/10 backdrop-blur-xl border border-[#D4AF37]/40 rounded-full group-hover/nav:border-[#D4AF37] group-hover/nav:bg-[#D4AF37] transition-all duration-300" />
+                <span className="relative text-[#D4AF37] group-hover/nav:text-black transition-colors duration-300">Sign In</span>
               </button>
             </div>
-            <button type="button" className="md:hidden text-white" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-              {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            <button type="button" className="md:hidden text-white/80" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+              {mobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
             </button>
           </div>
           {mobileMenuOpen && (
-            <div className="md:hidden bg-black/95 backdrop-blur-2xl border-b border-white/5 px-6 py-4 space-y-3">
-              <button type="button" onClick={() => { scrollTo('paths'); setMobileMenuOpen(false); }} className="block text-zinc-400 hover:text-white py-2 w-full text-left">Paths</button>
-              <button type="button" onClick={() => { scrollTo('certification'); setMobileMenuOpen(false); }} className="block text-zinc-400 hover:text-white py-2 w-full text-left">Certification</button>
-              <button type="button" onClick={() => { scrollTo('support'); setMobileMenuOpen(false); }} className="block text-zinc-400 hover:text-white py-2 w-full text-left">Support</button>
-              <button type="button" onClick={() => setCurrentView('AUTH')} className="w-full py-2.5 mt-2 text-sm font-medium rounded-full border border-[#D4AF37] text-[#D4AF37] bg-[#D4AF37]/10">Sign In</button>
+            <div className="md:hidden bg-black/95 backdrop-blur-3xl border-b border-white/10 px-8 py-6 space-y-4">
+              <button type="button" onClick={() => { scrollTo('paths'); setMobileMenuOpen(false); }} className="block text-zinc-300 hover:text-white py-2 w-full text-left text-lg">Paths</button>
+              <button type="button" onClick={() => { scrollTo('certification'); setMobileMenuOpen(false); }} className="block text-zinc-300 hover:text-white py-2 w-full text-left text-lg">Certification</button>
+              <button type="button" onClick={() => { scrollTo('support'); setMobileMenuOpen(false); }} className="block text-zinc-300 hover:text-white py-2 w-full text-left text-lg">Support</button>
+              <button type="button" onClick={() => setCurrentView('AUTH')} className="w-full py-3 mt-4 text-sm font-bold rounded-full bg-gradient-to-r from-[#D4AF37] to-[#F5D76E] text-black">Sign In</button>
             </div>
           )}
         </nav>
 
-        {/* ===== HERO ===== */}
-        <section className="min-h-screen flex flex-col items-center justify-center px-6 pt-16 relative">
-          <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-helvetica-bold leading-[1.1] mb-6">
-              <span className="text-white drop-shadow-[0_2px_10px_rgba(255,255,255,0.1)]">Learn to Build with</span>
+        {/* ===== HERO - Immersive ===== */}
+        <section className="min-h-screen flex flex-col items-center justify-center px-8 pt-20 pb-32 relative">
+          {/* Ambient light effects */}
+          <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-[#D4AF37]/[0.03] rounded-full blur-[150px] pointer-events-none" />
+          <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-[#D4AF37]/[0.02] rounded-full blur-[120px] pointer-events-none" />
+
+          <div className="max-w-5xl mx-auto text-center relative">
+            <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-helvetica-bold leading-[1.05] mb-8 tracking-tight">
+              <span className="text-white drop-shadow-[0_4px_20px_rgba(255,255,255,0.1)]">Learn to Build with</span>
               <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#F5D76E] via-[#D4AF37] to-[#B8962E] drop-shadow-[0_0_30px_rgba(212,175,55,0.3)]">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#F5D76E] via-[#D4AF37] to-[#B8962E] drop-shadow-[0_0_60px_rgba(212,175,55,0.4)]">
                 Digital Infrastructure
               </span>
             </h1>
 
-            <p className="text-lg md:text-xl text-zinc-400 max-w-2xl mx-auto mb-10">
-              The central hub for public servants to learn <span className="text-white font-medium">Bridge</span>, <span className="text-white font-medium">ChatBB</span>, and <span className="text-white font-medium">Bajan-X</span>.
+            <p className="text-xl md:text-2xl text-zinc-400 max-w-3xl mx-auto mb-14 leading-relaxed font-light">
+              The central hub for public servants to master <span className="text-white font-normal">Bridge</span>, <span className="text-white font-normal">ChatBB</span>, and <span className="text-white font-normal">Bajan-X</span>
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button type="button" onClick={() => setCurrentView('AUTH')} className="group relative px-8 py-4 rounded-full bg-gradient-to-r from-[#D4AF37] to-[#F5D76E] text-black font-bold overflow-hidden shadow-[0_0_30px_rgba(212,175,55,0.3)] hover:shadow-[0_0_50px_rgba(212,175,55,0.5)] transition-all duration-300">
-                <span className="relative z-10">Start Learning</span>
-                <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
+            <div className="flex flex-col sm:flex-row gap-6 justify-center">
+              <button type="button" onClick={() => setCurrentView('AUTH')} className="group relative px-10 py-5 rounded-2xl overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-r from-[#B8962E] via-[#D4AF37] to-[#F5D76E] rounded-2xl" />
+                <div className="absolute inset-0 bg-gradient-to-r from-[#F5D76E] via-[#D4AF37] to-[#B8962E] rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <div className="absolute inset-[2px] bg-gradient-to-r from-[#D4AF37] to-[#F5D76E] rounded-[14px]" />
+                <div className="absolute inset-0 shadow-[0_0_60px_rgba(212,175,55,0.4)] group-hover:shadow-[0_0_80px_rgba(212,175,55,0.6)] transition-shadow duration-500" />
+                <span className="relative z-10 text-black font-bold text-lg">Start Learning</span>
+                <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/40 to-white/0 translate-x-[-150%] group-hover:translate-x-[150%] transition-transform duration-1000 ease-out" />
               </button>
-              <button type="button" onClick={() => scrollTo('paths')} className="px-8 py-4 rounded-full border border-white/20 bg-white/5 backdrop-blur-xl text-white font-medium hover:bg-white/10 hover:border-white/30 transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">
-                Explore Paths
+
+              <button type="button" onClick={() => scrollTo('paths')} className="group relative px-10 py-5 rounded-2xl overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-white/[0.1] via-white/[0.03] to-transparent backdrop-blur-2xl rounded-2xl border border-white/20 group-hover:border-white/40 transition-colors duration-500" />
+                <div className="absolute inset-x-4 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/30 to-transparent" />
+                <span className="relative z-10 text-white font-semibold text-lg">Explore Paths</span>
               </button>
             </div>
           </div>
 
-          <button type="button" onClick={() => scrollTo('value')} className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-zinc-500 hover:text-[#D4AF37] transition-colors cursor-pointer group">
-            <span className="text-[10px] uppercase tracking-[0.2em]">Scroll</span>
-            <ChevronDown size={24} className="animate-bounce" />
+          <button type="button" onClick={() => scrollTo('value')} className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3 text-zinc-500 hover:text-[#D4AF37] transition-all duration-500 cursor-pointer group">
+            <span className="text-xs uppercase tracking-[0.3em] font-medium">Discover</span>
+            <div className="w-10 h-14 rounded-full border-2 border-current flex items-start justify-center p-2 group-hover:border-[#D4AF37]/60 transition-colors">
+              <div className="w-1.5 h-3 rounded-full bg-current animate-bounce" />
+            </div>
           </button>
         </section>
 
-        {/* ===== VALUE PROPOSITION ===== */}
-        <section id="value" className="py-24 px-6">
-          <div className="max-w-4xl mx-auto">
-            <div className="relative rounded-3xl overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-white/[0.08] via-white/[0.03] to-transparent backdrop-blur-2xl border border-white/10 rounded-3xl" />
-              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#D4AF37]/30 to-transparent" />
-              <div className="relative p-10 md:p-14 text-center">
-                <h2 className="text-2xl md:text-3xl font-helvetica-bold mb-6">Build the skills to transform government services</h2>
-                <p className="text-zinc-400 leading-relaxed max-w-3xl mx-auto">
+        {/* ===== VALUE PROPOSITION - Liquid Glass Container ===== */}
+        <section id="value" className="py-32 px-8">
+          <div className="max-w-5xl mx-auto">
+            <LiquidGlassCard hover={false} className="rounded-[32px]">
+              <div className="p-12 md:p-16 text-center">
+                <h2 className="text-3xl md:text-4xl font-helvetica-bold mb-8 leading-tight">
+                  Build the skills to transform<br />government services
+                </h2>
+                <p className="text-lg text-zinc-400 leading-relaxed max-w-3xl mx-auto">
                   Amini Academy provides structured, hands-on training in the tools powering Barbados' digital transformation.
                   Whether you're connecting government data, enabling citizen services, or publishing APIs, we'll guide you from fundamentals to mastery.
                 </p>
               </div>
-            </div>
+            </LiquidGlassCard>
           </div>
         </section>
 
-        {/* ===== LEARNING PATHS ===== */}
-        <section id="paths" className="py-24 px-6">
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-helvetica-bold mb-4">Choose Your Learning Path</h2>
-              <p className="text-zinc-400 max-w-xl mx-auto">Select the path that matches your role and goals. Build comprehensive expertise across all platforms.</p>
+        {/* ===== LEARNING PATHS - Liquid Glass Cards ===== */}
+        <section id="paths" className="py-32 px-8">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-20">
+              <h2 className="text-4xl md:text-5xl font-helvetica-bold mb-6">Choose Your Path</h2>
+              <p className="text-lg text-zinc-400 max-w-2xl mx-auto">Select the path that matches your role. Build comprehensive expertise across all platforms.</p>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-8">
+            <div className="grid md:grid-cols-3 gap-10">
               {/* Bridge */}
-              <div className="group relative rounded-3xl overflow-hidden transition-all duration-500 hover:-translate-y-2">
-                <div className="absolute inset-0 bg-gradient-to-br from-white/[0.08] via-white/[0.02] to-transparent backdrop-blur-2xl border border-white/[0.08] rounded-3xl group-hover:border-white/20 transition-colors" />
-                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-                <div className="relative p-8">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500/20 to-blue-600/10 border border-blue-500/20 flex items-center justify-center mb-5">
-                    <Layout size={28} className="text-blue-400" />
+              <LiquidGlassCard className="rounded-[28px]">
+                <div className="p-10">
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-400/30 via-blue-500/20 to-blue-600/10 border border-blue-400/30 flex items-center justify-center mb-8 shadow-[0_0_30px_rgba(59,130,246,0.2),inset_0_1px_0_rgba(255,255,255,0.1)]">
+                    <Layout size={32} className="text-blue-400" />
                   </div>
-                  <div className="inline-block px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-zinc-800/80 text-zinc-400 border border-zinc-700/50 mb-4">Coming Soon</div>
-                  <h3 className="text-xl font-bold text-white mb-2">Bridge Platform</h3>
-                  <p className="text-sm text-zinc-500 mb-5">Connect government datasets with AI-powered insights</p>
-                  <ul className="space-y-2.5 text-sm text-zinc-400">
-                    <li className="flex items-center gap-3"><div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]" />Navigate knowledge graphs</li>
-                    <li className="flex items-center gap-3"><div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]" />Natural language queries</li>
-                    <li className="flex items-center gap-3"><div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]" />Extract government insights</li>
+                  <div className="inline-block px-4 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-zinc-800/60 text-zinc-400 border border-zinc-700/40 backdrop-blur-sm mb-6">Coming Soon</div>
+                  <h3 className="text-2xl font-bold text-white mb-3">Bridge Platform</h3>
+                  <p className="text-zinc-400 mb-8 leading-relaxed">Connect government datasets with AI-powered insights</p>
+                  <ul className="space-y-4 text-sm text-zinc-400">
+                    <li className="flex items-center gap-4"><div className="w-2 h-2 rounded-full bg-gradient-to-r from-[#D4AF37] to-[#F5D76E] shadow-[0_0_8px_rgba(212,175,55,0.5)]" />Navigate knowledge graphs</li>
+                    <li className="flex items-center gap-4"><div className="w-2 h-2 rounded-full bg-gradient-to-r from-[#D4AF37] to-[#F5D76E] shadow-[0_0_8px_rgba(212,175,55,0.5)]" />Natural language queries</li>
+                    <li className="flex items-center gap-4"><div className="w-2 h-2 rounded-full bg-gradient-to-r from-[#D4AF37] to-[#F5D76E] shadow-[0_0_8px_rgba(212,175,55,0.5)]" />Extract government insights</li>
                   </ul>
                 </div>
-              </div>
+              </LiquidGlassCard>
 
               {/* ChatBB */}
-              <div className="group relative rounded-3xl overflow-hidden transition-all duration-500 hover:-translate-y-2">
-                <div className="absolute inset-0 bg-gradient-to-br from-white/[0.08] via-white/[0.02] to-transparent backdrop-blur-2xl border border-white/[0.08] rounded-3xl group-hover:border-white/20 transition-colors" />
-                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-                <div className="relative p-8">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-green-500/20 to-green-600/10 border border-green-500/20 flex items-center justify-center mb-5">
-                    <HelpCircle size={28} className="text-green-400" />
+              <LiquidGlassCard className="rounded-[28px]">
+                <div className="p-10">
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-400/30 via-emerald-500/20 to-emerald-600/10 border border-emerald-400/30 flex items-center justify-center mb-8 shadow-[0_0_30px_rgba(52,211,153,0.2),inset_0_1px_0_rgba(255,255,255,0.1)]">
+                    <HelpCircle size={32} className="text-emerald-400" />
                   </div>
-                  <div className="inline-block px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-zinc-800/80 text-zinc-400 border border-zinc-700/50 mb-4">Coming Soon</div>
-                  <h3 className="text-xl font-bold text-white mb-2">ChatBB</h3>
-                  <p className="text-sm text-zinc-500 mb-5">AI-powered citizen service tools via WhatsApp</p>
-                  <ul className="space-y-2.5 text-sm text-zinc-400">
-                    <li className="flex items-center gap-3"><div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]" />Citizen query handling</li>
-                    <li className="flex items-center gap-3"><div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]" />Content management</li>
-                    <li className="flex items-center gap-3"><div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]" />Data privacy & classification</li>
+                  <div className="inline-block px-4 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-zinc-800/60 text-zinc-400 border border-zinc-700/40 backdrop-blur-sm mb-6">Coming Soon</div>
+                  <h3 className="text-2xl font-bold text-white mb-3">ChatBB</h3>
+                  <p className="text-zinc-400 mb-8 leading-relaxed">AI-powered citizen service tools via WhatsApp</p>
+                  <ul className="space-y-4 text-sm text-zinc-400">
+                    <li className="flex items-center gap-4"><div className="w-2 h-2 rounded-full bg-gradient-to-r from-[#D4AF37] to-[#F5D76E] shadow-[0_0_8px_rgba(212,175,55,0.5)]" />Citizen query handling</li>
+                    <li className="flex items-center gap-4"><div className="w-2 h-2 rounded-full bg-gradient-to-r from-[#D4AF37] to-[#F5D76E] shadow-[0_0_8px_rgba(212,175,55,0.5)]" />Content management</li>
+                    <li className="flex items-center gap-4"><div className="w-2 h-2 rounded-full bg-gradient-to-r from-[#D4AF37] to-[#F5D76E] shadow-[0_0_8px_rgba(212,175,55,0.5)]" />Data privacy & classification</li>
                   </ul>
                 </div>
-              </div>
+              </LiquidGlassCard>
 
-              {/* Bajan-X - Active */}
-              <div className="group relative rounded-3xl overflow-hidden transition-all duration-500 hover:-translate-y-2">
-                <div className="absolute -inset-1 bg-gradient-to-br from-[#D4AF37]/30 via-[#D4AF37]/10 to-transparent rounded-3xl blur-xl opacity-50 group-hover:opacity-80 transition-opacity" />
-                <div className="absolute inset-0 bg-gradient-to-br from-[#D4AF37]/[0.12] via-[#D4AF37]/[0.04] to-transparent backdrop-blur-2xl border border-[#D4AF37]/30 rounded-3xl group-hover:border-[#D4AF37]/50 transition-colors" />
-                <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-[#B8962E] via-[#D4AF37] to-[#F5D76E]" />
-                <div className="relative p-8">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#D4AF37]/30 to-[#D4AF37]/10 border border-[#D4AF37]/30 flex items-center justify-center mb-5 shadow-[0_0_20px_rgba(212,175,55,0.2)]">
-                    <Settings size={28} className="text-[#D4AF37]" />
+              {/* Bajan-X - Gold Featured */}
+              <LiquidGlassCard gold className="rounded-[28px]">
+                <div className="p-10">
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#D4AF37]/40 via-[#D4AF37]/25 to-[#D4AF37]/10 border border-[#D4AF37]/40 flex items-center justify-center mb-8 shadow-[0_0_40px_rgba(212,175,55,0.3),inset_0_1px_0_rgba(255,255,255,0.2)]">
+                    <Settings size={32} className="text-[#D4AF37]" />
                   </div>
-                  <div className="inline-block px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#D4AF37]/20 text-[#D4AF37] border border-[#D4AF37]/30 mb-4 shadow-[0_0_15px_rgba(212,175,55,0.2)]">Available Now</div>
-                  <h3 className="text-xl font-bold text-white mb-2">Bajan-X</h3>
-                  <p className="text-sm text-zinc-400 mb-5">Build and publish government APIs</p>
-                  <ul className="space-y-2.5 text-sm text-zinc-400 mb-6">
-                    <li className="flex items-center gap-3"><div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]" />API design principles</li>
-                    <li className="flex items-center gap-3"><div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]" />Dataset documentation</li>
-                    <li className="flex items-center gap-3"><div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]" />Access control & monitoring</li>
+                  <div className="inline-block px-4 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-[#D4AF37]/20 text-[#D4AF37] border border-[#D4AF37]/40 backdrop-blur-sm mb-6 shadow-[0_0_20px_rgba(212,175,55,0.2)]">Available Now</div>
+                  <h3 className="text-2xl font-bold text-white mb-3">Bajan-X</h3>
+                  <p className="text-zinc-300 mb-8 leading-relaxed">Build and publish government APIs</p>
+                  <ul className="space-y-4 text-sm text-zinc-300 mb-10">
+                    <li className="flex items-center gap-4"><div className="w-2 h-2 rounded-full bg-gradient-to-r from-[#D4AF37] to-[#F5D76E] shadow-[0_0_10px_rgba(212,175,55,0.8)]" />API design principles</li>
+                    <li className="flex items-center gap-4"><div className="w-2 h-2 rounded-full bg-gradient-to-r from-[#D4AF37] to-[#F5D76E] shadow-[0_0_10px_rgba(212,175,55,0.8)]" />Dataset documentation</li>
+                    <li className="flex items-center gap-4"><div className="w-2 h-2 rounded-full bg-gradient-to-r from-[#D4AF37] to-[#F5D76E] shadow-[0_0_10px_rgba(212,175,55,0.8)]" />Access control & monitoring</li>
                   </ul>
-                  <button type="button" onClick={() => setCurrentView('AUTH')} className="w-full py-3 rounded-xl bg-gradient-to-r from-[#B8962E] via-[#D4AF37] to-[#F5D76E] text-black text-sm font-bold hover:shadow-[0_0_40px_rgba(212,175,55,0.4)] transition-all duration-300 relative overflow-hidden group/btn">
+                  <button type="button" onClick={() => setCurrentView('AUTH')} className="w-full py-4 rounded-xl bg-gradient-to-r from-[#B8962E] via-[#D4AF37] to-[#F5D76E] text-black font-bold hover:shadow-[0_0_50px_rgba(212,175,55,0.5)] transition-all duration-500 relative overflow-hidden group/btn">
                     <span className="relative z-10">Start Training</span>
-                    <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0 translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-700" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/50 to-white/0 translate-x-[-150%] group-hover/btn:translate-x-[150%] transition-transform duration-700" />
                   </button>
                 </div>
-              </div>
+              </LiquidGlassCard>
             </div>
           </div>
         </section>
 
-        {/* ===== CERTIFICATION ===== */}
-        <section id="certification" className="py-24 px-6 relative">
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#D4AF37]/[0.02] to-transparent pointer-events-none" />
-          <div className="max-w-4xl mx-auto relative">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-helvetica-bold mb-4">Certification</h2>
-              <p className="text-zinc-400">Earn credentials that demonstrate your expertise</p>
+        {/* ===== CERTIFICATION - Liquid Glass ===== */}
+        <section id="certification" className="py-32 px-8 relative">
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#D4AF37]/[0.015] to-transparent pointer-events-none" />
+
+          <div className="max-w-5xl mx-auto relative">
+            <div className="text-center mb-20">
+              <h2 className="text-4xl md:text-5xl font-helvetica-bold mb-6">Certification</h2>
+              <p className="text-lg text-zinc-400">Earn credentials that demonstrate your expertise</p>
             </div>
 
-            <div className="space-y-6">
+            <div className="space-y-8">
               {/* Champion */}
-              <div className="group relative rounded-3xl overflow-hidden">
-                <div className="absolute -inset-0.5 bg-gradient-to-r from-[#D4AF37]/20 via-[#D4AF37]/10 to-transparent rounded-3xl blur-lg opacity-50 group-hover:opacity-80 transition-opacity" />
-                <div className="absolute inset-0 bg-gradient-to-br from-[#D4AF37]/[0.08] via-[#D4AF37]/[0.02] to-transparent backdrop-blur-2xl border border-[#D4AF37]/20 rounded-3xl group-hover:border-[#D4AF37]/40 transition-colors" />
-                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#D4AF37]/40 to-transparent" />
-                <div className="relative p-8 flex items-start gap-6">
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#D4AF37]/30 to-[#D4AF37]/10 border border-[#D4AF37]/30 flex items-center justify-center shrink-0 shadow-[0_0_30px_rgba(212,175,55,0.2)]">
-                    <Award size={32} className="text-[#D4AF37]" />
+              <LiquidGlassCard gold className="rounded-[28px]">
+                <div className="p-10 md:p-12 flex flex-col md:flex-row items-start gap-8">
+                  <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#D4AF37]/40 via-[#D4AF37]/20 to-[#D4AF37]/5 border border-[#D4AF37]/40 flex items-center justify-center shrink-0 shadow-[0_0_50px_rgba(212,175,55,0.25),inset_0_1px_0_rgba(255,255,255,0.15)]">
+                    <Award size={40} className="text-[#D4AF37]" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="text-xl font-bold text-white mb-2">Bajan-X Champion</h3>
-                    <p className="text-sm text-zinc-400 mb-4">Complete all 8 Bajan-X courses, submit a capstone project, and pass the final assessment with 80%+</p>
-                    <div className="flex flex-wrap gap-2 mb-4">
-                      <span className="px-3 py-1 rounded-full text-xs bg-[#D4AF37]/10 text-[#D4AF37] border border-[#D4AF37]/20">BX1-BX8 Courses</span>
-                      <span className="px-3 py-1 rounded-full text-xs bg-[#D4AF37]/10 text-[#D4AF37] border border-[#D4AF37]/20">Capstone Project</span>
-                      <span className="px-3 py-1 rounded-full text-xs bg-[#D4AF37]/10 text-[#D4AF37] border border-[#D4AF37]/20">80%+ Assessment</span>
+                    <h3 className="text-2xl font-bold text-white mb-4">Bajan-X Champion</h3>
+                    <p className="text-zinc-400 mb-6 leading-relaxed">Complete all 8 Bajan-X courses, submit a capstone project, and pass the final assessment with 80%+</p>
+                    <div className="flex flex-wrap gap-3 mb-6">
+                      <span className="px-4 py-2 rounded-xl text-sm bg-[#D4AF37]/15 text-[#D4AF37] border border-[#D4AF37]/25 backdrop-blur-sm">BX1-BX8 Courses</span>
+                      <span className="px-4 py-2 rounded-xl text-sm bg-[#D4AF37]/15 text-[#D4AF37] border border-[#D4AF37]/25 backdrop-blur-sm">Capstone Project</span>
+                      <span className="px-4 py-2 rounded-xl text-sm bg-[#D4AF37]/15 text-[#D4AF37] border border-[#D4AF37]/25 backdrop-blur-sm">80%+ Assessment</span>
                     </div>
-                    <button type="button" onClick={() => setCurrentView('AUTH')} className="text-sm text-[#D4AF37] hover:text-[#F5D76E] transition-colors font-medium">Start your journey</button>
+                    <button type="button" onClick={() => setCurrentView('AUTH')} className="text-[#D4AF37] hover:text-[#F5D76E] transition-colors font-semibold">Start your journey</button>
                   </div>
                 </div>
-              </div>
+              </LiquidGlassCard>
 
               {/* Superuser */}
-              <div className="group relative rounded-3xl overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-white/[0.06] via-white/[0.02] to-transparent backdrop-blur-2xl border border-white/10 rounded-3xl group-hover:border-white/20 transition-colors" />
-                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-                <div className="relative p-8 flex items-start gap-6">
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500/20 to-purple-600/10 border border-purple-500/20 flex items-center justify-center shrink-0">
-                    <Trophy size={32} className="text-purple-400" />
+              <LiquidGlassCard className="rounded-[28px]">
+                <div className="p-10 md:p-12 flex flex-col md:flex-row items-start gap-8">
+                  <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-purple-400/30 via-purple-500/20 to-purple-600/10 border border-purple-400/30 flex items-center justify-center shrink-0 shadow-[0_0_40px_rgba(168,85,247,0.2),inset_0_1px_0_rgba(255,255,255,0.1)]">
+                    <Trophy size={40} className="text-purple-400" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="text-xl font-bold text-white mb-2">Certified Superuser</h3>
-                    <p className="text-sm text-zinc-400 mb-4">Complete all three learning paths (Bridge, ChatBB, Bajan-X) to lead digital transformation in your ministry</p>
-                    <div className="flex flex-wrap gap-2 mb-4">
-                      <span className="px-3 py-1 rounded-full text-xs bg-white/5 text-zinc-400 border border-white/10">Advanced Training</span>
-                      <span className="px-3 py-1 rounded-full text-xs bg-white/5 text-zinc-400 border border-white/10">Priority Support</span>
-                      <span className="px-3 py-1 rounded-full text-xs bg-white/5 text-zinc-400 border border-white/10">Exclusive Network</span>
+                    <h3 className="text-2xl font-bold text-white mb-4">Certified Superuser</h3>
+                    <p className="text-zinc-400 mb-6 leading-relaxed">Complete all three learning paths (Bridge, ChatBB, Bajan-X) to lead digital transformation in your ministry</p>
+                    <div className="flex flex-wrap gap-3 mb-6">
+                      <span className="px-4 py-2 rounded-xl text-sm bg-white/5 text-zinc-400 border border-white/10 backdrop-blur-sm">Advanced Training</span>
+                      <span className="px-4 py-2 rounded-xl text-sm bg-white/5 text-zinc-400 border border-white/10 backdrop-blur-sm">Priority Support</span>
+                      <span className="px-4 py-2 rounded-xl text-sm bg-white/5 text-zinc-400 border border-white/10 backdrop-blur-sm">Exclusive Network</span>
                     </div>
-                    <button type="button" onClick={() => setCurrentView('AUTH')} className="text-sm text-[#D4AF37] hover:text-[#F5D76E] transition-colors font-medium">Learn more</button>
+                    <button type="button" onClick={() => setCurrentView('AUTH')} className="text-[#D4AF37] hover:text-[#F5D76E] transition-colors font-semibold">Learn more</button>
                   </div>
                 </div>
-              </div>
+              </LiquidGlassCard>
             </div>
           </div>
         </section>
 
-        {/* ===== SUPPORT ===== */}
-        <section id="support" className="py-24 px-6">
-          <div className="max-w-4xl mx-auto">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-helvetica-bold mb-4">Get Help When You Need It</h2>
-              <p className="text-zinc-400">Multiple support channels to ensure your success</p>
+        {/* ===== SUPPORT - Liquid Glass ===== */}
+        <section id="support" className="py-32 px-8">
+          <div className="max-w-5xl mx-auto">
+            <div className="text-center mb-20">
+              <h2 className="text-4xl md:text-5xl font-helvetica-bold mb-6">Get Help When You Need It</h2>
+              <p className="text-lg text-zinc-400">Multiple support channels to ensure your success</p>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-8">
-              <div className="group relative rounded-3xl overflow-hidden transition-all duration-500 hover:-translate-y-1">
-                <div className="absolute inset-0 bg-gradient-to-br from-white/[0.06] via-white/[0.02] to-transparent backdrop-blur-2xl border border-white/10 rounded-3xl group-hover:border-[#D4AF37]/30 transition-colors" />
-                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover:via-[#D4AF37]/40 transition-colors" />
-                <div className="relative p-8 text-center">
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#D4AF37]/20 to-[#D4AF37]/5 border border-[#D4AF37]/20 flex items-center justify-center mx-auto mb-5">
-                    <Calendar size={32} className="text-[#D4AF37]" />
+            <div className="grid md:grid-cols-2 gap-10">
+              <LiquidGlassCard className="rounded-[28px]">
+                <div className="p-10 text-center">
+                  <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#D4AF37]/30 via-[#D4AF37]/15 to-[#D4AF37]/5 border border-[#D4AF37]/30 flex items-center justify-center mx-auto mb-8 shadow-[0_0_40px_rgba(212,175,55,0.2),inset_0_1px_0_rgba(255,255,255,0.1)]">
+                    <Calendar size={40} className="text-[#D4AF37]" />
                   </div>
-                  <h3 className="font-bold text-white text-lg mb-2">Office Hours</h3>
-                  <p className="text-sm text-zinc-400 mb-2">Join weekly 3-hour sessions with instructors</p>
-                  <p className="text-sm text-[#D4AF37] font-medium">Every Thursday, 2-5 PM</p>
-                  <p className="text-xs text-zinc-500 mt-2">Book 15-minute slots to troubleshoot and connect</p>
+                  <h3 className="font-bold text-white text-xl mb-4">Office Hours</h3>
+                  <p className="text-zinc-400 mb-3 leading-relaxed">Join weekly 3-hour sessions with instructors</p>
+                  <p className="text-[#D4AF37] font-semibold text-lg mb-2">Every Thursday, 2-5 PM</p>
+                  <p className="text-sm text-zinc-500">Book 15-minute slots to troubleshoot and connect</p>
                 </div>
-              </div>
+              </LiquidGlassCard>
 
-              <div className="group relative rounded-3xl overflow-hidden transition-all duration-500 hover:-translate-y-1">
-                <div className="absolute inset-0 bg-gradient-to-br from-white/[0.06] via-white/[0.02] to-transparent backdrop-blur-2xl border border-white/10 rounded-3xl group-hover:border-[#D4AF37]/30 transition-colors" />
-                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover:via-[#D4AF37]/40 transition-colors" />
-                <div className="relative p-8 text-center">
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500/20 to-blue-600/10 border border-blue-500/20 flex items-center justify-center mx-auto mb-5">
-                    <FileText size={32} className="text-blue-400" />
+              <LiquidGlassCard className="rounded-[28px]">
+                <div className="p-10 text-center">
+                  <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-400/30 via-blue-500/15 to-blue-600/5 border border-blue-400/30 flex items-center justify-center mx-auto mb-8 shadow-[0_0_40px_rgba(59,130,246,0.2),inset_0_1px_0_rgba(255,255,255,0.1)]">
+                    <FileText size={40} className="text-blue-400" />
                   </div>
-                  <h3 className="font-bold text-white text-lg mb-2">Documentation</h3>
-                  <p className="text-sm text-zinc-400 mb-2">Access reference guides and quick-starts</p>
-                  <p className="text-sm text-[#D4AF37] font-medium">Step-by-step tutorials</p>
-                  <p className="text-xs text-zinc-500 mt-2">Searchable knowledge base available 24/7</p>
+                  <h3 className="font-bold text-white text-xl mb-4">Documentation</h3>
+                  <p className="text-zinc-400 mb-3 leading-relaxed">Access reference guides and quick-starts</p>
+                  <p className="text-[#D4AF37] font-semibold text-lg mb-2">Step-by-step tutorials</p>
+                  <p className="text-sm text-zinc-500">Searchable knowledge base available 24/7</p>
                 </div>
-              </div>
+              </LiquidGlassCard>
             </div>
           </div>
         </section>
 
-        {/* ===== FOOTER - Premium Glassmorphism ===== */}
-        <footer className="relative py-16 px-6">
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
-          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#D4AF37]/20 to-transparent" />
+        {/* ===== FOOTER - Liquid Glass ===== */}
+        <footer className="relative py-20 px-8">
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-transparent" />
+          <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-[#D4AF37]/30 to-transparent" />
 
-          <div className="relative max-w-6xl mx-auto">
-            {/* Footer Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
-              {/* Products */}
+          <div className="relative max-w-7xl mx-auto">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-12 mb-16">
               <div>
-                <h4 className="text-[#D4AF37] font-bold text-sm uppercase tracking-wider mb-4">Products</h4>
-                <ul className="space-y-3">
-                  <li><span className="text-zinc-500 hover:text-white transition-colors text-sm cursor-default">Bridge Platform</span></li>
-                  <li><span className="text-zinc-500 hover:text-white transition-colors text-sm cursor-default">ChatBB</span></li>
-                  <li><span className="text-zinc-500 hover:text-white transition-colors text-sm cursor-default">Bajan-X</span></li>
+                <h4 className="text-[#D4AF37] font-bold uppercase tracking-wider mb-6">Products</h4>
+                <ul className="space-y-4">
+                  <li><span className="text-zinc-500 hover:text-white transition-colors cursor-default">Bridge Platform</span></li>
+                  <li><span className="text-zinc-500 hover:text-white transition-colors cursor-default">ChatBB</span></li>
+                  <li><span className="text-zinc-500 hover:text-white transition-colors cursor-default">Bajan-X</span></li>
                 </ul>
               </div>
-
-              {/* Learning Paths */}
               <div>
-                <h4 className="text-[#D4AF37] font-bold text-sm uppercase tracking-wider mb-4">Learning</h4>
-                <ul className="space-y-3">
-                  <li><span className="text-zinc-500 hover:text-white transition-colors text-sm cursor-default">Foundations (BX1-3)</span></li>
-                  <li><span className="text-zinc-500 hover:text-white transition-colors text-sm cursor-default">API Publishing</span></li>
-                  <li><span className="text-zinc-500 hover:text-white transition-colors text-sm cursor-default">Certification</span></li>
+                <h4 className="text-[#D4AF37] font-bold uppercase tracking-wider mb-6">Learning</h4>
+                <ul className="space-y-4">
+                  <li><span className="text-zinc-500 hover:text-white transition-colors cursor-default">Foundations</span></li>
+                  <li><span className="text-zinc-500 hover:text-white transition-colors cursor-default">API Publishing</span></li>
+                  <li><span className="text-zinc-500 hover:text-white transition-colors cursor-default">Certification</span></li>
                 </ul>
               </div>
-
-              {/* Resources */}
               <div>
-                <h4 className="text-[#D4AF37] font-bold text-sm uppercase tracking-wider mb-4">Resources</h4>
-                <ul className="space-y-3">
-                  <li><span className="text-zinc-500 hover:text-white transition-colors text-sm cursor-default">Documentation</span></li>
-                  <li><span className="text-zinc-500 hover:text-white transition-colors text-sm cursor-default">Office Hours</span></li>
-                  <li><span className="text-zinc-500 hover:text-white transition-colors text-sm cursor-default">FAQs</span></li>
+                <h4 className="text-[#D4AF37] font-bold uppercase tracking-wider mb-6">Resources</h4>
+                <ul className="space-y-4">
+                  <li><span className="text-zinc-500 hover:text-white transition-colors cursor-default">Documentation</span></li>
+                  <li><span className="text-zinc-500 hover:text-white transition-colors cursor-default">Office Hours</span></li>
+                  <li><span className="text-zinc-500 hover:text-white transition-colors cursor-default">FAQs</span></li>
                 </ul>
               </div>
-
-              {/* About */}
               <div>
-                <h4 className="text-[#D4AF37] font-bold text-sm uppercase tracking-wider mb-4">About</h4>
-                <ul className="space-y-3">
-                  <li><span className="text-zinc-500 hover:text-white transition-colors text-sm cursor-default">Amini HQ</span></li>
-                  <li><span className="text-zinc-500 hover:text-white transition-colors text-sm cursor-default">Privacy Policy</span></li>
-                  <li><span className="text-zinc-500 hover:text-white transition-colors text-sm cursor-default">Terms of Use</span></li>
+                <h4 className="text-[#D4AF37] font-bold uppercase tracking-wider mb-6">About</h4>
+                <ul className="space-y-4">
+                  <li><span className="text-zinc-500 hover:text-white transition-colors cursor-default">Amini HQ</span></li>
+                  <li><span className="text-zinc-500 hover:text-white transition-colors cursor-default">Privacy Policy</span></li>
+                  <li><span className="text-zinc-500 hover:text-white transition-colors cursor-default">Terms of Use</span></li>
                 </ul>
               </div>
             </div>
 
-            {/* Divider */}
-            <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent mb-8" />
+            <div className="h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent mb-10" />
 
-            {/* Bottom Row */}
-            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-              <div className="text-lg font-helvetica-bold">
-                <span className="text-[#D4AF37]">AMINI</span>
-                <span className="text-white/40 ml-1">ACADEMY</span>
+            <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+              <div className="text-2xl font-helvetica-bold tracking-wider">
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#F5D76E] via-[#D4AF37] to-[#B8962E]">AMINI</span>
+                <span className="text-white/30 ml-2">ACADEMY</span>
               </div>
-              <p className="text-xs text-zinc-600 text-center">
+              <p className="text-sm text-zinc-600">
                 2026 Amini Academy | Powering Barbados' Digital Transformation
               </p>
             </div>

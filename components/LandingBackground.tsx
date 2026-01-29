@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { createNoise3D } from 'simplex-noise';
 
 interface Point {
@@ -35,8 +35,10 @@ export const LandingBackground: React.FC = () => {
       timeSpeed: 0.00015,
       distortionStrength: 25,
       connectionDistance: 70,
-      mouseRadius: 150, // Radius of mouse influence
+      mouseRadius: 200, // Radius of mouse influence (increased for smoother effect)
       nodeSize: 2, // Size of the dots
+      baseOpacity: 0.12, // Dim base opacity when mouse is away
+      maxOpacity: 1, // Full brightness when mouse is near
     };
 
     const resize = () => {
@@ -64,8 +66,8 @@ export const LandingBackground: React.FC = () => {
             y,
             originX: x,
             originY: y,
-            opacity: 1,
-            targetOpacity: 1,
+            opacity: config.baseOpacity, // Start dim
+            targetOpacity: config.baseOpacity,
           });
         }
       }
@@ -108,16 +110,18 @@ export const LandingBackground: React.FC = () => {
         const dy = p.y - mouse.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
 
-        // Soft elimination near mouse
+        // Light up near mouse - INVERTED: brighter when close, dim when far
         if (dist < config.mouseRadius) {
-          const fadeAmount = 1 - (dist / config.mouseRadius);
-          p.targetOpacity = Math.max(0, 1 - fadeAmount * fadeAmount * 1.5);
+          // Smooth falloff - closer = brighter
+          const proximity = 1 - (dist / config.mouseRadius);
+          const brightnessBoost = proximity * proximity * proximity; // Cubic for smoother center glow
+          p.targetOpacity = config.baseOpacity + (config.maxOpacity - config.baseOpacity) * brightnessBoost;
         } else {
-          p.targetOpacity = 1;
+          p.targetOpacity = config.baseOpacity; // Return to dim state
         }
 
-        // Smooth opacity transition
-        p.opacity += (p.targetOpacity - p.opacity) * 0.1;
+        // Smooth opacity transition (slightly slower for elegant fade)
+        p.opacity += (p.targetOpacity - p.opacity) * 0.08;
       }
 
       // Draw grid lines with additive blending
@@ -153,25 +157,28 @@ export const LandingBackground: React.FC = () => {
       // Draw nodes (dots) at intersections
       for (let i = 0; i < points.length; i++) {
         const p = points[i];
-        if (p.opacity < 0.05) continue;
+        if (p.opacity < 0.02) continue;
 
-        const alpha = p.opacity * 0.6;
+        const alpha = p.opacity;
 
-        // Outer glow
-        const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, config.nodeSize * 3);
-        gradient.addColorStop(0, `rgba(212, 175, 55, ${alpha * 0.8})`);
-        gradient.addColorStop(0.5, `rgba(212, 175, 55, ${alpha * 0.3})`);
+        // Dynamic glow size based on brightness
+        const glowSize = config.nodeSize * (2 + alpha * 2);
+
+        // Outer glow - more visible when lit up
+        const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, glowSize);
+        gradient.addColorStop(0, `rgba(212, 175, 55, ${alpha * 0.7})`);
+        gradient.addColorStop(0.4, `rgba(212, 175, 55, ${alpha * 0.25})`);
         gradient.addColorStop(1, 'rgba(212, 175, 55, 0)');
 
         ctx.fillStyle = gradient;
         ctx.beginPath();
-        ctx.arc(p.x, p.y, config.nodeSize * 3, 0, Math.PI * 2);
+        ctx.arc(p.x, p.y, glowSize, 0, Math.PI * 2);
         ctx.fill();
 
-        // Core dot
-        ctx.fillStyle = `rgba(255, 220, 100, ${alpha})`;
+        // Core dot - brighter center
+        ctx.fillStyle = `rgba(255, 220, 100, ${alpha * 0.9})`;
         ctx.beginPath();
-        ctx.arc(p.x, p.y, config.nodeSize * 0.8, 0, Math.PI * 2);
+        ctx.arc(p.x, p.y, config.nodeSize * 0.6, 0, Math.PI * 2);
         ctx.fill();
       }
 
@@ -186,11 +193,11 @@ export const LandingBackground: React.FC = () => {
       let alpha = 1 - (dist / (maxDist * 1.4));
       alpha = alpha * alpha;
 
-      // Combine both points' opacity for line visibility
-      const combinedOpacity = Math.min(p1.opacity, p2.opacity);
-      alpha *= combinedOpacity * 0.5;
+      // Combine both points' opacity for line visibility - use average for smoother gradients
+      const combinedOpacity = (p1.opacity + p2.opacity) / 2;
+      alpha *= combinedOpacity * 0.6;
 
-      if (alpha < 0.01) return;
+      if (alpha < 0.008) return;
 
       ctx.strokeStyle = `rgba(212, 175, 55, ${alpha})`;
       ctx.beginPath();
@@ -223,14 +230,14 @@ export const LandingBackground: React.FC = () => {
       {/* Canvas */}
       <canvas ref={canvasRef} className="absolute inset-0" />
 
-      {/* Premium ambient glow - top */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_40%_at_50%_-10%,rgba(212,175,55,0.12),transparent_60%)]" />
+      {/* Subtle ambient glow - top (reduced) */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_40%_at_50%_-10%,rgba(212,175,55,0.04),transparent_60%)]" />
 
-      {/* Premium ambient glow - bottom */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_100%_50%_at_50%_110%,rgba(212,175,55,0.08),transparent_50%)]" />
+      {/* Subtle ambient glow - bottom (reduced) */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_100%_50%_at_50%_110%,rgba(212,175,55,0.03),transparent_50%)]" />
 
       {/* Soft vignette */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.4)_70%,rgba(0,0,0,0.8)_100%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.5)_70%,rgba(0,0,0,0.85)_100%)]" />
     </div>
   );
 };
