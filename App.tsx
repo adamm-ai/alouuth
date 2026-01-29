@@ -1033,18 +1033,16 @@ const App: React.FC = () => {
 
   // Ultra Clean Landing Page - Minimal & Elegant
   const LandingView = () => {
-    // Smooth scroll handler
+    // Smooth scroll handler - uses scrollIntoView for better compatibility
     const scrollTo = (id: string) => {
       const el = document.getElementById(id);
       if (el) {
-        const yOffset = -80;
-        const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
-        window.scrollTo({ top: y, behavior: 'smooth' });
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
     };
 
     return (
-      <div className="relative z-10 w-full">
+      <div className="relative z-10 w-full" style={{ minHeight: '100vh' }}>
         {/* ===== NAVIGATION ===== */}
         <nav className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-xl border-b border-white/5">
           <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
@@ -1116,7 +1114,7 @@ const App: React.FC = () => {
         </section>
 
         {/* ===== LEARNING PATHS ===== */}
-        <section id="paths" className="py-32 px-6">
+        <section id="paths" className="py-32 px-6 scroll-mt-20">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
               <h2 className="text-3xl md:text-4xl font-helvetica-bold mb-4">Learning Paths</h2>
@@ -1171,7 +1169,7 @@ const App: React.FC = () => {
         </section>
 
         {/* ===== CERTIFICATION ===== */}
-        <section id="certification" className="py-32 px-6 border-t border-white/5">
+        <section id="certification" className="py-32 px-6 border-t border-white/5 scroll-mt-20">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-16">
               <h2 className="text-3xl md:text-4xl font-helvetica-bold mb-4">Certification</h2>
@@ -1212,7 +1210,7 @@ const App: React.FC = () => {
         </section>
 
         {/* ===== SUPPORT ===== */}
-        <section id="support" className="py-32 px-6 border-t border-white/5">
+        <section id="support" className="py-32 px-6 border-t border-white/5 scroll-mt-20">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-16">
               <h2 className="text-3xl md:text-4xl font-helvetica-bold mb-4">Support</h2>
@@ -1981,7 +1979,9 @@ const App: React.FC = () => {
                               {course.description && course.description.length > 80 && (
                                 <button
                                   type="button"
-                                  onClick={() => {
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
                                     setExpandedDescriptions(prev => {
                                       const newSet = new Set(prev);
                                       if (newSet.has(course.id)) {

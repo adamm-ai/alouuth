@@ -94,9 +94,6 @@
     scrollbar-gutter: stable;
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
-    will-change: scroll-position;
-    backface-visibility: hidden;
-    transform: translateZ(0);
   }
 }
 
