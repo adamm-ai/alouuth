@@ -1062,15 +1062,16 @@ const App: React.FC = () => {
 
     return (
       <div ref={scrollContainerRef} className="absolute inset-0 overflow-y-auto overflow-x-hidden z-10 scroll-smooth">
-        {/* ===== NAVIGATION ===== */}
+        {/* ===== NAVIGATION - Liquid Glass ===== */}
         <motion.nav
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
           className="fixed top-0 left-0 right-0 z-50"
         >
-          <div className="absolute inset-0 bg-gradient-to-b from-black/90 via-black/60 to-transparent backdrop-blur-xl" />
-          <div className="absolute inset-x-0 bottom-0 h-[1px] bg-gradient-to-r from-transparent via-[#D4AF37]/20 to-transparent" />
+          {/* Transparent glass navbar */}
+          <div className="absolute inset-0 bg-white/[0.02] backdrop-blur-[12px] border-b border-white/[0.05]" />
+          <div className="absolute inset-x-0 bottom-0 h-[1px] bg-gradient-to-r from-transparent via-[#D4AF37]/15 to-transparent" />
           <div className="relative max-w-7xl mx-auto px-8 h-20 flex items-center justify-between">
             <div className="text-xl font-helvetica-bold tracking-wider">
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#F5D76E] via-[#D4AF37] to-[#B8962E]">AMINI</span>
@@ -1083,7 +1084,7 @@ const App: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setCurrentView('AUTH')}
-                className="relative px-6 py-2.5 text-sm font-medium rounded-full overflow-hidden group/nav bg-white/[0.03] border border-white/10 hover:border-[#D4AF37]/50 transition-all duration-300"
+                className="relative px-6 py-2.5 text-sm font-medium rounded-full overflow-hidden group/nav bg-white/[0.02] backdrop-blur-sm border border-white/[0.08] hover:border-[#D4AF37]/40 hover:bg-[#D4AF37]/[0.05] transition-all duration-300"
               >
                 <span className="relative text-white group-hover/nav:text-[#D4AF37] transition-colors duration-300">Sign In</span>
               </button>
@@ -1097,7 +1098,7 @@ const App: React.FC = () => {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="md:hidden bg-black/95 backdrop-blur-2xl border-b border-white/5 px-8 py-6 space-y-4"
+              className="md:hidden bg-white/[0.02] backdrop-blur-xl border-b border-white/[0.05] px-8 py-6 space-y-4"
             >
               <button type="button" onClick={() => { scrollTo('paths'); setMobileMenuOpen(false); }} className="block text-zinc-300 hover:text-white py-2 w-full text-left">Paths</button>
               <button type="button" onClick={() => { scrollTo('certification'); setMobileMenuOpen(false); }} className="block text-zinc-300 hover:text-white py-2 w-full text-left">Certification</button>
@@ -1150,9 +1151,11 @@ const App: React.FC = () => {
               <button
                 type="button"
                 onClick={() => scrollTo('paths')}
-                className="px-10 py-4 rounded-xl bg-white/[0.03] backdrop-blur-xl border border-white/10 text-white font-semibold text-lg hover:bg-white/[0.06] hover:border-white/20 transition-all duration-300"
+                className="group relative px-10 py-4 rounded-xl overflow-hidden bg-white/[0.02] backdrop-blur-[8px] border border-white/[0.08] text-white font-semibold text-lg hover:bg-white/[0.04] hover:border-white/15 transition-all duration-300"
               >
-                Explore Paths
+                <span className="relative z-10">Explore Paths</span>
+                {/* Liquid light effect on hover */}
+                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.08),transparent_70%)]" />
               </button>
             </motion.div>
           </motion.div>
@@ -1217,10 +1220,10 @@ const App: React.FC = () => {
               >
                 <LiquidGlass>
                   <div className="p-8">
-                    <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-400/20 to-blue-600/5 border border-blue-400/20 flex items-center justify-center mb-6">
+                    <div className="w-14 h-14 rounded-xl bg-blue-400/[0.08] backdrop-blur-sm border border-blue-400/[0.15] flex items-center justify-center mb-6">
                       <Layout size={28} className="text-blue-400" />
                     </div>
-                    <div className="inline-block px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-zinc-800/50 text-zinc-500 border border-zinc-700/30 mb-5">Coming Soon</div>
+                    <div className="inline-block px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-white/[0.03] backdrop-blur-sm text-zinc-500 border border-white/[0.08] mb-5">Coming Soon</div>
                     <h3 className="text-xl font-bold text-white mb-3">Bridge Platform</h3>
                     <p className="text-zinc-400 mb-6 text-sm leading-relaxed">Connect government datasets with AI-powered insights</p>
                     <ul className="space-y-3 text-sm text-zinc-400">
@@ -1241,10 +1244,10 @@ const App: React.FC = () => {
               >
                 <LiquidGlass>
                   <div className="p-8">
-                    <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-emerald-400/20 to-emerald-600/5 border border-emerald-400/20 flex items-center justify-center mb-6">
+                    <div className="w-14 h-14 rounded-xl bg-emerald-400/[0.08] backdrop-blur-sm border border-emerald-400/[0.15] flex items-center justify-center mb-6">
                       <HelpCircle size={28} className="text-emerald-400" />
                     </div>
-                    <div className="inline-block px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-zinc-800/50 text-zinc-500 border border-zinc-700/30 mb-5">Coming Soon</div>
+                    <div className="inline-block px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-white/[0.03] backdrop-blur-sm text-zinc-500 border border-white/[0.08] mb-5">Coming Soon</div>
                     <h3 className="text-xl font-bold text-white mb-3">ChatBB</h3>
                     <p className="text-zinc-400 mb-6 text-sm leading-relaxed">AI-powered citizen service tools via WhatsApp</p>
                     <ul className="space-y-3 text-sm text-zinc-400">
@@ -1265,10 +1268,10 @@ const App: React.FC = () => {
               >
                 <LiquidGlass gold>
                   <div className="p-8">
-                    <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#D4AF37]/30 to-[#D4AF37]/5 border border-[#D4AF37]/30 flex items-center justify-center mb-6">
+                    <div className="w-14 h-14 rounded-xl bg-[#D4AF37]/[0.1] backdrop-blur-sm border border-[#D4AF37]/[0.2] flex items-center justify-center mb-6">
                       <Settings size={28} className="text-[#D4AF37]" />
                     </div>
-                    <div className="inline-block px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#D4AF37]/15 text-[#D4AF37] border border-[#D4AF37]/30 mb-5">Available Now</div>
+                    <div className="inline-block px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#D4AF37]/[0.08] backdrop-blur-sm text-[#D4AF37] border border-[#D4AF37]/[0.2] mb-5">Available Now</div>
                     <h3 className="text-xl font-bold text-white mb-3">Bajan-X</h3>
                     <p className="text-zinc-300 mb-6 text-sm leading-relaxed">Build and publish government APIs</p>
                     <ul className="space-y-3 text-sm text-zinc-300 mb-8">
@@ -1310,16 +1313,16 @@ const App: React.FC = () => {
               >
                 <LiquidGlass gold>
                   <div className="p-8 md:p-10 flex flex-col md:flex-row items-start gap-6">
-                    <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-[#D4AF37]/30 to-[#D4AF37]/5 border border-[#D4AF37]/30 flex items-center justify-center shrink-0">
+                    <div className="w-16 h-16 rounded-xl bg-[#D4AF37]/[0.08] backdrop-blur-sm border border-[#D4AF37]/[0.15] flex items-center justify-center shrink-0">
                       <Award size={32} className="text-[#D4AF37]" />
                     </div>
                     <div className="flex-1">
                       <h3 className="text-xl font-bold text-white mb-3">Bajan-X Champion</h3>
                       <p className="text-zinc-400 mb-5 text-sm leading-relaxed">Complete all 8 Bajan-X courses, submit a capstone project, and pass the final assessment with 80%+</p>
                       <div className="flex flex-wrap gap-2 mb-5">
-                        <span className="px-3 py-1.5 rounded-lg text-xs bg-[#D4AF37]/10 text-[#D4AF37] border border-[#D4AF37]/20">BX1-BX8 Courses</span>
-                        <span className="px-3 py-1.5 rounded-lg text-xs bg-[#D4AF37]/10 text-[#D4AF37] border border-[#D4AF37]/20">Capstone Project</span>
-                        <span className="px-3 py-1.5 rounded-lg text-xs bg-[#D4AF37]/10 text-[#D4AF37] border border-[#D4AF37]/20">80%+ Assessment</span>
+                        <span className="px-3 py-1.5 rounded-lg text-xs bg-[#D4AF37]/[0.05] backdrop-blur-sm text-[#D4AF37] border border-[#D4AF37]/[0.12]">BX1-BX8 Courses</span>
+                        <span className="px-3 py-1.5 rounded-lg text-xs bg-[#D4AF37]/[0.05] backdrop-blur-sm text-[#D4AF37] border border-[#D4AF37]/[0.12]">Capstone Project</span>
+                        <span className="px-3 py-1.5 rounded-lg text-xs bg-[#D4AF37]/[0.05] backdrop-blur-sm text-[#D4AF37] border border-[#D4AF37]/[0.12]">80%+ Assessment</span>
                       </div>
                       <button type="button" onClick={() => setCurrentView('AUTH')} className="text-[#D4AF37] hover:text-[#F5D76E] transition-colors text-sm font-medium">Start your journey</button>
                     </div>
@@ -1336,16 +1339,16 @@ const App: React.FC = () => {
               >
                 <LiquidGlass>
                   <div className="p-8 md:p-10 flex flex-col md:flex-row items-start gap-6">
-                    <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-purple-400/20 to-purple-600/5 border border-purple-400/20 flex items-center justify-center shrink-0">
+                    <div className="w-16 h-16 rounded-xl bg-purple-400/[0.08] backdrop-blur-sm border border-purple-400/[0.15] flex items-center justify-center shrink-0">
                       <Trophy size={32} className="text-purple-400" />
                     </div>
                     <div className="flex-1">
                       <h3 className="text-xl font-bold text-white mb-3">Certified Superuser</h3>
                       <p className="text-zinc-400 mb-5 text-sm leading-relaxed">Complete all three learning paths (Bridge, ChatBB, Bajan-X) to lead digital transformation in your ministry</p>
                       <div className="flex flex-wrap gap-2 mb-5">
-                        <span className="px-3 py-1.5 rounded-lg text-xs bg-white/5 text-zinc-400 border border-white/10">Advanced Training</span>
-                        <span className="px-3 py-1.5 rounded-lg text-xs bg-white/5 text-zinc-400 border border-white/10">Priority Support</span>
-                        <span className="px-3 py-1.5 rounded-lg text-xs bg-white/5 text-zinc-400 border border-white/10">Exclusive Network</span>
+                        <span className="px-3 py-1.5 rounded-lg text-xs bg-white/[0.02] backdrop-blur-sm text-zinc-400 border border-white/[0.08]">Advanced Training</span>
+                        <span className="px-3 py-1.5 rounded-lg text-xs bg-white/[0.02] backdrop-blur-sm text-zinc-400 border border-white/[0.08]">Priority Support</span>
+                        <span className="px-3 py-1.5 rounded-lg text-xs bg-white/[0.02] backdrop-blur-sm text-zinc-400 border border-white/[0.08]">Exclusive Network</span>
                       </div>
                       <button type="button" onClick={() => setCurrentView('AUTH')} className="text-[#D4AF37] hover:text-[#F5D76E] transition-colors text-sm font-medium">Learn more</button>
                     </div>
@@ -1379,7 +1382,7 @@ const App: React.FC = () => {
               >
                 <LiquidGlass>
                   <div className="p-8 text-center">
-                    <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-[#D4AF37]/20 to-[#D4AF37]/5 border border-[#D4AF37]/20 flex items-center justify-center mx-auto mb-6">
+                    <div className="w-16 h-16 rounded-xl bg-[#D4AF37]/[0.08] backdrop-blur-sm border border-[#D4AF37]/[0.15] flex items-center justify-center mx-auto mb-6">
                       <Calendar size={32} className="text-[#D4AF37]" />
                     </div>
                     <h3 className="font-bold text-white text-lg mb-3">Office Hours</h3>
@@ -1398,7 +1401,7 @@ const App: React.FC = () => {
               >
                 <LiquidGlass>
                   <div className="p-8 text-center">
-                    <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-blue-400/20 to-blue-600/5 border border-blue-400/20 flex items-center justify-center mx-auto mb-6">
+                    <div className="w-16 h-16 rounded-xl bg-blue-400/[0.08] backdrop-blur-sm border border-blue-400/[0.15] flex items-center justify-center mx-auto mb-6">
                       <FileText size={32} className="text-blue-400" />
                     </div>
                     <h3 className="font-bold text-white text-lg mb-3">Documentation</h3>
