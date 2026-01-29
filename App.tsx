@@ -1031,558 +1031,227 @@ const App: React.FC = () => {
 
   // --- Views ---
 
-  // Premium Landing Page with Full Sections
+  // Ultra Clean Landing Page - Minimal & Elegant
   const LandingView = () => {
-    const [activeNav, setActiveNav] = useState('');
-
     // Smooth scroll handler
-    const scrollToSection = (sectionId: string) => {
-      const element = document.getElementById(sectionId);
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        setActiveNav(sectionId);
+    const scrollTo = (id: string) => {
+      const el = document.getElementById(id);
+      if (el) {
+        const yOffset = -80;
+        const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
+        window.scrollTo({ top: y, behavior: 'smooth' });
       }
     };
 
-    // Track scroll position for active nav
-    useEffect(() => {
-      const handleScroll = () => {
-        const sections = ['paths', 'certification', 'support'];
-        const scrollPosition = window.scrollY + 150;
-
-        for (const section of sections) {
-          const element = document.getElementById(section);
-          if (element) {
-            const { offsetTop, offsetHeight } = element;
-            if (scrollPosition >= offsetTop && scrollPosition < offsetTop + offsetHeight) {
-              setActiveNav(section);
-              break;
-            }
-          }
-        }
-      };
-
-      window.addEventListener('scroll', handleScroll);
-      return () => window.removeEventListener('scroll', handleScroll);
-    }, []);
-
     return (
-      <div className="min-h-screen relative z-10">
-        {/* Premium Fixed Navigation */}
-        <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-2xl bg-black/60 border-b border-white/[0.06]">
-          <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-            <h1 className="text-xl font-helvetica-bold tracking-wider cursor-pointer group" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-              <span className="text-[#D4AF37] group-hover:brightness-125 transition-all">AMINI</span>
-              <span className="font-helvetica-light text-white/70 group-hover:text-white transition-colors ml-1">ACADEMY</span>
-            </h1>
-
-            <div className="hidden md:flex items-center gap-8">
-              <button
-                type="button"
-                onClick={() => scrollToSection('paths')}
-                className={`text-sm transition-all duration-300 ${activeNav === 'paths' ? 'text-[#D4AF37]' : 'text-zinc-400 hover:text-white'}`}
-              >
-                Learning Paths
-              </button>
-              <button
-                type="button"
-                onClick={() => scrollToSection('certification')}
-                className={`text-sm transition-all duration-300 ${activeNav === 'certification' ? 'text-[#D4AF37]' : 'text-zinc-400 hover:text-white'}`}
-              >
-                Certification
-              </button>
-              <button
-                type="button"
-                onClick={() => scrollToSection('support')}
-                className={`text-sm transition-all duration-300 ${activeNav === 'support' ? 'text-[#D4AF37]' : 'text-zinc-400 hover:text-white'}`}
-              >
-                Support
-              </button>
-              <PrimaryButton onClick={() => setCurrentView('AUTH')}>Sign In</PrimaryButton>
+      <div className="relative z-10 w-full">
+        {/* ===== NAVIGATION ===== */}
+        <nav className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-xl border-b border-white/5">
+          <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+            <div className="text-lg font-helvetica-bold tracking-wide">
+              <span className="text-[#D4AF37]">AMINI</span>
+              <span className="text-white/60 ml-1 font-helvetica-light">ACADEMY</span>
             </div>
-
-            {/* Mobile menu button */}
-            <button
-              type="button"
-              className="md:hidden text-white p-2"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            >
+            <div className="hidden md:flex items-center gap-6">
+              <button type="button" onClick={() => scrollTo('paths')} className="text-sm text-zinc-400 hover:text-white transition-colors">Paths</button>
+              <button type="button" onClick={() => scrollTo('certification')} className="text-sm text-zinc-400 hover:text-white transition-colors">Certification</button>
+              <button type="button" onClick={() => scrollTo('support')} className="text-sm text-zinc-400 hover:text-white transition-colors">Support</button>
+              <button type="button" onClick={() => setCurrentView('AUTH')} className="px-5 py-2 text-sm font-medium rounded-full border border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black transition-all">
+                Sign In
+              </button>
+            </div>
+            <button type="button" className="md:hidden text-white" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
               {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
           </div>
-
-          {/* Mobile menu */}
           {mobileMenuOpen && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="md:hidden bg-black/95 backdrop-blur-xl border-b border-white/10 px-6 py-4 space-y-4"
-            >
-              <button type="button" onClick={() => { scrollToSection('paths'); setMobileMenuOpen(false); }} className="block w-full text-left text-zinc-400 hover:text-white py-2">Learning Paths</button>
-              <button type="button" onClick={() => { scrollToSection('certification'); setMobileMenuOpen(false); }} className="block w-full text-left text-zinc-400 hover:text-white py-2">Certification</button>
-              <button type="button" onClick={() => { scrollToSection('support'); setMobileMenuOpen(false); }} className="block w-full text-left text-zinc-400 hover:text-white py-2">Support</button>
-              <PrimaryButton onClick={() => setCurrentView('AUTH')} className="w-full">Sign In</PrimaryButton>
-            </motion.div>
+            <div className="md:hidden bg-black/95 border-b border-white/5 px-6 py-4 space-y-3">
+              <button type="button" onClick={() => { scrollTo('paths'); setMobileMenuOpen(false); }} className="block text-zinc-400 hover:text-white py-2 w-full text-left">Paths</button>
+              <button type="button" onClick={() => { scrollTo('certification'); setMobileMenuOpen(false); }} className="block text-zinc-400 hover:text-white py-2 w-full text-left">Certification</button>
+              <button type="button" onClick={() => { scrollTo('support'); setMobileMenuOpen(false); }} className="block text-zinc-400 hover:text-white py-2 w-full text-left">Support</button>
+              <button type="button" onClick={() => setCurrentView('AUTH')} className="w-full py-2.5 mt-2 text-sm font-medium rounded-full border border-[#D4AF37] text-[#D4AF37]">Sign In</button>
+            </div>
           )}
         </nav>
 
-        {/* ======================= HERO SECTION ======================= */}
-        <section className="min-h-screen flex flex-col justify-center items-center text-center px-4 pt-24 pb-16 relative overflow-hidden">
-          {/* Extra radial glow for hero */}
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-[radial-gradient(ellipse_at_center,rgba(212,175,55,0.15)_0%,transparent_70%)] pointer-events-none" />
-
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: [0.4, 0, 0.2, 1] }}
-            className="relative z-10"
-          >
-            {/* Premium Government Initiative Badge */}
-            <div className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-gradient-to-r from-[#D4AF37]/10 via-[#D4AF37]/5 to-transparent border border-[#D4AF37]/30 backdrop-blur-sm shadow-[0_0_30px_rgba(212,175,55,0.1)]">
-              <div className="flex items-center justify-center w-6 h-6 rounded-full bg-[#D4AF37]/20">
-                <svg className="w-3.5 h-3.5 text-[#D4AF37]" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-              </div>
-              <span className="text-sm font-medium text-[#D4AF37] tracking-wide">Official Barbados Government Initiative</span>
-              <div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37] animate-pulse" />
+        {/* ===== HERO ===== */}
+        <section className="min-h-screen flex flex-col items-center justify-center px-6 pt-16 relative">
+          <div className="max-w-4xl mx-auto text-center">
+            {/* Badge */}
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#D4AF37]/20 bg-[#D4AF37]/5 mb-8">
+              <div className="w-2 h-2 rounded-full bg-[#D4AF37] animate-pulse" />
+              <span className="text-xs font-medium text-[#D4AF37] tracking-wide">BARBADOS GOVERNMENT INITIATIVE</span>
             </div>
 
-            <h1 className="text-4xl sm:text-5xl md:text-7xl font-helvetica-bold mt-8 mb-6 leading-[1.1] max-w-5xl">
-              Learn to Build with <br />
-              <span className="relative inline-block">
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#F5D76E] via-[#D4AF37] to-[#B8962E] animate-gradient-x">
-                  Barbados' Digital Infrastructure
-                </span>
-                <motion.span
-                  className="absolute -bottom-2 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#D4AF37] to-transparent"
-                  initial={{ scaleX: 0 }}
-                  animate={{ scaleX: 1 }}
-                  transition={{ delay: 0.5, duration: 1 }}
-                />
+            {/* Title */}
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-helvetica-bold leading-[1.1] mb-6">
+              <span className="text-white">Learn to Build with</span>
+              <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#D4AF37] to-[#F5D76E]">
+                Digital Infrastructure
               </span>
             </h1>
 
-            <p className="text-lg md:text-xl text-zinc-400 max-w-3xl mx-auto mb-10 leading-relaxed">
-              The central hub for public servants to learn{' '}
-              <span className="text-white font-medium">Bridge</span>,{' '}
-              <span className="text-white font-medium">ChatBB</span>, and{' '}
-              <span className="text-white font-medium">Bajan-X</span>.
+            {/* Subtitle */}
+            <p className="text-lg text-zinc-400 max-w-2xl mx-auto mb-10">
+              The central hub for public servants to learn <span className="text-white">Bridge</span>, <span className="text-white">ChatBB</span>, and <span className="text-white">Bajan-X</span>.
             </p>
 
+            {/* CTAs */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <PrimaryButton onClick={() => scrollToSection('paths')}>
-                Start Learning Path
-                <ChevronRight size={18} className="ml-1" />
-              </PrimaryButton>
-              <SecondaryButton onClick={() => scrollToSection('paths')}>
-                Browse Catalog
-              </SecondaryButton>
+              <button type="button" onClick={() => setCurrentView('AUTH')} className="px-8 py-3.5 rounded-full bg-[#D4AF37] text-black font-bold hover:bg-[#F5D76E] transition-colors">
+                Start Learning
+              </button>
+              <button type="button" onClick={() => scrollTo('paths')} className="px-8 py-3.5 rounded-full border border-white/20 text-white font-medium hover:bg-white/5 transition-colors">
+                Explore Paths
+              </button>
             </div>
-          </motion.div>
+          </div>
 
-          {/* Animated scroll indicator - CLICKABLE */}
-          <motion.button
-            type="button"
-            onClick={() => scrollToSection('paths')}
-            className="absolute bottom-8 left-1/2 -translate-x-1/2 cursor-pointer group flex flex-col items-center gap-2 focus:outline-none"
-            animate={{ y: [0, 8, 0] }}
-            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <span className="text-xs text-zinc-500 group-hover:text-[#D4AF37] transition-colors uppercase tracking-widest">Scroll</span>
-            <div className="w-10 h-10 rounded-full border border-[#D4AF37]/30 group-hover:border-[#D4AF37]/60 flex items-center justify-center transition-all group-hover:bg-[#D4AF37]/10">
-              <ChevronDown size={24} className="text-[#D4AF37]/60 group-hover:text-[#D4AF37] transition-colors" />
-            </div>
-          </motion.button>
+          {/* Scroll indicator */}
+          <button type="button" onClick={() => scrollTo('paths')} className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-zinc-500 hover:text-[#D4AF37] transition-colors cursor-pointer">
+            <span className="text-[10px] uppercase tracking-[0.2em]">Scroll</span>
+            <ChevronDown size={20} className="animate-bounce" />
+          </button>
         </section>
 
-        {/* ======================= VALUE PROPOSITION ======================= */}
-        <section className="py-20 px-4 relative">
-          <div className="absolute inset-0 bg-gradient-to-b from-black/0 via-[#D4AF37]/[0.02] to-black/0 pointer-events-none" />
-
-          <motion.div
-            className="max-w-4xl mx-auto text-center relative z-10"
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.6 }}
-          >
-            {/* Premium glassmorphism container */}
-            <div className="relative p-8 md:p-12 rounded-[32px] bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-xl border border-white/[0.1] shadow-[0_32px_64px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.1)]">
-              {/* Glow accent */}
-              <div className="absolute -top-px left-1/4 right-1/4 h-px bg-gradient-to-r from-transparent via-[#D4AF37]/50 to-transparent" />
-
-              <h2 className="text-3xl md:text-4xl font-helvetica-bold mb-6 text-white">
-                Build the skills to transform{' '}
-                <span className="text-[#D4AF37]">government services</span>
-              </h2>
-              <p className="text-zinc-400 text-lg leading-relaxed">
-                Amini Academy provides structured, hands-on training in the tools powering Barbados' digital transformation.
-                Whether you're connecting government data, enabling citizen services, or publishing APIs,
-                we'll guide you from fundamentals to mastery.
-              </p>
+        {/* ===== LEARNING PATHS ===== */}
+        <section id="paths" className="py-32 px-6">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl md:text-4xl font-helvetica-bold mb-4">Learning Paths</h2>
+              <p className="text-zinc-400 max-w-xl mx-auto">Choose the path that matches your role. Build comprehensive expertise across all platforms.</p>
             </div>
-          </motion.div>
-        </section>
 
-        {/* ======================= LEARNING PATHS ======================= */}
-        <section id="paths" className="py-24 px-4 relative scroll-mt-20">
-          <div className="max-w-7xl mx-auto">
-            <motion.div
-              className="text-center mb-16"
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-            >
-              <h2 className="text-3xl md:text-5xl font-helvetica-bold mb-4">Choose Your Learning Path</h2>
-              <p className="text-zinc-400 text-lg max-w-2xl mx-auto">
-                Select the path that matches your role and goals. You can take multiple paths to build comprehensive expertise.
-              </p>
-            </motion.div>
+            <div className="grid md:grid-cols-3 gap-6">
+              {/* Bridge */}
+              <div className="group p-8 rounded-2xl border border-white/10 bg-white/[0.02] hover:border-white/20 transition-all">
+                <span className="text-4xl mb-5 block">🔗</span>
+                <div className="inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-zinc-800 text-zinc-500 mb-4">Coming Soon</div>
+                <h3 className="text-xl font-bold text-white mb-2">Bridge Platform</h3>
+                <p className="text-sm text-zinc-500 mb-5">Connect government datasets with AI-powered insights</p>
+                <ul className="space-y-2 text-sm text-zinc-400">
+                  <li className="flex items-center gap-2"><span className="text-[#D4AF37]">•</span>Navigate knowledge graphs</li>
+                  <li className="flex items-center gap-2"><span className="text-[#D4AF37]">•</span>Natural language queries</li>
+                  <li className="flex items-center gap-2"><span className="text-[#D4AF37]">•</span>Extract government insights</li>
+                </ul>
+              </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Bridge Platform Card */}
-              <motion.div
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.1 }}
-                className="group relative"
-              >
-                <div className="absolute -inset-0.5 bg-gradient-to-br from-[#D4AF37]/30 to-transparent rounded-[28px] opacity-0 group-hover:opacity-100 blur-xl transition-all duration-500" />
-                <div className="relative h-full rounded-3xl bg-gradient-to-br from-zinc-900/90 to-black/90 backdrop-blur-xl border border-white/[0.08] p-8 overflow-hidden transition-all duration-500 group-hover:border-[#D4AF37]/30 group-hover:shadow-[0_20px_60px_rgba(0,0,0,0.5)]">
-                  {/* Top accent line */}
-                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#D4AF37]/50 to-transparent transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500" />
+              {/* ChatBB */}
+              <div className="group p-8 rounded-2xl border border-white/10 bg-white/[0.02] hover:border-white/20 transition-all">
+                <span className="text-4xl mb-5 block">💬</span>
+                <div className="inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-zinc-800 text-zinc-500 mb-4">Coming Soon</div>
+                <h3 className="text-xl font-bold text-white mb-2">ChatBB</h3>
+                <p className="text-sm text-zinc-500 mb-5">AI-powered citizen service tools via WhatsApp</p>
+                <ul className="space-y-2 text-sm text-zinc-400">
+                  <li className="flex items-center gap-2"><span className="text-[#D4AF37]">•</span>Citizen query handling</li>
+                  <li className="flex items-center gap-2"><span className="text-[#D4AF37]">•</span>Content management</li>
+                  <li className="flex items-center gap-2"><span className="text-[#D4AF37]">•</span>Data privacy & classification</li>
+                </ul>
+              </div>
 
-                  <span className="text-5xl mb-6 block">🔗</span>
-                  <span className="inline-block px-3 py-1 rounded-full text-xs font-bold bg-zinc-800 text-zinc-400 border border-zinc-700 mb-4">Coming Soon</span>
-                  <h3 className="text-2xl font-helvetica-bold mb-2 text-white">Bridge Platform</h3>
-                  <p className="text-[#D4AF37] text-sm mb-4">Connecting gov datasets with AI</p>
-                  <p className="text-zinc-400 mb-6 leading-relaxed">
-                    Learn to navigate and query government knowledge graphs. Search Cabinet papers, police records,
-                    and ministry data using natural language and AI-powered insights.
-                  </p>
-
-                  <ul className="space-y-3 mb-8">
-                    {['Navigate the Bridge catalog', 'Query documents with natural language', 'Understand knowledge graph architecture', 'Extract insights from government records'].map((item, i) => (
-                      <li key={i} className="flex items-start gap-3 text-zinc-400 text-sm">
-                        <span className="text-[#D4AF37] mt-0.5">✓</span>
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
-
-                  <button type="button" disabled className="w-full py-3 rounded-xl border border-zinc-700 text-zinc-500 font-medium cursor-not-allowed opacity-50">
-                    Coming Soon
-                  </button>
-                </div>
-              </motion.div>
-
-              {/* ChatBB Card */}
-              <motion.div
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.2 }}
-                className="group relative"
-              >
-                <div className="absolute -inset-0.5 bg-gradient-to-br from-[#D4AF37]/30 to-transparent rounded-[28px] opacity-0 group-hover:opacity-100 blur-xl transition-all duration-500" />
-                <div className="relative h-full rounded-3xl bg-gradient-to-br from-zinc-900/90 to-black/90 backdrop-blur-xl border border-white/[0.08] p-8 overflow-hidden transition-all duration-500 group-hover:border-[#D4AF37]/30 group-hover:shadow-[0_20px_60px_rgba(0,0,0,0.5)]">
-                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#D4AF37]/50 to-transparent transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500" />
-
-                  <span className="text-5xl mb-6 block">💬</span>
-                  <span className="inline-block px-3 py-1 rounded-full text-xs font-bold bg-zinc-800 text-zinc-400 border border-zinc-700 mb-4">Coming Soon</span>
-                  <h3 className="text-2xl font-helvetica-bold mb-2 text-white">ChatBB</h3>
-                  <p className="text-[#D4AF37] text-sm mb-4">AI customer service tools</p>
-                  <p className="text-zinc-400 mb-6 leading-relaxed">
-                    Understand how ChatBB delivers government information to citizens via WhatsApp.
-                    Learn content curation, data governance, and citizen-facing AI assistance.
-                  </p>
-
-                  <ul className="space-y-3 mb-8">
-                    {['How ChatBB serves citizen queries', 'Content management for public knowledge', 'Monitoring and improving responses', 'Data privacy and classification'].map((item, i) => (
-                      <li key={i} className="flex items-start gap-3 text-zinc-400 text-sm">
-                        <span className="text-[#D4AF37] mt-0.5">✓</span>
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
-
-                  <button type="button" disabled className="w-full py-3 rounded-xl border border-zinc-700 text-zinc-500 font-medium cursor-not-allowed opacity-50">
-                    Coming Soon
-                  </button>
-                </div>
-              </motion.div>
-
-              {/* Bajan-X Card - ACTIVE */}
-              <motion.div
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.3 }}
-                className="group relative"
-              >
-                {/* Premium glow for active card */}
-                <div className="absolute -inset-1 bg-gradient-to-br from-[#D4AF37]/40 via-[#D4AF37]/20 to-transparent rounded-[32px] blur-2xl opacity-50 group-hover:opacity-80 transition-all duration-500" />
-                <div className="relative h-full rounded-3xl bg-gradient-to-br from-zinc-900/95 to-black/95 backdrop-blur-xl border border-[#D4AF37]/30 p-8 overflow-hidden transition-all duration-500 group-hover:border-[#D4AF37]/60 shadow-[0_0_40px_rgba(212,175,55,0.1)] group-hover:shadow-[0_0_60px_rgba(212,175,55,0.2)]">
-                  {/* Active top accent */}
-                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#B8962E] via-[#D4AF37] to-[#F5D76E]" />
-
-                  <span className="text-5xl mb-6 block">🔌</span>
-                  <span className="inline-block px-3 py-1 rounded-full text-xs font-bold bg-[#D4AF37]/20 text-[#D4AF37] border border-[#D4AF37]/40 mb-4">Beginner to Intermediate</span>
-                  <h3 className="text-2xl font-helvetica-bold mb-2 text-white">Bajan-X</h3>
-                  <p className="text-[#D4AF37] text-sm mb-4">Build and publish government APIs</p>
-                  <p className="text-zinc-400 mb-6 leading-relaxed">
-                    Master Barbados' API-first infrastructure. Learn to identify API candidates, document datasets,
-                    publish endpoints, and manage access across government.
-                  </p>
-
-                  <ul className="space-y-3 mb-8">
-                    {['When to build an API vs. share files', 'Document and classify datasets', 'Publish APIs using Bajan-X', 'Manage versions and access controls', 'Monitor API usage and performance'].map((item, i) => (
-                      <li key={i} className="flex items-start gap-3 text-zinc-400 text-sm">
-                        <span className="text-[#D4AF37] mt-0.5">✓</span>
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
-
-                  <button
-                    type="button"
-                    onClick={() => setCurrentView('AUTH')}
-                    className="w-full py-3 rounded-xl bg-gradient-to-r from-[#B8962E] via-[#D4AF37] to-[#F5D76E] text-black font-bold hover:shadow-[0_0_30px_rgba(212,175,55,0.4)] transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
-                  >
-                    Start Bajan-X Training →
-                  </button>
-                </div>
-              </motion.div>
+              {/* Bajan-X - Active */}
+              <div className="group p-8 rounded-2xl border border-[#D4AF37]/30 bg-[#D4AF37]/5 hover:border-[#D4AF37]/50 transition-all relative overflow-hidden">
+                <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[#D4AF37] to-[#F5D76E]" />
+                <span className="text-4xl mb-5 block">🔌</span>
+                <div className="inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-[#D4AF37]/20 text-[#D4AF37] mb-4">Available Now</div>
+                <h3 className="text-xl font-bold text-white mb-2">Bajan-X</h3>
+                <p className="text-sm text-zinc-400 mb-5">Build and publish government APIs</p>
+                <ul className="space-y-2 text-sm text-zinc-400 mb-6">
+                  <li className="flex items-center gap-2"><span className="text-[#D4AF37]">•</span>API design principles</li>
+                  <li className="flex items-center gap-2"><span className="text-[#D4AF37]">•</span>Dataset documentation</li>
+                  <li className="flex items-center gap-2"><span className="text-[#D4AF37]">•</span>Access control & monitoring</li>
+                </ul>
+                <button type="button" onClick={() => setCurrentView('AUTH')} className="w-full py-2.5 rounded-lg bg-[#D4AF37] text-black text-sm font-bold hover:bg-[#F5D76E] transition-colors">
+                  Start Training →
+                </button>
+              </div>
             </div>
           </div>
         </section>
 
-        {/* ======================= CERTIFICATION SECTION ======================= */}
-        <section id="certification" className="py-24 px-4 relative scroll-mt-20">
-          <div className="absolute inset-0 bg-gradient-to-b from-black/0 via-[#D4AF37]/[0.02] to-black/0 pointer-events-none" />
-
-          <div className="max-w-5xl mx-auto space-y-8">
-            {/* Champion Certification */}
-            <motion.div
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="relative"
-            >
-              <div className="absolute -inset-0.5 bg-gradient-to-r from-[#D4AF37]/20 via-[#D4AF37]/10 to-transparent rounded-[32px] blur-xl" />
-              <div className="relative rounded-3xl bg-gradient-to-br from-[#D4AF37]/[0.08] to-transparent backdrop-blur-xl border border-[#D4AF37]/30 p-8 md:p-12 overflow-hidden">
-                <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#D4AF37]/50 to-transparent" />
-
-                <div className="text-center mb-8">
-                  <span className="text-5xl mb-4 block">🥇</span>
-                  <h3 className="text-2xl md:text-3xl font-helvetica-bold text-white mb-4">Become a Bajan-X Champion</h3>
-                  <p className="text-zinc-400 max-w-2xl mx-auto leading-relaxed">
-                    Complete the Bajan-X learning path to earn your Champion certification.
-                    Champions demonstrate mastery of API-first architecture and can lead API adoption within their ministries.
-                  </p>
-                </div>
-
-                <div className="mb-8">
-                  <h4 className="text-[#D4AF37] font-bold mb-4 text-left">Champion Requirements:</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    {['Complete all Bajan-X courses (BX1-BX8)', 'Submit capstone project', 'Pass final assessment (80%+)'].map((req, i) => (
-                      <div key={i} className="flex items-center gap-2 bg-black/30 rounded-xl px-4 py-3 text-zinc-300 text-sm">
-                        <span className="text-green-400">✅</span>
-                        {req}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="text-center">
-                  <button
-                    type="button"
-                    onClick={() => setCurrentView('AUTH')}
-                    className="px-8 py-3 rounded-full bg-gradient-to-r from-[#B8962E] via-[#D4AF37] to-[#F5D76E] text-black font-bold hover:shadow-[0_0_30px_rgba(212,175,55,0.4)] transition-all duration-300"
-                  >
-                    View Champion Certification Details →
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Superuser Certification */}
-            <motion.div
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.2 }}
-              className="relative"
-            >
-              <div className="absolute -inset-1 bg-gradient-to-r from-white/10 via-[#D4AF37]/20 to-white/10 rounded-[32px] blur-xl" />
-              <div className="relative rounded-3xl bg-gradient-to-br from-white/[0.08] to-[#D4AF37]/[0.05] backdrop-blur-xl border border-white/20 p-8 md:p-12 overflow-hidden">
-                <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/50 to-transparent" />
-
-                <div className="text-center mb-8">
-                  <span className="text-5xl mb-4 block">🏆</span>
-                  <h3 className="text-2xl md:text-3xl font-helvetica-bold text-white mb-4">Become a Certified Superuser</h3>
-                  <p className="text-zinc-400 max-w-3xl mx-auto leading-relaxed">
-                    Complete all three learning paths (Bridge, ChatBB, and Bajan-X) to achieve Superuser status.
-                    Certified Superusers lead comprehensive digital transformation within their ministries and gain access to advanced training, priority support, and exclusive incentives.
-                  </p>
-                </div>
-
-                <div className="grid md:grid-cols-2 gap-8 mb-8">
-                  <div>
-                    <h4 className="text-[#D4AF37] font-bold mb-4">Superuser Requirements:</h4>
-                    <div className="space-y-2">
-                      {['Complete all Bajan-X courses (BX1-BX8)', 'Complete Bridge Platform training', 'Complete ChatBB training', 'Submit capstone project', 'Pass final assessment (80%+)'].map((req, i) => (
-                        <div key={i} className="flex items-center gap-2 bg-black/30 rounded-xl px-4 py-3 text-zinc-300 text-sm">
-                          <span className="text-green-400">✅</span>
-                          {req}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div>
-                    <h4 className="text-[#D4AF37] font-bold mb-4">Superuser Benefits & Incentives:</h4>
-                    <div className="space-y-2">
-                      {[
-                        { icon: '🎖️', text: 'Official digital certificate and badge' },
-                        { icon: '🚀', text: 'Access to advanced training modules' },
-                        { icon: '💬', text: 'Priority support and office hours' },
-                        { icon: '🎁', text: 'Exclusive Superuser incentives' },
-                        { icon: '👥', text: 'Invitation to Superuser network' }
-                      ].map((benefit, i) => (
-                        <div key={i} className="flex items-center gap-3 bg-black/30 rounded-xl px-4 py-3 text-zinc-300 text-sm">
-                          <span>{benefit.icon}</span>
-                          {benefit.text}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="text-center">
-                  <button
-                    type="button"
-                    onClick={() => setCurrentView('AUTH')}
-                    className="px-8 py-3 rounded-full bg-white text-black font-bold hover:shadow-[0_0_30px_rgba(255,255,255,0.3)] transition-all duration-300"
-                  >
-                    View Superuser Certification Details →
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        </section>
-
-        {/* ======================= SUPPORT SECTION ======================= */}
-        <section id="support" className="py-24 px-4 relative scroll-mt-20">
+        {/* ===== CERTIFICATION ===== */}
+        <section id="certification" className="py-32 px-6 border-t border-white/5">
           <div className="max-w-4xl mx-auto">
-            <motion.div
-              className="text-center mb-16"
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-            >
-              <h2 className="text-3xl md:text-4xl font-helvetica-bold mb-4">Get help when you need it</h2>
-              <p className="text-zinc-400 text-lg">
-                Multiple support channels to ensure your success throughout the learning journey.
-              </p>
-            </motion.div>
-
-            <div className="grid md:grid-cols-2 gap-8 mb-12">
-              {/* Office Hours */}
-              <motion.div
-                initial={{ opacity: 0, x: -30 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                className="text-center p-8 rounded-3xl bg-gradient-to-br from-white/[0.05] to-transparent backdrop-blur-xl border border-white/[0.08] hover:border-[#D4AF37]/30 transition-all duration-500"
-              >
-                <span className="text-5xl mb-6 block">📅</span>
-                <h3 className="text-xl font-helvetica-bold mb-3 text-white">Office Hours</h3>
-                <p className="text-zinc-400 mb-2">Join weekly 3-hour sessions with instructors</p>
-                <p className="text-white font-bold mb-2">Every Thursday, 2-5 PM</p>
-                <p className="text-zinc-500 text-sm">Book 15-minute slots to ask questions, troubleshoot, and connect with peers</p>
-              </motion.div>
-
-              {/* Documentation */}
-              <motion.div
-                initial={{ opacity: 0, x: 30 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                className="text-center p-8 rounded-3xl bg-gradient-to-br from-white/[0.05] to-transparent backdrop-blur-xl border border-white/[0.08] hover:border-[#D4AF37]/30 transition-all duration-500"
-              >
-                <span className="text-5xl mb-6 block">📚</span>
-                <h3 className="text-xl font-helvetica-bold mb-3 text-white">Documentation</h3>
-                <p className="text-zinc-400 mb-2">Access reference guides and quick-starts</p>
-                <p className="text-white font-bold mb-2">Step-by-step tutorials</p>
-                <p className="text-zinc-500 text-sm">Searchable knowledge base</p>
-              </motion.div>
+            <div className="text-center mb-16">
+              <h2 className="text-3xl md:text-4xl font-helvetica-bold mb-4">Certification</h2>
+              <p className="text-zinc-400">Earn credentials that demonstrate your expertise</p>
             </div>
 
-            <motion.div
-              className="text-center"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-            >
-              <SecondaryButton onClick={() => setCurrentView('AUTH')}>
-                Access Support Resources →
-              </SecondaryButton>
-            </motion.div>
+            <div className="space-y-6">
+              {/* Champion */}
+              <div className="p-8 rounded-2xl border border-[#D4AF37]/20 bg-[#D4AF37]/5">
+                <div className="flex items-start gap-6">
+                  <span className="text-4xl">🥇</span>
+                  <div className="flex-1">
+                    <h3 className="text-xl font-bold text-white mb-2">Bajan-X Champion</h3>
+                    <p className="text-sm text-zinc-400 mb-4">Complete all 8 Bajan-X courses, submit a capstone project, and pass the final assessment with 80%+</p>
+                    <button type="button" onClick={() => setCurrentView('AUTH')} className="text-sm text-[#D4AF37] hover:underline">Learn more →</button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Superuser */}
+              <div className="p-8 rounded-2xl border border-white/10 bg-white/[0.02]">
+                <div className="flex items-start gap-6">
+                  <span className="text-4xl">🏆</span>
+                  <div className="flex-1">
+                    <h3 className="text-xl font-bold text-white mb-2">Certified Superuser</h3>
+                    <p className="text-sm text-zinc-400 mb-4">Complete all three learning paths (Bridge, ChatBB, Bajan-X) to lead digital transformation in your ministry</p>
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      <span className="px-2 py-1 rounded text-xs bg-white/5 text-zinc-400">Advanced Training</span>
+                      <span className="px-2 py-1 rounded text-xs bg-white/5 text-zinc-400">Priority Support</span>
+                      <span className="px-2 py-1 rounded text-xs bg-white/5 text-zinc-400">Exclusive Network</span>
+                    </div>
+                    <button type="button" onClick={() => setCurrentView('AUTH')} className="text-sm text-[#D4AF37] hover:underline">Learn more →</button>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 
-        {/* ======================= FOOTER ======================= */}
-        <footer className="py-16 px-4 border-t border-white/[0.06] bg-black/50 backdrop-blur-xl">
-          <div className="max-w-7xl mx-auto">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
-              <div>
-                <h4 className="text-[#D4AF37] font-bold mb-4">Products</h4>
-                <ul className="space-y-2">
-                  <li><a href="#" className="text-zinc-400 hover:text-white transition-colors text-sm">Bridge Platform</a></li>
-                  <li><a href="#" className="text-zinc-400 hover:text-white transition-colors text-sm">ChatBB</a></li>
-                  <li><a href="#" className="text-zinc-400 hover:text-white transition-colors text-sm">Bajan-X</a></li>
-                </ul>
-              </div>
-
-              <div>
-                <h4 className="text-[#D4AF37] font-bold mb-4">Learning Paths</h4>
-                <ul className="space-y-2">
-                  <li><a href="#" className="text-zinc-400 hover:text-white transition-colors text-sm">Foundations (BX1-3)</a></li>
-                  <li><a href="#" className="text-zinc-400 hover:text-white transition-colors text-sm">Bridge Training</a></li>
-                  <li><a href="#" className="text-zinc-400 hover:text-white transition-colors text-sm">ChatBB Training</a></li>
-                  <li><a href="#" className="text-zinc-400 hover:text-white transition-colors text-sm">API Publishing</a></li>
-                  <li><a href="#" className="text-zinc-400 hover:text-white transition-colors text-sm">Certification</a></li>
-                </ul>
-              </div>
-
-              <div>
-                <h4 className="text-[#D4AF37] font-bold mb-4">Resources</h4>
-                <ul className="space-y-2">
-                  <li><a href="#" className="text-zinc-400 hover:text-white transition-colors text-sm">Documentation</a></li>
-                  <li><a href="#" className="text-zinc-400 hover:text-white transition-colors text-sm">Office Hours</a></li>
-                  <li><a href="#" className="text-zinc-400 hover:text-white transition-colors text-sm">FAQs</a></li>
-                  <li><a href="#" className="text-zinc-400 hover:text-white transition-colors text-sm">Contact Support</a></li>
-                </ul>
-              </div>
-
-              <div>
-                <h4 className="text-[#D4AF37] font-bold mb-4">About</h4>
-                <ul className="space-y-2">
-                  <li><a href="#" className="text-zinc-400 hover:text-white transition-colors text-sm">Amini HQ</a></li>
-                  <li><a href="#" className="text-zinc-400 hover:text-white transition-colors text-sm">Privacy Policy</a></li>
-                  <li><a href="#" className="text-zinc-400 hover:text-white transition-colors text-sm">Terms of Use</a></li>
-                </ul>
-              </div>
+        {/* ===== SUPPORT ===== */}
+        <section id="support" className="py-32 px-6 border-t border-white/5">
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl md:text-4xl font-helvetica-bold mb-4">Support</h2>
+              <p className="text-zinc-400">Get help when you need it</p>
             </div>
 
-            <div className="text-center pt-8 border-t border-white/[0.06]">
-              <p className="text-zinc-500 text-sm">
-                © 2026 Amini Academy | Powering Barbados' Digital Transformation
-              </p>
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="p-8 rounded-2xl border border-white/10 bg-white/[0.02] text-center">
+                <span className="text-3xl mb-4 block">📅</span>
+                <h3 className="font-bold text-white mb-2">Office Hours</h3>
+                <p className="text-sm text-zinc-400 mb-1">Weekly sessions with instructors</p>
+                <p className="text-sm text-white font-medium">Thursdays, 2-5 PM</p>
+              </div>
+              <div className="p-8 rounded-2xl border border-white/10 bg-white/[0.02] text-center">
+                <span className="text-3xl mb-4 block">📚</span>
+                <h3 className="font-bold text-white mb-2">Documentation</h3>
+                <p className="text-sm text-zinc-400 mb-1">Step-by-step tutorials</p>
+                <p className="text-sm text-white font-medium">Searchable knowledge base</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ===== FOOTER ===== */}
+        <footer className="py-12 px-6 border-t border-white/5">
+          <div className="max-w-6xl mx-auto">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+              <div className="text-lg font-helvetica-bold">
+                <span className="text-[#D4AF37]">AMINI</span>
+                <span className="text-white/40 ml-1">ACADEMY</span>
+              </div>
+              <div className="flex gap-8 text-sm text-zinc-500">
+                <a href="#" className="hover:text-white transition-colors">Privacy</a>
+                <a href="#" className="hover:text-white transition-colors">Terms</a>
+                <a href="#" className="hover:text-white transition-colors">Contact</a>
+              </div>
+            </div>
+            <div className="text-center mt-8 text-xs text-zinc-600">
+              © 2026 Amini Academy · Powering Barbados' Digital Transformation
             </div>
           </div>
         </footer>
