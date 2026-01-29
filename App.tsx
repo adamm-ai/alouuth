@@ -1137,7 +1137,16 @@ const App: React.FC = () => {
             transition={{ duration: 0.8, ease: [0.4, 0, 0.2, 1] }}
             className="relative z-10"
           >
-            <Badge type="success">Barbados Government Initiative</Badge>
+            {/* Premium Government Initiative Badge */}
+            <div className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-gradient-to-r from-[#D4AF37]/10 via-[#D4AF37]/5 to-transparent border border-[#D4AF37]/30 backdrop-blur-sm shadow-[0_0_30px_rgba(212,175,55,0.1)]">
+              <div className="flex items-center justify-center w-6 h-6 rounded-full bg-[#D4AF37]/20">
+                <svg className="w-3.5 h-3.5 text-[#D4AF37]" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <span className="text-sm font-medium text-[#D4AF37] tracking-wide">Official Barbados Government Initiative</span>
+              <div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37] animate-pulse" />
+            </div>
 
             <h1 className="text-4xl sm:text-5xl md:text-7xl font-helvetica-bold mt-8 mb-6 leading-[1.1] max-w-5xl">
               Learn to Build with <br />
@@ -1172,14 +1181,21 @@ const App: React.FC = () => {
             </div>
           </motion.div>
 
-          {/* Animated scroll indicator */}
-          <motion.div
-            className="absolute bottom-8 left-1/2 -translate-x-1/2"
-            animate={{ y: [0, 10, 0] }}
-            transition={{ duration: 2, repeat: Infinity }}
+          {/* Animated scroll indicator - CLICKABLE */}
+          <motion.button
+            type="button"
+            onClick={() => scrollToSection('paths')}
+            className="absolute bottom-8 left-1/2 -translate-x-1/2 cursor-pointer group flex flex-col items-center gap-2 focus:outline-none"
+            animate={{ y: [0, 8, 0] }}
+            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
           >
-            <ChevronDown size={32} className="text-[#D4AF37]/50" />
-          </motion.div>
+            <span className="text-xs text-zinc-500 group-hover:text-[#D4AF37] transition-colors uppercase tracking-widest">Scroll</span>
+            <div className="w-10 h-10 rounded-full border border-[#D4AF37]/30 group-hover:border-[#D4AF37]/60 flex items-center justify-center transition-all group-hover:bg-[#D4AF37]/10">
+              <ChevronDown size={24} className="text-[#D4AF37]/60 group-hover:text-[#D4AF37] transition-colors" />
+            </div>
+          </motion.button>
         </section>
 
         {/* ======================= VALUE PROPOSITION ======================= */}
