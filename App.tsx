@@ -5154,13 +5154,19 @@ const App: React.FC = () => {
                       <div className="flex justify-between items-center p-3 rounded-lg bg-white/5">
                         <span className="text-sm text-zinc-400">Top Ministry Avg</span>
                         <span className="text-lg font-helvetica-bold text-green-400">
-                          {ministryStats.length > 0 ? Math.max(...ministryStats.map(m => m.avgQuizScore || 0)) : '—'}%
+                          {(() => {
+                            const scores = ministryStats.filter(m => m.avgQuizScore > 0).map(m => m.avgQuizScore);
+                            return scores.length > 0 ? Math.max(...scores) : '—';
+                          })()}%
                         </span>
                       </div>
                       <div className="flex justify-between items-center p-3 rounded-lg bg-white/5">
                         <span className="text-sm text-zinc-400">Lowest Ministry Avg</span>
                         <span className="text-lg font-helvetica-bold text-red-400">
-                          {ministryStats.length > 0 ? Math.min(...ministryStats.filter(m => m.avgQuizScore > 0).map(m => m.avgQuizScore || 0)) || '—' : '—'}%
+                          {(() => {
+                            const scores = ministryStats.filter(m => m.avgQuizScore > 0).map(m => m.avgQuizScore);
+                            return scores.length > 0 ? Math.min(...scores) : '—';
+                          })()}%
                         </span>
                       </div>
                     </div>
@@ -5181,8 +5187,8 @@ const App: React.FC = () => {
                     <div className="h-64 w-full">
                       <ResponsiveContainer width="100%" height="100%">
                         <BarChart
-                          data={ministryStats.length > 0 ? ministryStats.map(m => ({
-                            name: m.name?.split(' ').slice(-1)[0] || m.name?.substring(0, 10) || 'Unknown',
+                          data={ministryStats.length > 0 ? ministryStats.map((m, i) => ({
+                            name: m.name?.length > 15 ? m.name.split(' ').map((w: string) => w[0]).join('').substring(0, 6) : m.name?.substring(0, 12) || `M${i + 1}`,
                             fullName: m.name,
                             total: m.totalLearners,
                             active: m.activeLearners || 0,
