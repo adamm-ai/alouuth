@@ -1038,19 +1038,23 @@ const App: React.FC = () => {
 
   // Ultra Clean Landing Page - Minimal & Elegant
   const LandingView = () => {
-    // Smooth scroll handler - uses scrollIntoView for better compatibility
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+    // Smooth scroll handler
     const scrollTo = (id: string) => {
       const el = document.getElementById(id);
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const container = scrollContainerRef.current;
+      if (el && container) {
+        const offsetTop = el.offsetTop - 80;
+        container.scrollTo({ top: offsetTop, behavior: 'smooth' });
       }
     };
 
     return (
-      <div className="relative z-10 w-full" style={{ minHeight: '100vh' }}>
-        {/* ===== NAVIGATION - Premium Glass ===== */}
+      <div ref={scrollContainerRef} className="absolute inset-0 overflow-y-auto overflow-x-hidden z-10 scroll-smooth">
+        {/* ===== NAVIGATION ===== */}
         <nav className="fixed top-0 left-0 right-0 z-50">
-          <div className="absolute inset-0 bg-gradient-to-b from-black/90 via-black/70 to-transparent backdrop-blur-2xl" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/95 via-black/80 to-transparent backdrop-blur-2xl" />
           <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[#D4AF37]/20 to-transparent" />
           <div className="relative max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
             <div className="text-lg font-helvetica-bold tracking-wide">
@@ -1082,13 +1086,6 @@ const App: React.FC = () => {
         {/* ===== HERO ===== */}
         <section className="min-h-screen flex flex-col items-center justify-center px-6 pt-16 relative">
           <div className="max-w-4xl mx-auto text-center">
-            {/* Premium Glass Badge */}
-            <div className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full border border-[#D4AF37]/30 bg-gradient-to-r from-[#D4AF37]/15 via-[#D4AF37]/5 to-transparent backdrop-blur-xl mb-8 shadow-[0_0_30px_rgba(212,175,55,0.15),inset_0_1px_0_rgba(255,255,255,0.1)]">
-              <div className="w-2.5 h-2.5 rounded-full bg-[#D4AF37] animate-pulse shadow-[0_0_10px_rgba(212,175,55,0.8)]" />
-              <span className="text-xs font-semibold text-[#D4AF37] tracking-wider">BARBADOS GOVERNMENT INITIATIVE</span>
-            </div>
-
-            {/* Title */}
             <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-helvetica-bold leading-[1.1] mb-6">
               <span className="text-white drop-shadow-[0_2px_10px_rgba(255,255,255,0.1)]">Learn to Build with</span>
               <br />
@@ -1097,12 +1094,10 @@ const App: React.FC = () => {
               </span>
             </h1>
 
-            {/* Subtitle */}
-            <p className="text-lg text-zinc-400 max-w-2xl mx-auto mb-10">
+            <p className="text-lg md:text-xl text-zinc-400 max-w-2xl mx-auto mb-10">
               The central hub for public servants to learn <span className="text-white font-medium">Bridge</span>, <span className="text-white font-medium">ChatBB</span>, and <span className="text-white font-medium">Bajan-X</span>.
             </p>
 
-            {/* Premium Glass CTAs */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button type="button" onClick={() => setCurrentView('AUTH')} className="group relative px-8 py-4 rounded-full bg-gradient-to-r from-[#D4AF37] to-[#F5D76E] text-black font-bold overflow-hidden shadow-[0_0_30px_rgba(212,175,55,0.3)] hover:shadow-[0_0_50px_rgba(212,175,55,0.5)] transition-all duration-300">
                 <span className="relative z-10">Start Learning</span>
@@ -1114,78 +1109,95 @@ const App: React.FC = () => {
             </div>
           </div>
 
-          {/* Scroll indicator */}
-          <button type="button" onClick={() => scrollTo('paths')} className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-zinc-500 hover:text-[#D4AF37] transition-colors cursor-pointer group">
-            <span className="text-[10px] uppercase tracking-[0.2em] group-hover:tracking-[0.3em] transition-all">Scroll</span>
-            <div className="w-8 h-12 rounded-full border border-white/20 flex items-start justify-center p-2 group-hover:border-[#D4AF37]/50 transition-colors">
-              <div className="w-1 h-2 rounded-full bg-[#D4AF37] animate-bounce" />
-            </div>
+          <button type="button" onClick={() => scrollTo('value')} className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-zinc-500 hover:text-[#D4AF37] transition-colors cursor-pointer group">
+            <span className="text-[10px] uppercase tracking-[0.2em]">Scroll</span>
+            <ChevronDown size={24} className="animate-bounce" />
           </button>
         </section>
 
-        {/* ===== LEARNING PATHS - Premium Glass Cards ===== */}
-        <section id="paths" className="py-32 px-6 scroll-mt-20">
+        {/* ===== VALUE PROPOSITION ===== */}
+        <section id="value" className="py-24 px-6">
+          <div className="max-w-4xl mx-auto">
+            <div className="relative rounded-3xl overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-white/[0.08] via-white/[0.03] to-transparent backdrop-blur-2xl border border-white/10 rounded-3xl" />
+              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#D4AF37]/30 to-transparent" />
+              <div className="relative p-10 md:p-14 text-center">
+                <h2 className="text-2xl md:text-3xl font-helvetica-bold mb-6">Build the skills to transform government services</h2>
+                <p className="text-zinc-400 leading-relaxed max-w-3xl mx-auto">
+                  Amini Academy provides structured, hands-on training in the tools powering Barbados' digital transformation.
+                  Whether you're connecting government data, enabling citizen services, or publishing APIs, we'll guide you from fundamentals to mastery.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ===== LEARNING PATHS ===== */}
+        <section id="paths" className="py-24 px-6">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-helvetica-bold mb-4">Learning Paths</h2>
-              <p className="text-zinc-400 max-w-xl mx-auto">Choose the path that matches your role. Build comprehensive expertise across all platforms.</p>
+              <h2 className="text-3xl md:text-4xl font-helvetica-bold mb-4">Choose Your Learning Path</h2>
+              <p className="text-zinc-400 max-w-xl mx-auto">Select the path that matches your role and goals. Build comprehensive expertise across all platforms.</p>
             </div>
 
             <div className="grid md:grid-cols-3 gap-8">
-              {/* Bridge - Premium Glass */}
+              {/* Bridge */}
               <div className="group relative rounded-3xl overflow-hidden transition-all duration-500 hover:-translate-y-2">
                 <div className="absolute inset-0 bg-gradient-to-br from-white/[0.08] via-white/[0.02] to-transparent backdrop-blur-2xl border border-white/[0.08] rounded-3xl group-hover:border-white/20 transition-colors" />
                 <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-                <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                 <div className="relative p-8">
-                  <span className="text-4xl mb-5 block drop-shadow-lg">🔗</span>
-                  <div className="inline-block px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-zinc-800/80 text-zinc-400 border border-zinc-700/50 backdrop-blur-sm mb-4">Coming Soon</div>
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500/20 to-blue-600/10 border border-blue-500/20 flex items-center justify-center mb-5">
+                    <Layout size={28} className="text-blue-400" />
+                  </div>
+                  <div className="inline-block px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-zinc-800/80 text-zinc-400 border border-zinc-700/50 mb-4">Coming Soon</div>
                   <h3 className="text-xl font-bold text-white mb-2">Bridge Platform</h3>
                   <p className="text-sm text-zinc-500 mb-5">Connect government datasets with AI-powered insights</p>
                   <ul className="space-y-2.5 text-sm text-zinc-400">
-                    <li className="flex items-center gap-2"><span className="text-[#D4AF37]">◆</span>Navigate knowledge graphs</li>
-                    <li className="flex items-center gap-2"><span className="text-[#D4AF37]">◆</span>Natural language queries</li>
-                    <li className="flex items-center gap-2"><span className="text-[#D4AF37]">◆</span>Extract government insights</li>
+                    <li className="flex items-center gap-3"><div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]" />Navigate knowledge graphs</li>
+                    <li className="flex items-center gap-3"><div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]" />Natural language queries</li>
+                    <li className="flex items-center gap-3"><div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]" />Extract government insights</li>
                   </ul>
                 </div>
               </div>
 
-              {/* ChatBB - Premium Glass */}
+              {/* ChatBB */}
               <div className="group relative rounded-3xl overflow-hidden transition-all duration-500 hover:-translate-y-2">
                 <div className="absolute inset-0 bg-gradient-to-br from-white/[0.08] via-white/[0.02] to-transparent backdrop-blur-2xl border border-white/[0.08] rounded-3xl group-hover:border-white/20 transition-colors" />
                 <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-                <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                 <div className="relative p-8">
-                  <span className="text-4xl mb-5 block drop-shadow-lg">💬</span>
-                  <div className="inline-block px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-zinc-800/80 text-zinc-400 border border-zinc-700/50 backdrop-blur-sm mb-4">Coming Soon</div>
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-green-500/20 to-green-600/10 border border-green-500/20 flex items-center justify-center mb-5">
+                    <HelpCircle size={28} className="text-green-400" />
+                  </div>
+                  <div className="inline-block px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-zinc-800/80 text-zinc-400 border border-zinc-700/50 mb-4">Coming Soon</div>
                   <h3 className="text-xl font-bold text-white mb-2">ChatBB</h3>
                   <p className="text-sm text-zinc-500 mb-5">AI-powered citizen service tools via WhatsApp</p>
                   <ul className="space-y-2.5 text-sm text-zinc-400">
-                    <li className="flex items-center gap-2"><span className="text-[#D4AF37]">◆</span>Citizen query handling</li>
-                    <li className="flex items-center gap-2"><span className="text-[#D4AF37]">◆</span>Content management</li>
-                    <li className="flex items-center gap-2"><span className="text-[#D4AF37]">◆</span>Data privacy & classification</li>
+                    <li className="flex items-center gap-3"><div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]" />Citizen query handling</li>
+                    <li className="flex items-center gap-3"><div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]" />Content management</li>
+                    <li className="flex items-center gap-3"><div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]" />Data privacy & classification</li>
                   </ul>
                 </div>
               </div>
 
-              {/* Bajan-X - Active Premium Glass with Gold Glow */}
+              {/* Bajan-X - Active */}
               <div className="group relative rounded-3xl overflow-hidden transition-all duration-500 hover:-translate-y-2">
                 <div className="absolute -inset-1 bg-gradient-to-br from-[#D4AF37]/30 via-[#D4AF37]/10 to-transparent rounded-3xl blur-xl opacity-50 group-hover:opacity-80 transition-opacity" />
                 <div className="absolute inset-0 bg-gradient-to-br from-[#D4AF37]/[0.12] via-[#D4AF37]/[0.04] to-transparent backdrop-blur-2xl border border-[#D4AF37]/30 rounded-3xl group-hover:border-[#D4AF37]/50 transition-colors" />
                 <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-[#B8962E] via-[#D4AF37] to-[#F5D76E]" />
-                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#D4AF37]/50 to-transparent" />
                 <div className="relative p-8">
-                  <span className="text-4xl mb-5 block drop-shadow-[0_0_20px_rgba(212,175,55,0.3)]">🔌</span>
-                  <div className="inline-block px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#D4AF37]/20 text-[#D4AF37] border border-[#D4AF37]/30 backdrop-blur-sm mb-4 shadow-[0_0_15px_rgba(212,175,55,0.2)]">Available Now</div>
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#D4AF37]/30 to-[#D4AF37]/10 border border-[#D4AF37]/30 flex items-center justify-center mb-5 shadow-[0_0_20px_rgba(212,175,55,0.2)]">
+                    <Settings size={28} className="text-[#D4AF37]" />
+                  </div>
+                  <div className="inline-block px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#D4AF37]/20 text-[#D4AF37] border border-[#D4AF37]/30 mb-4 shadow-[0_0_15px_rgba(212,175,55,0.2)]">Available Now</div>
                   <h3 className="text-xl font-bold text-white mb-2">Bajan-X</h3>
                   <p className="text-sm text-zinc-400 mb-5">Build and publish government APIs</p>
                   <ul className="space-y-2.5 text-sm text-zinc-400 mb-6">
-                    <li className="flex items-center gap-2"><span className="text-[#D4AF37]">◆</span>API design principles</li>
-                    <li className="flex items-center gap-2"><span className="text-[#D4AF37]">◆</span>Dataset documentation</li>
-                    <li className="flex items-center gap-2"><span className="text-[#D4AF37]">◆</span>Access control & monitoring</li>
+                    <li className="flex items-center gap-3"><div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]" />API design principles</li>
+                    <li className="flex items-center gap-3"><div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]" />Dataset documentation</li>
+                    <li className="flex items-center gap-3"><div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]" />Access control & monitoring</li>
                   </ul>
                   <button type="button" onClick={() => setCurrentView('AUTH')} className="w-full py-3 rounded-xl bg-gradient-to-r from-[#B8962E] via-[#D4AF37] to-[#F5D76E] text-black text-sm font-bold hover:shadow-[0_0_40px_rgba(212,175,55,0.4)] transition-all duration-300 relative overflow-hidden group/btn">
-                    <span className="relative z-10">Start Training →</span>
+                    <span className="relative z-10">Start Training</span>
                     <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0 translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-700" />
                   </button>
                 </div>
@@ -1194,8 +1206,8 @@ const App: React.FC = () => {
           </div>
         </section>
 
-        {/* ===== CERTIFICATION - Premium Glass ===== */}
-        <section id="certification" className="py-32 px-6 scroll-mt-20 relative">
+        {/* ===== CERTIFICATION ===== */}
+        <section id="certification" className="py-24 px-6 relative">
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#D4AF37]/[0.02] to-transparent pointer-events-none" />
           <div className="max-w-4xl mx-auto relative">
             <div className="text-center mb-16">
@@ -1204,36 +1216,45 @@ const App: React.FC = () => {
             </div>
 
             <div className="space-y-6">
-              {/* Champion - Premium Glass */}
+              {/* Champion */}
               <div className="group relative rounded-3xl overflow-hidden">
                 <div className="absolute -inset-0.5 bg-gradient-to-r from-[#D4AF37]/20 via-[#D4AF37]/10 to-transparent rounded-3xl blur-lg opacity-50 group-hover:opacity-80 transition-opacity" />
                 <div className="absolute inset-0 bg-gradient-to-br from-[#D4AF37]/[0.08] via-[#D4AF37]/[0.02] to-transparent backdrop-blur-2xl border border-[#D4AF37]/20 rounded-3xl group-hover:border-[#D4AF37]/40 transition-colors" />
                 <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#D4AF37]/40 to-transparent" />
                 <div className="relative p-8 flex items-start gap-6">
-                  <span className="text-5xl drop-shadow-[0_0_20px_rgba(212,175,55,0.3)]">🥇</span>
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#D4AF37]/30 to-[#D4AF37]/10 border border-[#D4AF37]/30 flex items-center justify-center shrink-0 shadow-[0_0_30px_rgba(212,175,55,0.2)]">
+                    <Award size={32} className="text-[#D4AF37]" />
+                  </div>
                   <div className="flex-1">
                     <h3 className="text-xl font-bold text-white mb-2">Bajan-X Champion</h3>
                     <p className="text-sm text-zinc-400 mb-4">Complete all 8 Bajan-X courses, submit a capstone project, and pass the final assessment with 80%+</p>
-                    <button type="button" onClick={() => setCurrentView('AUTH')} className="text-sm text-[#D4AF37] hover:text-[#F5D76E] transition-colors font-medium">Learn more →</button>
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      <span className="px-3 py-1 rounded-full text-xs bg-[#D4AF37]/10 text-[#D4AF37] border border-[#D4AF37]/20">BX1-BX8 Courses</span>
+                      <span className="px-3 py-1 rounded-full text-xs bg-[#D4AF37]/10 text-[#D4AF37] border border-[#D4AF37]/20">Capstone Project</span>
+                      <span className="px-3 py-1 rounded-full text-xs bg-[#D4AF37]/10 text-[#D4AF37] border border-[#D4AF37]/20">80%+ Assessment</span>
+                    </div>
+                    <button type="button" onClick={() => setCurrentView('AUTH')} className="text-sm text-[#D4AF37] hover:text-[#F5D76E] transition-colors font-medium">Start your journey</button>
                   </div>
                 </div>
               </div>
 
-              {/* Superuser - Premium Glass */}
+              {/* Superuser */}
               <div className="group relative rounded-3xl overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-white/[0.06] via-white/[0.02] to-transparent backdrop-blur-2xl border border-white/10 rounded-3xl group-hover:border-white/20 transition-colors" />
                 <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
                 <div className="relative p-8 flex items-start gap-6">
-                  <span className="text-5xl drop-shadow-lg">🏆</span>
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500/20 to-purple-600/10 border border-purple-500/20 flex items-center justify-center shrink-0">
+                    <Trophy size={32} className="text-purple-400" />
+                  </div>
                   <div className="flex-1">
                     <h3 className="text-xl font-bold text-white mb-2">Certified Superuser</h3>
                     <p className="text-sm text-zinc-400 mb-4">Complete all three learning paths (Bridge, ChatBB, Bajan-X) to lead digital transformation in your ministry</p>
                     <div className="flex flex-wrap gap-2 mb-4">
-                      <span className="px-3 py-1 rounded-full text-xs bg-white/5 text-zinc-400 border border-white/10 backdrop-blur-sm">Advanced Training</span>
-                      <span className="px-3 py-1 rounded-full text-xs bg-white/5 text-zinc-400 border border-white/10 backdrop-blur-sm">Priority Support</span>
-                      <span className="px-3 py-1 rounded-full text-xs bg-white/5 text-zinc-400 border border-white/10 backdrop-blur-sm">Exclusive Network</span>
+                      <span className="px-3 py-1 rounded-full text-xs bg-white/5 text-zinc-400 border border-white/10">Advanced Training</span>
+                      <span className="px-3 py-1 rounded-full text-xs bg-white/5 text-zinc-400 border border-white/10">Priority Support</span>
+                      <span className="px-3 py-1 rounded-full text-xs bg-white/5 text-zinc-400 border border-white/10">Exclusive Network</span>
                     </div>
-                    <button type="button" onClick={() => setCurrentView('AUTH')} className="text-sm text-[#D4AF37] hover:text-[#F5D76E] transition-colors font-medium">Learn more →</button>
+                    <button type="button" onClick={() => setCurrentView('AUTH')} className="text-sm text-[#D4AF37] hover:text-[#F5D76E] transition-colors font-medium">Learn more</button>
                   </div>
                 </div>
               </div>
@@ -1241,12 +1262,12 @@ const App: React.FC = () => {
           </div>
         </section>
 
-        {/* ===== SUPPORT - Premium Glass ===== */}
-        <section id="support" className="py-32 px-6 scroll-mt-20">
+        {/* ===== SUPPORT ===== */}
+        <section id="support" className="py-24 px-6">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-helvetica-bold mb-4">Support</h2>
-              <p className="text-zinc-400">Get help when you need it</p>
+              <h2 className="text-3xl md:text-4xl font-helvetica-bold mb-4">Get Help When You Need It</h2>
+              <p className="text-zinc-400">Multiple support channels to ensure your success</p>
             </div>
 
             <div className="grid md:grid-cols-2 gap-8">
@@ -1254,42 +1275,94 @@ const App: React.FC = () => {
                 <div className="absolute inset-0 bg-gradient-to-br from-white/[0.06] via-white/[0.02] to-transparent backdrop-blur-2xl border border-white/10 rounded-3xl group-hover:border-[#D4AF37]/30 transition-colors" />
                 <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover:via-[#D4AF37]/40 transition-colors" />
                 <div className="relative p-8 text-center">
-                  <span className="text-4xl mb-4 block drop-shadow-lg">📅</span>
-                  <h3 className="font-bold text-white mb-2">Office Hours</h3>
-                  <p className="text-sm text-zinc-400 mb-1">Weekly sessions with instructors</p>
-                  <p className="text-sm text-[#D4AF37] font-medium">Thursdays, 2-5 PM</p>
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#D4AF37]/20 to-[#D4AF37]/5 border border-[#D4AF37]/20 flex items-center justify-center mx-auto mb-5">
+                    <Calendar size={32} className="text-[#D4AF37]" />
+                  </div>
+                  <h3 className="font-bold text-white text-lg mb-2">Office Hours</h3>
+                  <p className="text-sm text-zinc-400 mb-2">Join weekly 3-hour sessions with instructors</p>
+                  <p className="text-sm text-[#D4AF37] font-medium">Every Thursday, 2-5 PM</p>
+                  <p className="text-xs text-zinc-500 mt-2">Book 15-minute slots to troubleshoot and connect</p>
                 </div>
               </div>
+
               <div className="group relative rounded-3xl overflow-hidden transition-all duration-500 hover:-translate-y-1">
                 <div className="absolute inset-0 bg-gradient-to-br from-white/[0.06] via-white/[0.02] to-transparent backdrop-blur-2xl border border-white/10 rounded-3xl group-hover:border-[#D4AF37]/30 transition-colors" />
                 <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover:via-[#D4AF37]/40 transition-colors" />
                 <div className="relative p-8 text-center">
-                  <span className="text-4xl mb-4 block drop-shadow-lg">📚</span>
-                  <h3 className="font-bold text-white mb-2">Documentation</h3>
-                  <p className="text-sm text-zinc-400 mb-1">Step-by-step tutorials</p>
-                  <p className="text-sm text-[#D4AF37] font-medium">Searchable knowledge base</p>
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500/20 to-blue-600/10 border border-blue-500/20 flex items-center justify-center mx-auto mb-5">
+                    <FileText size={32} className="text-blue-400" />
+                  </div>
+                  <h3 className="font-bold text-white text-lg mb-2">Documentation</h3>
+                  <p className="text-sm text-zinc-400 mb-2">Access reference guides and quick-starts</p>
+                  <p className="text-sm text-[#D4AF37] font-medium">Step-by-step tutorials</p>
+                  <p className="text-xs text-zinc-500 mt-2">Searchable knowledge base available 24/7</p>
                 </div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* ===== FOOTER ===== */}
-        <footer className="py-12 px-6 border-t border-white/5">
-          <div className="max-w-6xl mx-auto">
-            <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+        {/* ===== FOOTER - Premium Glassmorphism ===== */}
+        <footer className="relative py-16 px-6">
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#D4AF37]/20 to-transparent" />
+
+          <div className="relative max-w-6xl mx-auto">
+            {/* Footer Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
+              {/* Products */}
+              <div>
+                <h4 className="text-[#D4AF37] font-bold text-sm uppercase tracking-wider mb-4">Products</h4>
+                <ul className="space-y-3">
+                  <li><span className="text-zinc-500 hover:text-white transition-colors text-sm cursor-default">Bridge Platform</span></li>
+                  <li><span className="text-zinc-500 hover:text-white transition-colors text-sm cursor-default">ChatBB</span></li>
+                  <li><span className="text-zinc-500 hover:text-white transition-colors text-sm cursor-default">Bajan-X</span></li>
+                </ul>
+              </div>
+
+              {/* Learning Paths */}
+              <div>
+                <h4 className="text-[#D4AF37] font-bold text-sm uppercase tracking-wider mb-4">Learning</h4>
+                <ul className="space-y-3">
+                  <li><span className="text-zinc-500 hover:text-white transition-colors text-sm cursor-default">Foundations (BX1-3)</span></li>
+                  <li><span className="text-zinc-500 hover:text-white transition-colors text-sm cursor-default">API Publishing</span></li>
+                  <li><span className="text-zinc-500 hover:text-white transition-colors text-sm cursor-default">Certification</span></li>
+                </ul>
+              </div>
+
+              {/* Resources */}
+              <div>
+                <h4 className="text-[#D4AF37] font-bold text-sm uppercase tracking-wider mb-4">Resources</h4>
+                <ul className="space-y-3">
+                  <li><span className="text-zinc-500 hover:text-white transition-colors text-sm cursor-default">Documentation</span></li>
+                  <li><span className="text-zinc-500 hover:text-white transition-colors text-sm cursor-default">Office Hours</span></li>
+                  <li><span className="text-zinc-500 hover:text-white transition-colors text-sm cursor-default">FAQs</span></li>
+                </ul>
+              </div>
+
+              {/* About */}
+              <div>
+                <h4 className="text-[#D4AF37] font-bold text-sm uppercase tracking-wider mb-4">About</h4>
+                <ul className="space-y-3">
+                  <li><span className="text-zinc-500 hover:text-white transition-colors text-sm cursor-default">Amini HQ</span></li>
+                  <li><span className="text-zinc-500 hover:text-white transition-colors text-sm cursor-default">Privacy Policy</span></li>
+                  <li><span className="text-zinc-500 hover:text-white transition-colors text-sm cursor-default">Terms of Use</span></li>
+                </ul>
+              </div>
+            </div>
+
+            {/* Divider */}
+            <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent mb-8" />
+
+            {/* Bottom Row */}
+            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
               <div className="text-lg font-helvetica-bold">
                 <span className="text-[#D4AF37]">AMINI</span>
                 <span className="text-white/40 ml-1">ACADEMY</span>
               </div>
-              <div className="flex gap-8 text-sm text-zinc-500">
-                <a href="#" className="hover:text-white transition-colors">Privacy</a>
-                <a href="#" className="hover:text-white transition-colors">Terms</a>
-                <a href="#" className="hover:text-white transition-colors">Contact</a>
-              </div>
-            </div>
-            <div className="text-center mt-8 text-xs text-zinc-600">
-              © 2026 Amini Academy · Powering Barbados' Digital Transformation
+              <p className="text-xs text-zinc-600 text-center">
+                2026 Amini Academy | Powering Barbados' Digital Transformation
+              </p>
             </div>
           </div>
         </footer>
