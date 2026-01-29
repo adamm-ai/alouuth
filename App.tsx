@@ -4788,7 +4788,11 @@ const App: React.FC = () => {
                               }}
                               className="group relative rounded-2xl cursor-grab active:cursor-grabbing"
                             >
-                              <div className="relative rounded-2xl border border-white/10 hover:border-white/25 overflow-hidden bg-zinc-900/90">
+                              {/* Glassmorphism Card */}
+                              <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-xl border border-white/[0.12] hover:border-[#D4AF37]/40 transition-all duration-300 shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
+                                {/* Top highlight line */}
+                                <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+
                                 <div className="relative aspect-video overflow-hidden">
                                   <img
                                     src={course.thumbnail || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=800'}
@@ -4796,41 +4800,47 @@ const App: React.FC = () => {
                                     className="w-full h-full object-cover pointer-events-none"
                                     draggable={false}
                                   />
-                                  <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 via-zinc-900/40 to-transparent pointer-events-none" />
-                                  <div className="absolute top-3 left-3 w-8 h-8 rounded-full bg-black/70 border border-white/20 flex items-center justify-center text-sm font-helvetica-bold text-white">
+                                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent pointer-events-none" />
+                                  <div className="absolute top-3 left-3 w-8 h-8 rounded-full bg-black/60 backdrop-blur-md border border-white/20 flex items-center justify-center text-sm font-helvetica-bold text-white shadow-lg">
                                     {index + 1}
                                   </div>
-                                  <div className={`absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-helvetica-bold ${
-                                    level === 'Beginner' ? 'bg-green-500/30 text-green-300 border border-green-500/50' :
-                                    level === 'Intermediate' ? 'bg-yellow-500/30 text-yellow-300 border border-yellow-500/50' :
-                                    'bg-purple-500/30 text-purple-300 border border-purple-500/50'
+                                  <div className={`absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-helvetica-bold backdrop-blur-md ${
+                                    level === 'Beginner' ? 'bg-green-500/20 text-green-300 border border-green-400/40' :
+                                    level === 'Intermediate' ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-400/40' :
+                                    'bg-purple-500/20 text-purple-300 border border-purple-400/40'
                                   }`}>{level}</div>
-                                  <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <div className="p-4 rounded-full bg-[#D4AF37] text-black">
+                                  <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <div className="p-4 rounded-full bg-gradient-to-br from-[#D4AF37] to-[#B8962E] text-black shadow-[0_0_20px_rgba(212,175,55,0.4)]">
                                       <GripVertical size={28} />
                                     </div>
                                   </div>
                                 </div>
-                                <div className="p-5">
+                                <div className="p-5 bg-gradient-to-b from-transparent to-black/20">
                                   <h4 className="text-lg font-helvetica-bold text-white mb-2 line-clamp-1">{course.title}</h4>
                                   <p className="text-sm text-zinc-400 mb-4 line-clamp-2">{course.description || 'No description'}</p>
-                                  <div className="flex gap-2">
+                                  <div className="flex gap-3">
+                                    {/* Premium Edit Button */}
                                     <button
                                       onClick={() => handleEditCourse(course)}
                                       draggable={false}
-                                      className="flex-1 py-2.5 px-4 rounded-xl bg-[#D4AF37] text-black text-sm font-helvetica-bold hover:bg-yellow-400 transition-colors flex items-center justify-center gap-2"
+                                      className="relative flex-1 py-2.5 px-4 rounded-xl overflow-hidden bg-gradient-to-r from-[#D4AF37] via-[#E5C158] to-[#D4AF37] text-black text-sm font-helvetica-bold transition-all duration-300 flex items-center justify-center gap-2 shadow-[0_4px_16px_rgba(212,175,55,0.3)] hover:shadow-[0_6px_24px_rgba(212,175,55,0.5)] hover:scale-[1.02] active:scale-[0.98]"
                                     >
+                                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent translate-x-[-100%] hover:translate-x-[100%] transition-transform duration-700" />
                                       <Pencil size={14} /> Edit
                                     </button>
+                                    {/* Premium Delete Button */}
                                     <button
                                       onClick={() => deleteCourse(course.id)}
                                       draggable={false}
-                                      className="p-2.5 rounded-xl border border-red-500/30 text-red-400 hover:bg-red-500/20 transition-colors"
+                                      className="relative p-2.5 rounded-xl overflow-hidden bg-gradient-to-br from-red-500/10 to-red-600/5 backdrop-blur-sm border border-red-500/30 text-red-400 hover:border-red-400/60 hover:bg-red-500/20 hover:text-red-300 transition-all duration-300 hover:shadow-[0_0_16px_rgba(239,68,68,0.3)] hover:scale-[1.05] active:scale-[0.95]"
                                     >
                                       <Trash2 size={16} />
                                     </button>
                                   </div>
                                 </div>
+
+                                {/* Bottom subtle glow */}
+                                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3/4 h-[1px] bg-gradient-to-r from-transparent via-[#D4AF37]/30 to-transparent" />
                               </div>
                             </div>
                           ))}
