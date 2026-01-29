@@ -219,8 +219,9 @@ export const Badge: React.FC<{ children: React.ReactNode; type?: 'default' | 'su
 // ============================================
 
 /**
- * LiquidGlass - Premium interactive glassmorphism container
- * Features mouse-reactive liquid opacity effect
+ * LiquidGlass - Premium transparent glassmorphism container
+ * Features: See-through glass with mouse-reactive liquid light effect
+ * Inspired by Apple's Liquid Glass design language
  */
 export const LiquidGlass: React.FC<{
   children: React.ReactNode;
@@ -242,8 +243,6 @@ export const LiquidGlass: React.FC<{
   }, []);
 
   const glowColor = gold ? '212, 175, 55' : '255, 255, 255';
-  const borderColor = gold ? 'border-[#D4AF37]/25' : 'border-white/[0.08]';
-  const borderHoverColor = gold ? 'group-hover:border-[#D4AF37]/50' : 'group-hover:border-white/20';
 
   return (
     <div
@@ -259,65 +258,81 @@ export const LiquidGlass: React.FC<{
         ${className}
       `}
     >
-      {/* Base glass layer */}
-      <div className={`
-        absolute inset-0 rounded-[24px]
-        bg-gradient-to-br from-white/[0.06] via-white/[0.02] to-black/40
-        backdrop-blur-2xl
-        border ${borderColor} ${borderHoverColor}
-        transition-all duration-500
-      `} />
-
-      {/* Mouse-reactive light effect */}
+      {/* Transparent glass base - very light blur to see background through */}
       <div
-        className="absolute inset-0 rounded-[24px] pointer-events-none transition-opacity duration-300"
+        className={`
+          absolute inset-0 rounded-[24px]
+          backdrop-blur-[8px]
+          border
+          ${gold
+            ? 'bg-[#D4AF37]/[0.03] border-[#D4AF37]/20 group-hover:border-[#D4AF37]/40'
+            : 'bg-white/[0.02] border-white/[0.08] group-hover:border-white/15'
+          }
+          transition-all duration-500
+        `}
+      />
+
+      {/* Mouse-reactive liquid light effect - follows cursor */}
+      <div
+        className="absolute inset-0 rounded-[24px] pointer-events-none transition-opacity duration-200"
         style={{
           opacity: isHovered ? 1 : 0,
-          background: `radial-gradient(600px circle at ${mousePos.x * 100}% ${mousePos.y * 100}%, rgba(${glowColor}, 0.08), transparent 40%)`,
+          background: `radial-gradient(400px circle at ${mousePos.x * 100}% ${mousePos.y * 100}%, rgba(${glowColor}, 0.12), transparent 50%)`,
         }}
       />
 
-      {/* Top edge highlight */}
+      {/* Secondary liquid ripple - larger, more subtle */}
+      <div
+        className="absolute inset-0 rounded-[24px] pointer-events-none transition-opacity duration-300"
+        style={{
+          opacity: isHovered ? 0.6 : 0,
+          background: `radial-gradient(600px circle at ${mousePos.x * 100}% ${mousePos.y * 100}%, rgba(${glowColor}, 0.05), transparent 60%)`,
+        }}
+      />
+
+      {/* Top edge highlight - glass refraction */}
       <div className={`
-        absolute inset-x-6 top-0 h-[1px]
+        absolute inset-x-4 top-0 h-[1px]
         ${gold
-          ? 'bg-gradient-to-r from-transparent via-[#D4AF37]/40 to-transparent'
-          : 'bg-gradient-to-r from-transparent via-white/20 to-transparent'
+          ? 'bg-gradient-to-r from-transparent via-[#D4AF37]/30 to-transparent'
+          : 'bg-gradient-to-r from-transparent via-white/15 to-transparent'
         }
       `} />
 
-      {/* Inner top glow */}
+      {/* Left edge subtle highlight */}
       <div className={`
-        absolute inset-0 rounded-[24px]
-        bg-gradient-to-b ${gold ? 'from-[#D4AF37]/[0.04]' : 'from-white/[0.03]'} via-transparent to-transparent
-        pointer-events-none
+        absolute left-0 inset-y-4 w-[1px]
+        ${gold
+          ? 'bg-gradient-to-b from-transparent via-[#D4AF37]/15 to-transparent'
+          : 'bg-gradient-to-b from-transparent via-white/10 to-transparent'
+        }
       `} />
-
-      {/* Bottom subtle shadow */}
-      <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/20 to-transparent pointer-events-none rounded-b-[24px]" />
 
       {/* Content */}
       <div className="relative z-10">{children}</div>
 
       {/* Bottom edge reflection */}
       <div className={`
-        absolute inset-x-10 bottom-0 h-[1px]
+        absolute inset-x-8 bottom-0 h-[1px]
         ${gold
-          ? 'bg-gradient-to-r from-transparent via-[#D4AF37]/15 to-transparent'
-          : 'bg-gradient-to-r from-transparent via-white/[0.06] to-transparent'
+          ? 'bg-gradient-to-r from-transparent via-[#D4AF37]/10 to-transparent'
+          : 'bg-gradient-to-r from-transparent via-white/[0.05] to-transparent'
         }
       `} />
 
-      {/* Hover glow effect */}
+      {/* Hover outer glow */}
       {hover && (
-        <div className={`
-          absolute -inset-[1px] rounded-[25px] opacity-0 group-hover:opacity-100
-          transition-opacity duration-500 pointer-events-none
-          ${gold
-            ? 'bg-gradient-to-br from-[#D4AF37]/20 via-transparent to-[#D4AF37]/5 blur-xl'
-            : 'bg-gradient-to-br from-white/10 via-transparent to-white/5 blur-xl'
-          }
-        `} style={{ zIndex: -1 }} />
+        <div
+          className={`
+            absolute -inset-[1px] rounded-[25px] opacity-0 group-hover:opacity-100
+            transition-opacity duration-500 pointer-events-none blur-xl
+            ${gold
+              ? 'bg-gradient-to-br from-[#D4AF37]/15 via-transparent to-[#D4AF37]/5'
+              : 'bg-gradient-to-br from-white/10 via-transparent to-white/5'
+            }
+          `}
+          style={{ zIndex: -1 }}
+        />
       )}
     </div>
   );
