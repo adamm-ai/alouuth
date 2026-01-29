@@ -43,7 +43,11 @@ import {
   Maximize2,
   Minimize2,
   ExternalLink,
-  FileSpreadsheet
+  FileSpreadsheet,
+  TrendingUp,
+  BarChart3,
+  PieChart as PieChartIcon,
+  Building2
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from 'recharts';
 import { LiquidBackground } from './components/LiquidBackground';
@@ -4855,194 +4859,486 @@ const App: React.FC = () => {
 
             {adminSection === 'ANALYTICS' && (
               <div className="space-y-6">
-                <div>
-                  <h2 className="text-3xl font-helvetica-bold">Analytics Dashboard</h2>
-                  <p className="text-zinc-400 mt-1">Detailed insights into platform engagement</p>
+                {/* Header with glassmorphism */}
+                <div className="relative">
+                  <div className="absolute -top-4 -left-4 w-32 h-32 bg-[#D4AF37]/10 rounded-full blur-3xl" />
+                  <h2 className="text-3xl font-helvetica-bold relative">Analytics Dashboard</h2>
+                  <p className="text-zinc-400 mt-1 relative">Real-time insights into ministry training performance</p>
                 </div>
 
-                {/* Ministry Progress Tracking - Enhanced with per-course breakdown */}
-                <GlassCard className="p-6">
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-xl font-helvetica-bold">Ministry Training Progress</h3>
-                    {selectedMinistry && (
-                      <button
-                        type="button"
-                        onClick={() => setSelectedMinistry(null)}
-                        className="text-sm text-[#D4AF37] hover:text-yellow-300 flex items-center gap-1"
-                      >
-                        <ArrowLeft size={14} /> Back to all ministries
-                      </button>
+                {/* Hero KPI Cards - Premium Glassmorphism */}
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                  {/* Total Learners */}
+                  <div className="relative group rounded-2xl overflow-hidden bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-xl border border-white/[0.1] hover:border-[#D4AF37]/40 transition-all duration-300 p-5">
+                    <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+                    <div className="absolute -top-10 -right-10 w-24 h-24 bg-[#D4AF37]/10 rounded-full blur-2xl group-hover:bg-[#D4AF37]/20 transition-colors" />
+                    <div className="relative">
+                      <div className="flex items-center gap-2 text-zinc-400 text-xs mb-2">
+                        <Users size={14} className="text-[#D4AF37]" />
+                        Total Learners
+                      </div>
+                      <div className="text-3xl font-helvetica-bold text-white">{fullStats?.totalLearners?.toLocaleString() || '—'}</div>
+                      <div className="text-[#D4AF37] text-xs mt-1 flex items-center gap-1">
+                        <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+                        {ministryStats.reduce((sum, m) => sum + (m.activeLearners || 0), 0)} active now
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Completion Rate */}
+                  <div className="relative group rounded-2xl overflow-hidden bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-xl border border-white/[0.1] hover:border-green-500/40 transition-all duration-300 p-5">
+                    <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+                    <div className="absolute -top-10 -right-10 w-24 h-24 bg-green-500/10 rounded-full blur-2xl group-hover:bg-green-500/20 transition-colors" />
+                    <div className="relative">
+                      <div className="flex items-center gap-2 text-zinc-400 text-xs mb-2">
+                        <CheckCircle size={14} className="text-green-400" />
+                        Completion Rate
+                      </div>
+                      <div className="text-3xl font-helvetica-bold text-white">{fullStats?.completionRate ?? '—'}%</div>
+                      <div className="h-1.5 bg-white/10 rounded-full overflow-hidden mt-2">
+                        <div className="h-full bg-gradient-to-r from-green-500 to-green-400 rounded-full transition-all duration-1000" style={{ width: `${fullStats?.completionRate || 0}%` }} />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Quiz Pass Rate */}
+                  <div className="relative group rounded-2xl overflow-hidden bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-xl border border-white/[0.1] hover:border-blue-500/40 transition-all duration-300 p-5">
+                    <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+                    <div className="absolute -top-10 -right-10 w-24 h-24 bg-blue-500/10 rounded-full blur-2xl group-hover:bg-blue-500/20 transition-colors" />
+                    <div className="relative">
+                      <div className="flex items-center gap-2 text-zinc-400 text-xs mb-2">
+                        <Award size={14} className="text-blue-400" />
+                        Quiz Pass Rate
+                      </div>
+                      <div className="text-3xl font-helvetica-bold text-white">{fullStats?.quizPassRate ?? '—'}%</div>
+                      <div className="text-zinc-500 text-xs mt-1">Avg: {fullStats?.averageQuizScore ?? '—'}%</div>
+                    </div>
+                  </div>
+
+                  {/* Study Hours */}
+                  <div className="relative group rounded-2xl overflow-hidden bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-xl border border-white/[0.1] hover:border-purple-500/40 transition-all duration-300 p-5">
+                    <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+                    <div className="absolute -top-10 -right-10 w-24 h-24 bg-purple-500/10 rounded-full blur-2xl group-hover:bg-purple-500/20 transition-colors" />
+                    <div className="relative">
+                      <div className="flex items-center gap-2 text-zinc-400 text-xs mb-2">
+                        <Clock size={14} className="text-purple-400" />
+                        Study Hours
+                      </div>
+                      <div className="text-3xl font-helvetica-bold text-white">
+                        {fullStats?.totalStudyHours ? (fullStats.totalStudyHours >= 1000 ? `${(fullStats.totalStudyHours / 1000).toFixed(1)}k` : fullStats.totalStudyHours) : '—'}
+                      </div>
+                      <div className="text-zinc-500 text-xs mt-1">Total platform hours</div>
+                    </div>
+                  </div>
+
+                  {/* Total Enrollments */}
+                  <div className="relative group rounded-2xl overflow-hidden bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-xl border border-white/[0.1] hover:border-[#D4AF37]/40 transition-all duration-300 p-5">
+                    <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+                    <div className="absolute -top-10 -right-10 w-24 h-24 bg-[#D4AF37]/10 rounded-full blur-2xl group-hover:bg-[#D4AF37]/20 transition-colors" />
+                    <div className="relative">
+                      <div className="flex items-center gap-2 text-zinc-400 text-xs mb-2">
+                        <BookOpen size={14} className="text-[#D4AF37]" />
+                        Enrollments
+                      </div>
+                      <div className="text-3xl font-helvetica-bold text-white">{fullStats?.totalEnrollments?.toLocaleString() || '—'}</div>
+                      <div className="text-zinc-500 text-xs mt-1">{fullStats?.totalCourses || '—'} courses</div>
+                    </div>
+                  </div>
+
+                  {/* Overdue Alert */}
+                  <div className={`relative group rounded-2xl overflow-hidden bg-gradient-to-br ${(fullStats?.overdueEnrollments || 0) > 0 ? 'from-red-500/[0.15] to-red-500/[0.05] border-red-500/30 hover:border-red-400/50' : 'from-green-500/[0.1] to-green-500/[0.02] border-green-500/20 hover:border-green-400/40'} backdrop-blur-xl border transition-all duration-300 p-5`}>
+                    <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+                    <div className={`absolute -top-10 -right-10 w-24 h-24 ${(fullStats?.overdueEnrollments || 0) > 0 ? 'bg-red-500/20' : 'bg-green-500/10'} rounded-full blur-2xl`} />
+                    <div className="relative">
+                      <div className="flex items-center gap-2 text-zinc-400 text-xs mb-2">
+                        <AlertTriangle size={14} className={(fullStats?.overdueEnrollments || 0) > 0 ? 'text-red-400' : 'text-green-400'} />
+                        Overdue
+                      </div>
+                      <div className={`text-3xl font-helvetica-bold ${(fullStats?.overdueEnrollments || 0) > 0 ? 'text-red-400' : 'text-green-400'}`}>
+                        {fullStats?.overdueEnrollments ?? 0}
+                      </div>
+                      <div className={`text-xs mt-1 ${(fullStats?.overdueEnrollments || 0) > 0 ? 'text-red-400/70' : 'text-green-400/70'}`}>
+                        {(fullStats?.overdueEnrollments || 0) > 0 ? 'Need attention' : 'All on track'}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Ministry Performance Leaderboard + Quiz Analytics */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  {/* Ministry Leaderboard */}
+                  <div className="lg:col-span-2 relative rounded-2xl overflow-hidden bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-xl border border-white/[0.1] p-6">
+                    <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#D4AF37]/30 to-transparent" />
+                    <div className="flex justify-between items-center mb-5">
+                      <div>
+                        <h3 className="text-xl font-helvetica-bold flex items-center gap-2">
+                          <Trophy size={20} className="text-[#D4AF37]" />
+                          Ministry Performance
+                        </h3>
+                        <p className="text-zinc-500 text-xs mt-1">Ranked by completion rate</p>
+                      </div>
+                      {selectedMinistry && (
+                        <button
+                          type="button"
+                          onClick={() => setSelectedMinistry(null)}
+                          className="text-sm text-[#D4AF37] hover:text-yellow-300 flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#D4AF37]/10 hover:bg-[#D4AF37]/20 transition-all"
+                        >
+                          <ArrowLeft size={14} /> All Ministries
+                        </button>
+                      )}
+                    </div>
+
+                    {!selectedMinistry ? (
+                      <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                        {ministryStats.length > 0 ? [...ministryStats]
+                          .sort((a, b) => {
+                            const rateA = a.totalLearners > 0 ? (a.coursesCompleted / a.totalLearners) * 100 : 0;
+                            const rateB = b.totalLearners > 0 ? (b.coursesCompleted / b.totalLearners) * 100 : 0;
+                            return rateB - rateA;
+                          })
+                          .map((ministry, idx) => {
+                            const completionRate = ministry.totalLearners > 0 ? Math.round((ministry.coursesCompleted / ministry.totalLearners) * 100) : 0;
+                            const isTop3 = idx < 3;
+                            return (
+                              <button
+                                type="button"
+                                key={idx}
+                                onClick={() => setSelectedMinistry(ministry.name)}
+                                className={`w-full p-4 rounded-xl bg-gradient-to-r ${isTop3 ? 'from-[#D4AF37]/10 to-transparent border-[#D4AF37]/20' : 'from-white/5 to-transparent border-white/10'} border hover:border-[#D4AF37]/40 hover:from-[#D4AF37]/15 transition-all text-left group`}
+                              >
+                                <div className="flex items-center gap-4">
+                                  {/* Rank */}
+                                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-helvetica-bold ${
+                                    idx === 0 ? 'bg-gradient-to-br from-yellow-400 to-yellow-600 text-black' :
+                                    idx === 1 ? 'bg-gradient-to-br from-zinc-300 to-zinc-500 text-black' :
+                                    idx === 2 ? 'bg-gradient-to-br from-amber-600 to-amber-800 text-white' :
+                                    'bg-white/10 text-zinc-400'
+                                  }`}>
+                                    {idx + 1}
+                                  </div>
+
+                                  {/* Ministry Info */}
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2">
+                                      <span className="font-medium text-white truncate group-hover:text-[#D4AF37] transition-colors">{ministry.name}</span>
+                                      {ministry.overdueCount > 0 && (
+                                        <span className="px-2 py-0.5 rounded-full text-[10px] bg-red-500/20 text-red-400 border border-red-500/30">
+                                          {ministry.overdueCount} overdue
+                                        </span>
+                                      )}
+                                    </div>
+                                    <div className="flex items-center gap-4 mt-1 text-xs text-zinc-500">
+                                      <span>{ministry.totalLearners} learners</span>
+                                      <span>{ministry.activeLearners || 0} active</span>
+                                      <span>Avg: {ministry.avgQuizScore || 0}%</span>
+                                    </div>
+                                  </div>
+
+                                  {/* Completion Rate */}
+                                  <div className="text-right">
+                                    <div className={`text-2xl font-helvetica-bold ${completionRate >= 70 ? 'text-green-400' : completionRate >= 40 ? 'text-[#D4AF37]' : 'text-zinc-400'}`}>
+                                      {completionRate}%
+                                    </div>
+                                    <div className="text-xs text-zinc-500">{ministry.coursesCompleted} completed</div>
+                                  </div>
+
+                                  <ChevronRight size={16} className="text-zinc-600 group-hover:text-[#D4AF37] transition-colors" />
+                                </div>
+
+                                {/* Progress Bar */}
+                                <div className="h-1 bg-white/10 rounded-full overflow-hidden mt-3">
+                                  <div
+                                    className={`h-full rounded-full transition-all duration-500 ${completionRate >= 70 ? 'bg-gradient-to-r from-green-500 to-green-400' : completionRate >= 40 ? 'bg-gradient-to-r from-[#D4AF37] to-yellow-400' : 'bg-zinc-600'}`}
+                                    style={{ width: `${completionRate}%` }}
+                                  />
+                                </div>
+                              </button>
+                            );
+                          }) : (
+                          <div className="text-center text-zinc-500 py-8">No ministry data available yet</div>
+                        )}
+                      </div>
+                    ) : (
+                      /* Ministry Course Breakdown */
+                      <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
+                        <div className="text-sm text-zinc-400 mb-4 flex items-center gap-2">
+                          <Building2 size={16} className="text-[#D4AF37]" />
+                          {selectedMinistry} — Per-Course Performance
+                        </div>
+                        {ministryCourseStats.length > 0 ? ministryCourseStats.map((stat, idx) => (
+                          <div key={idx} className="p-4 rounded-xl bg-gradient-to-r from-white/5 to-transparent border border-white/10 hover:border-white/20 transition-all">
+                            <div className="flex justify-between items-start mb-3">
+                              <div>
+                                <div className="font-medium text-white">{stat.courseTitle}</div>
+                                <div className="text-xs text-zinc-500 mt-0.5">{stat.enrolledCount} enrolled from this ministry</div>
+                              </div>
+                              <div className="flex gap-2">
+                                {stat.overdueCount > 0 && (
+                                  <span className="px-2 py-1 rounded-full text-xs bg-red-500/20 text-red-400 border border-red-500/30">
+                                    {stat.overdueCount} overdue
+                                  </span>
+                                )}
+                                <span className={`px-2 py-1 rounded-full text-xs ${stat.completionRate >= 70 ? 'bg-green-500/20 text-green-400 border border-green-500/30' : 'bg-[#D4AF37]/20 text-[#D4AF37] border border-[#D4AF37]/30'}`}>
+                                  {stat.completionRate}% complete
+                                </span>
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-3 gap-4 text-center bg-black/20 rounded-lg p-3">
+                              <div>
+                                <div className="text-xl font-helvetica-bold text-green-400">{stat.completedCount}</div>
+                                <div className="text-[10px] text-zinc-500 uppercase tracking-wider">Completed</div>
+                              </div>
+                              <div>
+                                <div className="text-xl font-helvetica-bold text-[#D4AF37]">{stat.enrolledCount - stat.completedCount}</div>
+                                <div className="text-[10px] text-zinc-500 uppercase tracking-wider">In Progress</div>
+                              </div>
+                              <div>
+                                <div className="text-xl font-helvetica-bold text-white">{stat.avgScore}%</div>
+                                <div className="text-[10px] text-zinc-500 uppercase tracking-wider">Avg Score</div>
+                              </div>
+                            </div>
+                            <div className="h-1.5 bg-white/10 rounded-full overflow-hidden mt-3">
+                              <div
+                                className="h-full bg-gradient-to-r from-green-500 to-green-400 rounded-full"
+                                style={{ width: `${stat.completionRate}%` }}
+                              />
+                            </div>
+                          </div>
+                        )) : (
+                          <div className="text-center text-zinc-500 py-8">No course data available for this ministry</div>
+                        )}
+                      </div>
                     )}
                   </div>
 
-                  {!selectedMinistry ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {ministryStats.length > 0 ? ministryStats.map((ministry, idx) => (
-                        <button
-                          type="button"
-                          key={idx}
-                          onClick={() => setSelectedMinistry(ministry.name)}
-                          className="p-4 rounded-xl bg-white/5 border border-white/10 hover:border-[#D4AF37]/50 hover:bg-white/10 transition-all text-left group"
-                        >
-                          <div className="flex justify-between items-start mb-2">
-                            <div className="text-sm font-medium text-white truncate group-hover:text-[#D4AF37] transition-colors">{ministry.name}</div>
-                            <div className="flex gap-2">
-                              {ministry.overdueCount > 0 && (
-                                <Badge type="default" className="!bg-red-500/20 !text-red-400 !border-red-500/30">
-                                  {ministry.overdueCount} overdue
-                                </Badge>
-                              )}
-                              <Badge type={ministry.activeLearners > 0 ? 'success' : 'default'}>
-                                {ministry.activeLearners} active
-                              </Badge>
-                            </div>
-                          </div>
-                          <div className="text-2xl font-helvetica-bold text-[#D4AF37] mb-1">{ministry.totalLearners}</div>
-                          <div className="text-xs text-zinc-500 mb-3">learners enrolled</div>
-                          <div className="flex justify-between text-xs text-zinc-400 mb-1">
-                            <span>Courses Completed</span>
-                            <span className="text-white">{ministry.coursesCompleted}</span>
-                          </div>
-                          <div className="flex justify-between text-xs text-zinc-400 mb-1">
-                            <span>Avg Quiz Score</span>
-                            <span className="text-white">{ministry.avgQuizScore || 0}%</span>
-                          </div>
-                          <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
-                            <div
-                              className="h-full bg-[#D4AF37] rounded-full"
-                              style={{ width: `${ministry.totalLearners > 0 ? Math.min(100, (ministry.coursesCompleted / ministry.totalLearners) * 100) : 0}%` }}
-                            />
-                          </div>
-                          <div className="text-xs text-zinc-500 mt-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            Click to view course breakdown <ChevronRight size={12} />
-                          </div>
-                        </button>
-                      )) : (
-                        <div className="col-span-3 text-center text-zinc-500 py-8">No ministry data available yet</div>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      <div className="text-lg font-medium text-white mb-4">
-                        {selectedMinistry} - Per-Course Breakdown
-                      </div>
-                      {ministryCourseStats.length > 0 ? (
-                        <div className="space-y-3">
-                          {ministryCourseStats.map((stat, idx) => (
-                            <div key={idx} className="p-4 rounded-xl bg-white/5 border border-white/10">
-                              <div className="flex justify-between items-start mb-3">
-                                <div>
-                                  <div className="font-medium text-white">{stat.courseTitle}</div>
-                                  <div className="text-xs text-zinc-500">{stat.enrolledCount} enrolled</div>
-                                </div>
-                                <div className="flex gap-2">
-                                  {stat.overdueCount > 0 && (
-                                    <Badge type="default" className="!bg-red-500/20 !text-red-400 !border-red-500/30">
-                                      {stat.overdueCount} overdue
-                                    </Badge>
-                                  )}
-                                  <Badge type="success">{stat.completionRate}% complete</Badge>
-                                </div>
-                              </div>
-                              <div className="grid grid-cols-3 gap-4 text-center">
-                                <div>
-                                  <div className="text-lg font-helvetica-bold text-green-400">{stat.completedCount}</div>
-                                  <div className="text-xs text-zinc-500">Completed</div>
-                                </div>
-                                <div>
-                                  <div className="text-lg font-helvetica-bold text-[#D4AF37]">{stat.enrolledCount - stat.completedCount}</div>
-                                  <div className="text-xs text-zinc-500">In Progress</div>
-                                </div>
-                                <div>
-                                  <div className="text-lg font-helvetica-bold text-white">{stat.avgScore}%</div>
-                                  <div className="text-xs text-zinc-500">Avg Score</div>
-                                </div>
-                              </div>
-                              <div className="h-1.5 bg-white/10 rounded-full overflow-hidden mt-3">
-                                <div
-                                  className="h-full bg-gradient-to-r from-green-400 to-green-500 rounded-full"
-                                  style={{ width: `${stat.completionRate}%` }}
-                                />
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="text-center text-zinc-500 py-8">No course data available for this ministry</div>
-                      )}
-                    </div>
-                  )}
-                </GlassCard>
+                  {/* Quiz Performance Analytics */}
+                  <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-xl border border-white/[0.1] p-6">
+                    <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-blue-500/30 to-transparent" />
+                    <h3 className="text-xl font-helvetica-bold flex items-center gap-2 mb-5">
+                      <Target size={20} className="text-blue-400" />
+                      Quiz Analytics
+                    </h3>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  <GlassCard className="lg:col-span-2 p-8">
+                    {/* Pass Rate Gauge */}
+                    <div className="relative h-40 flex items-center justify-center mb-6">
+                      <svg className="w-40 h-40 transform -rotate-90">
+                        <circle cx="80" cy="80" r="60" stroke="rgba(255,255,255,0.1)" strokeWidth="12" fill="none" />
+                        <circle
+                          cx="80" cy="80" r="60"
+                          stroke="url(#gaugeGradient)"
+                          strokeWidth="12"
+                          fill="none"
+                          strokeLinecap="round"
+                          strokeDasharray={`${(fullStats?.quizPassRate || 0) * 3.77} 377`}
+                          className="transition-all duration-1000"
+                        />
+                        <defs>
+                          <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stopColor="#3B82F6" />
+                            <stop offset="100%" stopColor="#60A5FA" />
+                          </linearGradient>
+                        </defs>
+                      </svg>
+                      <div className="absolute inset-0 flex flex-col items-center justify-center">
+                        <span className="text-4xl font-helvetica-bold text-white">{fullStats?.quizPassRate ?? '—'}%</span>
+                        <span className="text-xs text-zinc-400">Pass Rate</span>
+                      </div>
+                    </div>
+
+                    {/* Quiz Stats */}
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center p-3 rounded-lg bg-white/5">
+                        <span className="text-sm text-zinc-400">Average Score</span>
+                        <span className="text-lg font-helvetica-bold text-white">{fullStats?.averageQuizScore ?? '—'}%</span>
+                      </div>
+                      <div className="flex justify-between items-center p-3 rounded-lg bg-white/5">
+                        <span className="text-sm text-zinc-400">Top Ministry Avg</span>
+                        <span className="text-lg font-helvetica-bold text-green-400">
+                          {ministryStats.length > 0 ? Math.max(...ministryStats.map(m => m.avgQuizScore || 0)) : '—'}%
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center p-3 rounded-lg bg-white/5">
+                        <span className="text-sm text-zinc-400">Lowest Ministry Avg</span>
+                        <span className="text-lg font-helvetica-bold text-red-400">
+                          {ministryStats.length > 0 ? Math.min(...ministryStats.filter(m => m.avgQuizScore > 0).map(m => m.avgQuizScore || 0)) || '—' : '—'}%
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Charts Row - Engagement + Content */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Ministry Engagement Chart */}
+                  <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-xl border border-white/[0.1] p-6">
+                    <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#D4AF37]/30 to-transparent" />
                     <div className="flex justify-between items-center mb-6">
-                      <h3 className="text-xl font-helvetica-bold">Ministry Engagement</h3>
+                      <h3 className="text-xl font-helvetica-bold flex items-center gap-2">
+                        <BarChart3 size={20} className="text-[#D4AF37]" />
+                        Learner Distribution
+                      </h3>
                     </div>
                     <div className="h-64 w-full">
                       <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={ministryStats.length > 0 ? ministryStats.map(m => ({ name: m.name?.split(' ').pop() || m.name, value: m.totalLearners })) : adminStats} barSize={40}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
-                          <XAxis dataKey="name" stroke="#64748b" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
+                        <BarChart
+                          data={ministryStats.length > 0 ? ministryStats.map(m => ({
+                            name: m.name?.split(' ').slice(-1)[0] || m.name?.substring(0, 10) || 'Unknown',
+                            fullName: m.name,
+                            total: m.totalLearners,
+                            active: m.activeLearners || 0,
+                            completed: m.coursesCompleted
+                          })) : []}
+                          barSize={24}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" stroke="#ffffff08" vertical={false} />
+                          <XAxis dataKey="name" stroke="#64748b" tick={{ fontSize: 9 }} axisLine={false} tickLine={false} angle={-45} textAnchor="end" height={60} />
                           <YAxis stroke="#64748b" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
                           <Tooltip
-                            cursor={{ fill: '#ffffff05' }}
-                            contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '12px', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}
-                            itemStyle={{ color: '#fff' }}
+                            cursor={{ fill: '#ffffff08' }}
+                            contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.95)', border: '1px solid rgba(212, 175, 55, 0.3)', borderRadius: '12px', boxShadow: '0 10px 40px rgba(0,0,0,0.5)', backdropFilter: 'blur(10px)' }}
+                            labelStyle={{ color: '#D4AF37', fontWeight: 'bold', marginBottom: '4px' }}
+                            itemStyle={{ color: '#fff', fontSize: '12px' }}
+                            formatter={(value: number, name: string) => [value, name === 'total' ? 'Total Learners' : name === 'active' ? 'Active' : 'Completed']}
+                            labelFormatter={(label: string, payload: any[]) => payload[0]?.payload?.fullName || label}
                           />
-                          <Bar dataKey="value" radius={[8, 8, 8, 8]}>
-                            {(ministryStats.length > 0 ? ministryStats : adminStats).map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={['#FACC15', '#CA8A04', '#FEF08A', '#713F12'][index % 4]} />
-                            ))}
-                          </Bar>
+                          <Bar dataKey="total" name="Total" radius={[4, 4, 0, 0]} fill="#D4AF37" />
+                          <Bar dataKey="active" name="Active" radius={[4, 4, 0, 0]} fill="#22C55E" />
                         </BarChart>
                       </ResponsiveContainer>
                     </div>
-                  </GlassCard>
+                    <div className="flex justify-center gap-6 mt-4 text-xs">
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-sm bg-[#D4AF37]" />
+                        <span className="text-zinc-400">Total Learners</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-sm bg-green-500" />
+                        <span className="text-zinc-400">Active Learners</span>
+                      </div>
+                    </div>
+                  </div>
 
-                  <GlassCard className="p-8">
-                    <h3 className="text-xl font-helvetica-bold mb-6">Content Types</h3>
-                    <div className="h-64 w-full relative">
+                  {/* Content Types Donut */}
+                  <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-xl border border-white/[0.1] p-6">
+                    <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-purple-500/30 to-transparent" />
+                    <h3 className="text-xl font-helvetica-bold flex items-center gap-2 mb-6">
+                      <PieChartIcon size={20} className="text-purple-400" />
+                      Content Library
+                    </h3>
+                    <div className="h-56 w-full relative">
                       <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
                           <Pie
                             data={contentStats.length > 0 ? contentStats : [
                               { name: 'Video', value: 45 },
-                              { name: 'Pdf', value: 30 },
+                              { name: 'PDF', value: 30 },
                               { name: 'Quiz', value: 25 },
                             ]}
-                            innerRadius={60}
-                            outerRadius={80}
-                            paddingAngle={5}
+                            innerRadius={65}
+                            outerRadius={90}
+                            paddingAngle={4}
                             dataKey="value"
                           >
-                            {(contentStats.length > 0 ? contentStats : [1, 2, 3]).map((_, index) => (
-                              <Cell key={`cell-${index}`} fill={['#FACC15', '#FFFFFF', '#A16207', '#FEF08A'][index % 4]} />
+                            {(contentStats.length > 0 ? contentStats : [1, 2, 3, 4]).map((_, index) => (
+                              <Cell key={`cell-${index}`} fill={['#D4AF37', '#3B82F6', '#8B5CF6', '#22C55E'][index % 4]} />
                             ))}
                           </Pie>
-                          <Tooltip contentStyle={{ backgroundColor: '#0f172a', border: 'none', borderRadius: '8px' }} />
+                          <Tooltip
+                            contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
+                            formatter={(value: number, name: string) => [`${value} lessons`, name]}
+                          />
                         </PieChart>
                       </ResponsiveContainer>
                       <div className="absolute inset-0 flex items-center justify-center flex-col pointer-events-none">
-                        <span className="text-3xl font-helvetica-bold text-white">{fullStats?.totalLessons || '—'}</span>
+                        <span className="text-4xl font-helvetica-bold text-white">{fullStats?.totalLessons || '—'}</span>
                         <span className="text-xs text-zinc-400">Total Lessons</span>
                       </div>
                     </div>
-                    <div className="flex justify-center gap-4 text-xs flex-wrap">
-                      {contentStats.length > 0 ? contentStats.map((c, idx) => (
-                        <div key={idx} className="flex items-center gap-1">
-                          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: ['#FACC15', '#FFFFFF', '#A16207', '#FEF08A'][idx % 4] }}></div>
-                          {c.name} ({c.count || c.value})
+                    <div className="grid grid-cols-2 gap-3 mt-4">
+                      {(contentStats.length > 0 ? contentStats : [
+                        { name: 'Video', count: '—' },
+                        { name: 'PDF', count: '—' },
+                        { name: 'Quiz', count: '—' },
+                        { name: 'Text', count: '—' },
+                      ]).map((c, idx) => (
+                        <div key={idx} className="flex items-center gap-2 p-2 rounded-lg bg-white/5">
+                          <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: ['#D4AF37', '#3B82F6', '#8B5CF6', '#22C55E'][idx % 4] }} />
+                          <span className="text-xs text-zinc-400">{c.name}</span>
+                          <span className="text-xs font-medium text-white ml-auto">{c.count || c.value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Compliance & Overdue Learners Panel */}
+                {(fullStats?.overdueEnrollments || 0) > 0 && overdueLearners.length > 0 && (
+                  <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-red-500/[0.1] to-red-500/[0.02] backdrop-blur-xl border border-red-500/20 p-6">
+                    <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-red-500/40 to-transparent" />
+                    <div className="flex justify-between items-center mb-5">
+                      <h3 className="text-xl font-helvetica-bold flex items-center gap-2 text-red-400">
+                        <AlertTriangle size={20} />
+                        Compliance Alert — Overdue Learners
+                      </h3>
+                      <span className="px-3 py-1 rounded-full text-sm bg-red-500/20 text-red-400 border border-red-500/30">
+                        {overdueLearners.length} learners need attention
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                      {overdueLearners.slice(0, 6).map((learner, idx) => (
+                        <div key={idx} className="p-4 rounded-xl bg-black/30 border border-red-500/20 hover:border-red-500/40 transition-all">
+                          <div className="flex items-start justify-between mb-2">
+                            <div>
+                              <div className="font-medium text-white">{learner.name}</div>
+                              <div className="text-xs text-zinc-500">{learner.ministry}</div>
+                            </div>
+                            <span className="px-2 py-1 rounded-full text-xs bg-red-500/30 text-red-400">
+                              {learner.daysOverdue}d overdue
+                            </span>
+                          </div>
+                          <div className="text-sm text-zinc-400 truncate">{learner.course}</div>
+                        </div>
+                      ))}
+                    </div>
+                    {overdueLearners.length > 6 && (
+                      <div className="text-center mt-4">
+                        <span className="text-sm text-zinc-500">+{overdueLearners.length - 6} more overdue learners</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Ministry Quiz Score Comparison */}
+                <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-xl border border-white/[0.1] p-6">
+                  <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-green-500/30 to-transparent" />
+                  <h3 className="text-xl font-helvetica-bold flex items-center gap-2 mb-5">
+                    <TrendingUp size={20} className="text-green-400" />
+                    Ministry Quiz Performance Comparison
+                  </h3>
+                  <div className="space-y-3">
+                    {ministryStats.length > 0 ? [...ministryStats]
+                      .sort((a, b) => (b.avgQuizScore || 0) - (a.avgQuizScore || 0))
+                      .map((ministry, idx) => (
+                        <div key={idx} className="flex items-center gap-4">
+                          <div className="w-48 truncate text-sm text-zinc-400">{ministry.name}</div>
+                          <div className="flex-1 h-6 bg-white/5 rounded-full overflow-hidden relative">
+                            <div
+                              className={`h-full rounded-full transition-all duration-700 ${
+                                (ministry.avgQuizScore || 0) >= 80 ? 'bg-gradient-to-r from-green-600 to-green-400' :
+                                (ministry.avgQuizScore || 0) >= 60 ? 'bg-gradient-to-r from-[#D4AF37] to-yellow-400' :
+                                'bg-gradient-to-r from-red-600 to-red-400'
+                              }`}
+                              style={{ width: `${ministry.avgQuizScore || 0}%` }}
+                            />
+                            <span className="absolute inset-0 flex items-center justify-end pr-3 text-xs font-medium text-white">
+                              {ministry.avgQuizScore || 0}%
+                            </span>
+                          </div>
                         </div>
                       )) : (
-                        <>
-                          <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-yellow-400"></div> Video</div>
-                          <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-white"></div> Docs</div>
-                          <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-yellow-700"></div> Quiz</div>
-                        </>
-                      )}
-                    </div>
-                  </GlassCard>
+                      <div className="text-center text-zinc-500 py-8">No quiz data available yet</div>
+                    )}
+                  </div>
                 </div>
               </div>
             )}
