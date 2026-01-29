@@ -214,6 +214,258 @@ export const Badge: React.FC<{ children: React.ReactNode; type?: 'default' | 'su
   );
 };
 
+// ============================================
+// LIQUID GLASS COMPONENTS - Premium glassmorphism
+// ============================================
+
+/**
+ * LiquidGlass - Premium interactive glassmorphism container
+ * Features mouse-reactive liquid opacity effect
+ */
+export const LiquidGlass: React.FC<{
+  children: React.ReactNode;
+  className?: string;
+  gold?: boolean;
+  hover?: boolean;
+  onClick?: () => void;
+}> = ({ children, className = '', gold = false, hover = true, onClick }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [mousePos, setMousePos] = useState({ x: 0.5, y: 0.5 });
+  const [isHovered, setIsHovered] = useState(false);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width;
+    const y = (e.clientY - rect.top) / rect.height;
+    setMousePos({ x, y });
+  }, []);
+
+  const glowColor = gold ? '212, 175, 55' : '255, 255, 255';
+  const borderColor = gold ? 'border-[#D4AF37]/25' : 'border-white/[0.08]';
+  const borderHoverColor = gold ? 'group-hover:border-[#D4AF37]/50' : 'group-hover:border-white/20';
+
+  return (
+    <div
+      ref={containerRef}
+      onClick={onClick}
+      onMouseMove={handleMouseMove}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      className={`
+        group relative rounded-[24px] overflow-hidden
+        ${hover ? 'transition-transform duration-500 ease-out hover:-translate-y-1' : ''}
+        ${onClick ? 'cursor-pointer' : ''}
+        ${className}
+      `}
+    >
+      {/* Base glass layer */}
+      <div className={`
+        absolute inset-0 rounded-[24px]
+        bg-gradient-to-br from-white/[0.06] via-white/[0.02] to-black/40
+        backdrop-blur-2xl
+        border ${borderColor} ${borderHoverColor}
+        transition-all duration-500
+      `} />
+
+      {/* Mouse-reactive light effect */}
+      <div
+        className="absolute inset-0 rounded-[24px] pointer-events-none transition-opacity duration-300"
+        style={{
+          opacity: isHovered ? 1 : 0,
+          background: `radial-gradient(600px circle at ${mousePos.x * 100}% ${mousePos.y * 100}%, rgba(${glowColor}, 0.08), transparent 40%)`,
+        }}
+      />
+
+      {/* Top edge highlight */}
+      <div className={`
+        absolute inset-x-6 top-0 h-[1px]
+        ${gold
+          ? 'bg-gradient-to-r from-transparent via-[#D4AF37]/40 to-transparent'
+          : 'bg-gradient-to-r from-transparent via-white/20 to-transparent'
+        }
+      `} />
+
+      {/* Inner top glow */}
+      <div className={`
+        absolute inset-0 rounded-[24px]
+        bg-gradient-to-b ${gold ? 'from-[#D4AF37]/[0.04]' : 'from-white/[0.03]'} via-transparent to-transparent
+        pointer-events-none
+      `} />
+
+      {/* Bottom subtle shadow */}
+      <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/20 to-transparent pointer-events-none rounded-b-[24px]" />
+
+      {/* Content */}
+      <div className="relative z-10">{children}</div>
+
+      {/* Bottom edge reflection */}
+      <div className={`
+        absolute inset-x-10 bottom-0 h-[1px]
+        ${gold
+          ? 'bg-gradient-to-r from-transparent via-[#D4AF37]/15 to-transparent'
+          : 'bg-gradient-to-r from-transparent via-white/[0.06] to-transparent'
+        }
+      `} />
+
+      {/* Hover glow effect */}
+      {hover && (
+        <div className={`
+          absolute -inset-[1px] rounded-[25px] opacity-0 group-hover:opacity-100
+          transition-opacity duration-500 pointer-events-none
+          ${gold
+            ? 'bg-gradient-to-br from-[#D4AF37]/20 via-transparent to-[#D4AF37]/5 blur-xl'
+            : 'bg-gradient-to-br from-white/10 via-transparent to-white/5 blur-xl'
+          }
+        `} style={{ zIndex: -1 }} />
+      )}
+    </div>
+  );
+};
+
+/**
+ * LiquidGlassCard - Card variant with padding
+ */
+export const LiquidGlassCard: React.FC<{
+  children: React.ReactNode;
+  className?: string;
+  gold?: boolean;
+  hover?: boolean;
+  onClick?: () => void;
+}> = ({ children, className = '', gold = false, hover = true, onClick }) => (
+  <LiquidGlass gold={gold} hover={hover} onClick={onClick} className={className}>
+    <div className="p-8">{children}</div>
+  </LiquidGlass>
+);
+
+/**
+ * LiquidGlassInput - Premium input field
+ */
+export const LiquidGlassInput: React.FC<{
+  type?: string;
+  placeholder?: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  required?: boolean;
+  minLength?: number;
+  className?: string;
+  rightElement?: React.ReactNode;
+}> = ({ type = 'text', placeholder, value, onChange, required, minLength, className = '', rightElement }) => (
+  <div className="relative group">
+    <input
+      type={type}
+      placeholder={placeholder}
+      value={value}
+      onChange={onChange}
+      required={required}
+      minLength={minLength}
+      className={`
+        w-full bg-white/[0.03] backdrop-blur-xl
+        border border-white/[0.08] group-hover:border-white/15
+        rounded-xl px-4 py-3.5 ${rightElement ? 'pr-12' : ''}
+        text-white placeholder-zinc-500
+        focus:outline-none focus:border-[#D4AF37]/50 focus:ring-1 focus:ring-[#D4AF37]/20
+        transition-all duration-300
+        ${className}
+      `}
+    />
+    {rightElement && (
+      <div className="absolute right-3 top-1/2 -translate-y-1/2">
+        {rightElement}
+      </div>
+    )}
+    {/* Focus glow */}
+    <div className="absolute inset-0 rounded-xl opacity-0 focus-within:opacity-100 transition-opacity duration-300 pointer-events-none bg-[#D4AF37]/5 blur-xl" style={{ zIndex: -1 }} />
+  </div>
+);
+
+/**
+ * LiquidGlassSelect - Premium select field
+ */
+export const LiquidGlassSelect: React.FC<{
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  options: { value: string; label: string }[];
+  className?: string;
+}> = ({ value, onChange, options, className = '' }) => (
+  <div className="relative group">
+    <select
+      value={value}
+      onChange={onChange}
+      className={`
+        w-full bg-white/[0.03] backdrop-blur-xl
+        border border-white/[0.08] group-hover:border-white/15
+        rounded-xl px-4 py-3.5
+        text-white appearance-none cursor-pointer
+        focus:outline-none focus:border-[#D4AF37]/50 focus:ring-1 focus:ring-[#D4AF37]/20
+        transition-all duration-300
+        ${className}
+      `}
+    >
+      {options.map(opt => (
+        <option key={opt.value} value={opt.value} className="bg-zinc-900 text-white">
+          {opt.label}
+        </option>
+      ))}
+    </select>
+    {/* Dropdown arrow */}
+    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-400">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+        <path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    </div>
+  </div>
+);
+
+/**
+ * LiquidGlassButton - Premium button variants
+ */
+export const LiquidGlassButton: React.FC<{
+  children: React.ReactNode;
+  onClick?: () => void;
+  variant?: 'primary' | 'secondary' | 'ghost';
+  disabled?: boolean;
+  className?: string;
+  type?: 'button' | 'submit';
+}> = ({ children, onClick, variant = 'primary', disabled = false, className = '', type = 'button' }) => {
+  const baseStyles = `
+    relative overflow-hidden rounded-xl px-6 py-3.5 font-semibold
+    transition-all duration-300 ease-out
+    disabled:opacity-50 disabled:cursor-not-allowed
+  `;
+
+  const variants = {
+    primary: `
+      bg-gradient-to-r from-[#B8962E] via-[#D4AF37] to-[#F5D76E] text-black
+      hover:shadow-[0_0_40px_rgba(212,175,55,0.4)]
+      active:scale-[0.98]
+    `,
+    secondary: `
+      bg-white/[0.05] backdrop-blur-xl border border-white/[0.1] text-white
+      hover:bg-white/[0.08] hover:border-white/20
+      active:scale-[0.98]
+    `,
+    ghost: `
+      bg-transparent text-zinc-400 hover:text-white hover:bg-white/[0.05]
+      active:scale-[0.98]
+    `,
+  };
+
+  return (
+    <button
+      type={type}
+      onClick={onClick}
+      disabled={disabled}
+      className={`${baseStyles} ${variants[variant]} ${className}`}
+    >
+      <span className="relative z-10 flex items-center justify-center gap-2">{children}</span>
+      {variant === 'primary' && (
+        <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0 translate-x-[-150%] hover:translate-x-[150%] transition-transform duration-700 pointer-events-none" />
+      )}
+    </button>
+  );
+};
+
 // Liquid Video Frame Component - Premium content container
 export const LiquidVideoFrame: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className = '' }) => (
   <div className={`relative group ${className}`}>
