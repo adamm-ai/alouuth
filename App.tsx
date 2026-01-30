@@ -1120,10 +1120,10 @@ const App: React.FC = () => {
             className="max-w-5xl mx-auto text-center relative"
           >
             <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-helvetica-bold leading-[1.05] mb-8 tracking-tight">
-              <span className="text-white">Learn to Build with</span>
+              <span className="text-white">National AI infrastructure</span>
               <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#F5D76E] via-[#D4AF37] to-[#B8962E]">
-                Digital Infrastructure
+                requires national expertise.
               </span>
             </h1>
 
@@ -1133,7 +1133,7 @@ const App: React.FC = () => {
               transition={{ delay: 0.5, duration: 0.6 }}
               className="text-xl md:text-2xl text-zinc-400 max-w-3xl mx-auto mb-14 leading-relaxed font-light"
             >
-              The central hub for public servants to master <span className="text-white font-normal">Bridge</span>, <span className="text-white font-normal">ChatBB</span>, and <span className="text-white font-normal">Bajan-X</span>
+              Master the tools powering Barbados' digital transformation.
             </motion.p>
 
             <motion.div
@@ -1227,12 +1227,12 @@ const App: React.FC = () => {
                       <Layout size={28} className="text-blue-400" />
                     </div>
                     <div className="inline-block px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-white/[0.03] backdrop-blur-sm text-zinc-500 border border-white/[0.08] mb-5">Coming Soon</div>
-                    <h3 className="text-xl font-bold text-white mb-3">Bridge Platform</h3>
-                    <p className="text-zinc-400 mb-6 text-sm leading-relaxed">Connect government datasets with AI-powered insights</p>
+                    <h3 className="text-xl font-bold text-white mb-3">Bridge</h3>
+                    <p className="text-zinc-400 mb-6 text-sm leading-relaxed">Learn to navigate Barbados' private knowledge graph, from querying cabinet records to authoring papers.</p>
                     <ul className="space-y-3 text-sm text-zinc-400">
-                      <li className="flex items-center gap-3"><div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]" />Navigate knowledge graphs</li>
-                      <li className="flex items-center gap-3"><div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]" />Natural language queries</li>
-                      <li className="flex items-center gap-3"><div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]" />Extract government insights</li>
+                      <li className="flex items-center gap-3"><div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]" />Query structured government data</li>
+                      <li className="flex items-center gap-3"><div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]" />Surface policy precedents</li>
+                      <li className="flex items-center gap-3"><div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]" />Connect islands of information</li>
                     </ul>
                   </div>
                 </LiquidGlass>
@@ -1254,8 +1254,8 @@ const App: React.FC = () => {
                     <h3 className="text-xl font-bold text-white mb-3">ChatBB</h3>
                     <p className="text-zinc-400 mb-6 text-sm leading-relaxed">AI-powered citizen service tools via WhatsApp</p>
                     <ul className="space-y-3 text-sm text-zinc-400">
-                      <li className="flex items-center gap-3"><div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]" />Citizen query handling</li>
-                      <li className="flex items-center gap-3"><div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]" />Content management</li>
+                      <li className="flex items-center gap-3"><div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]" />Citizen query monitoring & handling</li>
+                      <li className="flex items-center gap-3"><div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]" />Data Stewardship</li>
                       <li className="flex items-center gap-3"><div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]" />Data privacy & classification</li>
                     </ul>
                   </div>
@@ -1276,11 +1276,11 @@ const App: React.FC = () => {
                     </div>
                     <div className="inline-block px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#D4AF37]/[0.08] backdrop-blur-sm text-[#D4AF37] border border-[#D4AF37]/[0.2] mb-5">Available Now</div>
                     <h3 className="text-xl font-bold text-white mb-3">Bajan-X</h3>
-                    <p className="text-zinc-300 mb-6 text-sm leading-relaxed">Build and publish government APIs</p>
+                    <p className="text-zinc-300 mb-6 text-sm leading-relaxed">Build, publish, and manage APIs to connect government systems and data</p>
                     <ul className="space-y-3 text-sm text-zinc-300 mb-8">
-                      <li className="flex items-center gap-3"><div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]" />API design principles</li>
-                      <li className="flex items-center gap-3"><div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]" />Dataset documentation</li>
-                      <li className="flex items-center gap-3"><div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]" />Access control & monitoring</li>
+                      <li className="flex items-center gap-3"><div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]" />API fundamentals and development</li>
+                      <li className="flex items-center gap-3"><div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]" />Publishing and documenting APIs</li>
+                      <li className="flex items-center gap-3"><div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]" />Monitoring, maintenance, and governance</li>
                     </ul>
                     <LiquidGlassButton onClick={() => setCurrentView('AUTH')} className="w-full">
                       Start Training
@@ -1303,7 +1303,7 @@ const App: React.FC = () => {
               className="text-center mb-16"
             >
               <h2 className="text-4xl md:text-5xl font-helvetica-bold mb-6 text-white">Certification</h2>
-              <p className="text-lg text-zinc-400">Earn credentials that demonstrate your expertise</p>
+              <p className="text-lg text-zinc-400">Start your journey. Earn badges. Lead the transformation.</p>
             </motion.div>
 
             <div className="space-y-6">
