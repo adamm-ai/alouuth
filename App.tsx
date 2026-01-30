@@ -1119,8 +1119,8 @@ const App: React.FC = () => {
             transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.3 }}
             className="max-w-5xl mx-auto text-center relative"
           >
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-helvetica-bold leading-[1.15] mb-8 tracking-tight">
-              <span className="text-white"><span className="liquid-glass-text">National AI</span> infrastructure</span>
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-helvetica-bold leading-[1.15] mb-8 tracking-tight liquid-glass-text">
+              <span className="text-white">National AI infrastructure</span>
               <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#F5D76E] via-[#D4AF37] to-[#B8962E]">
                 requires national expertise.
