@@ -423,6 +423,9 @@
   animation: mercury-depth 8s ease-in-out infinite;
   overflow: hidden;
   isolation: isolate;
+  will-change: box-shadow;
+  transform: translateZ(0);
+  contain: layout style paint;
 }
 
 /* Mercury blob layer 1 - large slow moving */
@@ -441,6 +444,8 @@
   filter: blur(20px);
   animation: mercury-flow-1 12s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   pointer-events: none;
+  will-change: transform, opacity;
+  transform: translateZ(0);
 }
 
 /* Mercury blob layer 2 - medium counter-flow */
@@ -458,6 +463,8 @@
   filter: blur(15px);
   animation: mercury-flow-2 10s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   pointer-events: none;
+  will-change: transform, opacity;
+  transform: translateZ(0);
 }
 
 /* Additional mercury layers via box-shadow on wrapper */
@@ -481,6 +488,8 @@
   animation: mercury-flow-3 14s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   pointer-events: none;
   z-index: -1;
+  will-change: transform, opacity;
+  transform: translateZ(0);
 }
 
 /* Surface sheen reflection - the slow light crawl */
@@ -503,5 +512,7 @@
   animation: mercury-sheen 8s cubic-bezier(0.25, 0, 0.25, 1) infinite;
   pointer-events: none;
   z-index: 10;
+  will-change: transform, opacity;
+  transform: translateZ(0);
 }
 

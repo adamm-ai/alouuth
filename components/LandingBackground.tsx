@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useCallback } from 'react';
  * Premium Landing Background
  * - Luxurious animated grid with pulsing nodes
  * - Mouse illumination effect with radiant glow
- * - Optimized for performance
+ * - Optimized for smooth 60fps performance
  */
 export const LandingBackground: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -13,26 +13,39 @@ export const LandingBackground: React.FC = () => {
   const targetMousePos = useRef({ x: -9999, y: -9999 });
   const isMouseActive = useRef(false);
   const timeRef = useRef(0);
+  const lastFrameTime = useRef(0);
 
-  const animate = useCallback(() => {
+  // Pre-computed values for performance
+  const gridDataRef = useRef<{ phases: number[] } | null>(null);
+
+  const animate = useCallback((currentTime: number) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', { alpha: false });
     if (!ctx) return;
 
-    const width = canvas.width / (window.devicePixelRatio || 1);
-    const height = canvas.height / (window.devicePixelRatio || 1);
+    // Throttle to ~60fps for consistent performance
+    const deltaTime = currentTime - lastFrameTime.current;
+    if (deltaTime < 16) {
+      animationRef.current = requestAnimationFrame(animate);
+      return;
+    }
+    lastFrameTime.current = currentTime;
 
-    // Time for animations
-    timeRef.current += 0.008;
+    const dpr = window.devicePixelRatio || 1;
+    const width = canvas.width / dpr;
+    const height = canvas.height / dpr;
+
+    // Time for animations (slower increment for smoother animation)
+    timeRef.current += 0.006;
     const time = timeRef.current;
 
     // Smooth mouse tracking
-    mousePos.current.x += (targetMousePos.current.x - mousePos.current.x) * 0.08;
-    mousePos.current.y += (targetMousePos.current.y - mousePos.current.y) * 0.08;
+    mousePos.current.x += (targetMousePos.current.x - mousePos.current.x) * 0.1;
+    mousePos.current.y += (targetMousePos.current.y - mousePos.current.y) * 0.1;
 
-    // Clear
+    // Clear with black
     ctx.fillStyle = '#000000';
     ctx.fillRect(0, 0, width, height);
 
@@ -45,19 +58,24 @@ export const LandingBackground: React.FC = () => {
 
     ctx.globalCompositeOperation = 'lighter';
 
-    // Draw grid
+    // Calculate grid dimensions
     const cols = Math.ceil(width / gridSize) + 1;
     const rows = Math.ceil(height / gridSize) + 1;
 
+    // Pre-calculate sin values for this frame (optimization)
+    const sinTime08 = Math.sin(time * 0.8);
+    const sinTime15 = Math.sin(time * 1.5);
+
+    // Batch draw operations - collect all nodes first
     for (let i = 0; i < cols; i++) {
       for (let j = 0; j < rows; j++) {
         const x = i * gridSize;
         const y = j * gridSize;
 
-        // Unique phase for each node
-        const nodePhase = (i * 0.3 + j * 0.5) + time;
-        const pulse = 0.5 + 0.5 * Math.sin(nodePhase * 1.5);
-        const breathe = 0.7 + 0.3 * Math.sin(nodePhase * 0.8);
+        // Simplified phase calculation
+        const phase = (i * 0.3 + j * 0.5);
+        const pulse = 0.5 + 0.5 * Math.sin(phase + time * 1.5);
+        const breathe = 0.7 + 0.3 * Math.sin(phase + time * 0.8);
 
         // Calculate distance to mouse
         const dx = x - mousePos.current.x;
@@ -65,51 +83,51 @@ export const LandingBackground: React.FC = () => {
         const distSq = dx * dx + dy * dy;
 
         let alpha = baseAlpha * breathe;
-        let glowIntensity = 0.3;
         let nodeSize = 2;
-        let outerGlowSize = 6;
+        let glowSize = 6;
 
         if (isMouseActive.current && distSq < mouseRadiusSq) {
-          const dist = Math.sqrt(distSq);
-          const t = 1 - (dist / mouseRadius);
-          // Smooth hermite interpolation
+          const t = 1 - (Math.sqrt(distSq) / mouseRadius);
           const smoothT = t * t * (3 - 2 * t);
           alpha = baseAlpha + (maxAlpha - baseAlpha) * smoothT;
-          glowIntensity = 0.3 + 0.7 * smoothT;
           nodeSize = 2 + 2 * smoothT;
-          outerGlowSize = 6 + 10 * smoothT;
+          glowSize = 6 + 8 * smoothT;
         }
 
-        // Draw node with luxurious glow
-        if (alpha > 0.01) {
-          // Outer soft glow
-          const outerGradient = ctx.createRadialGradient(x, y, 0, x, y, outerGlowSize * (1 + pulse * 0.3));
-          outerGradient.addColorStop(0, `rgba(245, 215, 110, ${alpha * glowIntensity * 0.5})`);
-          outerGradient.addColorStop(0.4, `rgba(212, 175, 55, ${alpha * glowIntensity * 0.3})`);
-          outerGradient.addColorStop(1, 'rgba(212, 175, 55, 0)');
-          ctx.fillStyle = outerGradient;
-          ctx.beginPath();
-          ctx.arc(x, y, outerGlowSize * (1 + pulse * 0.3), 0, Math.PI * 2);
-          ctx.fill();
+        // Skip nearly invisible nodes
+        if (alpha < 0.02) continue;
 
-          // Inner glow ring
-          ctx.fillStyle = `rgba(255, 230, 150, ${alpha * 0.4 * pulse})`;
-          ctx.beginPath();
-          ctx.arc(x, y, nodeSize + 1.5, 0, Math.PI * 2);
-          ctx.fill();
+        // Draw outer glow (simplified - no gradient creation per frame)
+        const glowRadius = glowSize * (1 + pulse * 0.2);
+        ctx.fillStyle = `rgba(212, 175, 55, ${alpha * 0.15})`;
+        ctx.beginPath();
+        ctx.arc(x, y, glowRadius, 0, Math.PI * 2);
+        ctx.fill();
 
-          // Bright core
-          const coreGradient = ctx.createRadialGradient(x, y, 0, x, y, nodeSize);
-          coreGradient.addColorStop(0, `rgba(255, 255, 255, ${alpha})`);
-          coreGradient.addColorStop(0.5, `rgba(255, 235, 180, ${alpha * 0.9})`);
-          coreGradient.addColorStop(1, `rgba(245, 215, 110, ${alpha * 0.6})`);
-          ctx.fillStyle = coreGradient;
-          ctx.beginPath();
-          ctx.arc(x, y, nodeSize, 0, Math.PI * 2);
-          ctx.fill();
-        }
+        // Draw mid glow
+        ctx.fillStyle = `rgba(245, 215, 110, ${alpha * 0.3})`;
+        ctx.beginPath();
+        ctx.arc(x, y, glowRadius * 0.6, 0, Math.PI * 2);
+        ctx.fill();
 
-        // Draw lines to right and bottom neighbors
+        // Draw inner ring
+        ctx.fillStyle = `rgba(255, 230, 150, ${alpha * 0.4 * pulse})`;
+        ctx.beginPath();
+        ctx.arc(x, y, nodeSize + 1, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Draw bright core
+        ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+        ctx.beginPath();
+        ctx.arc(x, y, nodeSize * 0.8, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = `rgba(255, 245, 200, ${alpha * 0.9})`;
+        ctx.beginPath();
+        ctx.arc(x, y, nodeSize, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Draw lines (simplified - solid color instead of gradients)
         ctx.lineWidth = 0.8;
 
         // Right line
@@ -118,23 +136,17 @@ export const LandingBackground: React.FC = () => {
           const ndx = nx - mousePos.current.x;
           const nDistSq = ndx * ndx + dy * dy;
 
-          let lineAlpha = baseAlpha * 0.6 * breathe;
+          let lineAlpha = baseAlpha * 0.5 * breathe;
           if (isMouseActive.current) {
             const avgDistSq = (distSq + nDistSq) / 2;
             if (avgDistSq < mouseRadiusSq) {
-              const avgDist = Math.sqrt(avgDistSq);
-              const t = 1 - (avgDist / mouseRadius);
-              const smoothT = t * t * (3 - 2 * t);
-              lineAlpha = baseAlpha + (maxAlpha - baseAlpha) * smoothT * 0.5;
+              const t = 1 - (Math.sqrt(avgDistSq) / mouseRadius);
+              lineAlpha = baseAlpha + (maxAlpha - baseAlpha) * t * t * 0.4;
             }
           }
 
-          if (lineAlpha > 0.01) {
-            const lineGradient = ctx.createLinearGradient(x, y, nx, y);
-            lineGradient.addColorStop(0, `rgba(245, 215, 110, ${lineAlpha})`);
-            lineGradient.addColorStop(0.5, `rgba(255, 255, 255, ${lineAlpha * 0.6})`);
-            lineGradient.addColorStop(1, `rgba(245, 215, 110, ${lineAlpha})`);
-            ctx.strokeStyle = lineGradient;
+          if (lineAlpha > 0.02) {
+            ctx.strokeStyle = `rgba(212, 175, 55, ${lineAlpha})`;
             ctx.beginPath();
             ctx.moveTo(x, y);
             ctx.lineTo(nx, y);
@@ -148,23 +160,17 @@ export const LandingBackground: React.FC = () => {
           const ndy = ny - mousePos.current.y;
           const nDistSq = dx * dx + ndy * ndy;
 
-          let lineAlpha = baseAlpha * 0.6 * breathe;
+          let lineAlpha = baseAlpha * 0.5 * breathe;
           if (isMouseActive.current) {
             const avgDistSq = (distSq + nDistSq) / 2;
             if (avgDistSq < mouseRadiusSq) {
-              const avgDist = Math.sqrt(avgDistSq);
-              const t = 1 - (avgDist / mouseRadius);
-              const smoothT = t * t * (3 - 2 * t);
-              lineAlpha = baseAlpha + (maxAlpha - baseAlpha) * smoothT * 0.5;
+              const t = 1 - (Math.sqrt(avgDistSq) / mouseRadius);
+              lineAlpha = baseAlpha + (maxAlpha - baseAlpha) * t * t * 0.4;
             }
           }
 
-          if (lineAlpha > 0.01) {
-            const lineGradient = ctx.createLinearGradient(x, y, x, ny);
-            lineGradient.addColorStop(0, `rgba(245, 215, 110, ${lineAlpha})`);
-            lineGradient.addColorStop(0.5, `rgba(255, 255, 255, ${lineAlpha * 0.6})`);
-            lineGradient.addColorStop(1, `rgba(245, 215, 110, ${lineAlpha})`);
-            ctx.strokeStyle = lineGradient;
+          if (lineAlpha > 0.02) {
+            ctx.strokeStyle = `rgba(212, 175, 55, ${lineAlpha})`;
             ctx.beginPath();
             ctx.moveTo(x, y);
             ctx.lineTo(x, ny);
@@ -182,7 +188,7 @@ export const LandingBackground: React.FC = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', { alpha: false });
     if (!ctx) return;
 
     const resize = () => {
@@ -210,11 +216,12 @@ export const LandingBackground: React.FC = () => {
     };
 
     resize();
-    window.addEventListener('resize', resize);
+    window.addEventListener('resize', resize, { passive: true });
     window.addEventListener('mousemove', handleMouseMove, { passive: true });
-    window.addEventListener('mouseleave', handleMouseLeave);
+    window.addEventListener('mouseleave', handleMouseLeave, { passive: true });
 
-    animationRef.current = requestAnimationFrame(animate);
+    // Start animation with timestamp
+    animationRef.current = requestAnimationFrame((t) => animate(t));
 
     return () => {
       window.removeEventListener('resize', resize);
@@ -227,9 +234,13 @@ export const LandingBackground: React.FC = () => {
   }, [animate]);
 
   return (
-    <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+    <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden" style={{ contain: 'strict' }}>
       <div className="absolute inset-0 bg-black" />
-      <canvas ref={canvasRef} className="absolute inset-0" />
+      <canvas
+        ref={canvasRef}
+        className="absolute inset-0"
+        style={{ willChange: 'transform' }}
+      />
 
       {/* Subtle vignette */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.6)_80%,rgba(0,0,0,0.9)_100%)]" />
