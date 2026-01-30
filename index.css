@@ -504,3 +504,90 @@
   pointer-events: none;
   z-index: 10;
 }
+
+/* Luxurious Shining Text Effect */
+@keyframes text-shimmer {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+@keyframes text-glow-pulse {
+  0%, 100% {
+    text-shadow:
+      0 0 10px rgba(255, 255, 255, 0.3),
+      0 0 20px rgba(245, 215, 110, 0.2),
+      0 0 40px rgba(212, 175, 55, 0.1);
+  }
+  50% {
+    text-shadow:
+      0 0 15px rgba(255, 255, 255, 0.5),
+      0 0 30px rgba(245, 215, 110, 0.35),
+      0 0 60px rgba(212, 175, 55, 0.2),
+      0 0 80px rgba(212, 175, 55, 0.1);
+  }
+}
+
+/* White line with yellow/gold shimmer */
+.hero-shine-text {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 1) 0%,
+    rgba(255, 255, 255, 1) 40%,
+    rgba(245, 215, 110, 1) 50%,
+    rgba(255, 255, 255, 1) 60%,
+    rgba(255, 255, 255, 1) 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: text-shimmer 4s linear infinite, text-glow-pulse 3s ease-in-out infinite;
+}
+
+/* Gold line with white shimmer */
+.hero-shine-text-gold {
+  background: linear-gradient(
+    90deg,
+    rgba(212, 175, 55, 1) 0%,
+    rgba(245, 215, 110, 1) 25%,
+    rgba(255, 255, 255, 1) 50%,
+    rgba(245, 215, 110, 1) 75%,
+    rgba(212, 175, 55, 1) 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: text-shimmer 5s linear infinite, text-glow-pulse 4s ease-in-out infinite;
+}
+
+/* Mouse-reactive glow container */
+.hero-glow-text {
+  --mouse-x: 50%;
+  --mouse-y: 50%;
+  transition: filter 0.3s ease;
+}
+
+.hero-glow-text::before {
+  content: '';
+  position: absolute;
+  inset: -50%;
+  background: radial-gradient(
+    circle at var(--mouse-x) var(--mouse-y),
+    rgba(245, 215, 110, 0.15) 0%,
+    rgba(212, 175, 55, 0.08) 25%,
+    transparent 50%
+  );
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.hero-glow-text:hover::before {
+  opacity: 1;
+}
