@@ -16,6 +16,7 @@ import {
   Plus,
   Save,
   ArrowLeft,
+  ArrowRight,
   Lock,
   FileText,
   Video,
@@ -1477,6 +1478,7 @@ const App: React.FC = () => {
 
   const AuthView = () => {
     const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
+    const [registerStep, setRegisterStep] = useState(1);
     const [formData, setFormData] = useState({
       email: '',
       password: '',
@@ -1488,6 +1490,33 @@ const App: React.FC = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [pendingApproval, setPendingApproval] = useState(false);
+
+    const validateStep1 = () => {
+      if (!formData.name.trim()) {
+        setError('Please enter your full name');
+        return false;
+      }
+      if (!formData.email.trim() || !formData.email.includes('@')) {
+        setError('Please enter a valid email');
+        return false;
+      }
+      if (formData.password.length < 8) {
+        setError('Password must be at least 8 characters');
+        return false;
+      }
+      if (!/[A-Z]/.test(formData.password) || !/[a-z]/.test(formData.password) || !/[0-9]/.test(formData.password)) {
+        setError('Password must contain uppercase, lowercase, and number');
+        return false;
+      }
+      return true;
+    };
+
+    const handleNextStep = () => {
+      setError('');
+      if (validateStep1()) {
+        setRegisterStep(2);
+      }
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
@@ -1568,6 +1597,7 @@ const App: React.FC = () => {
                   onClick={() => {
                     setPendingApproval(false);
                     setAuthMode('login');
+                    setRegisterStep(1);
                     setFormData({ ...formData, password: '' });
                   }}
                   className="w-full px-6 py-4 rounded-xl bg-white/[0.02] backdrop-blur-[8px] border border-white/[0.08] text-white font-semibold hover:bg-white/[0.04] hover:border-white/15 transition-all duration-300"
@@ -1594,203 +1624,303 @@ const App: React.FC = () => {
               {/* Back Button */}
               <button
                 type="button"
-                onClick={() => setCurrentView('LANDING')}
-                className="text-zinc-500 hover:text-white flex items-center gap-2 text-sm transition-colors duration-300 mb-8"
+                onClick={() => {
+                  if (authMode === 'register' && registerStep === 2) {
+                    setRegisterStep(1);
+                    setError('');
+                  } else {
+                    setCurrentView('LANDING');
+                  }
+                }}
+                className="text-zinc-500 hover:text-white flex items-center gap-2 text-sm transition-colors duration-300 mb-6"
               >
-                <ArrowLeft size={16} /> Back
+                <ArrowLeft size={16} /> {authMode === 'register' && registerStep === 2 ? 'Back' : 'Back'}
               </button>
 
-              {/* Tab Switcher */}
-              <div className="flex mb-8 bg-white/[0.03] backdrop-blur-sm rounded-xl p-1 border border-white/[0.06]">
-                <button
-                  type="button"
-                  onClick={() => { setAuthMode('login'); setError(''); }}
-                  className={`flex-1 py-3 px-4 rounded-lg text-sm font-semibold transition-all duration-300 ${
-                    authMode === 'login'
-                      ? 'bg-gradient-to-r from-[#B8962E] via-[#D4AF37] to-[#F5D76E] text-black'
-                      : 'text-zinc-400 hover:text-white'
-                  }`}
-                >
-                  Sign In
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { setAuthMode('register'); setError(''); }}
-                  className={`flex-1 py-3 px-4 rounded-lg text-sm font-semibold transition-all duration-300 ${
-                    authMode === 'register'
-                      ? 'bg-gradient-to-r from-[#B8962E] via-[#D4AF37] to-[#F5D76E] text-black'
-                      : 'text-zinc-400 hover:text-white'
-                  }`}
-                >
-                  Register
-                </button>
-              </div>
+              {/* Tab Switcher - only show on step 1 or login */}
+              {(authMode === 'login' || registerStep === 1) && (
+                <div className="flex mb-6 bg-white/[0.03] backdrop-blur-sm rounded-xl p-1 border border-white/[0.06]">
+                  <button
+                    type="button"
+                    onClick={() => { setAuthMode('login'); setError(''); setRegisterStep(1); }}
+                    className={`flex-1 py-3 px-4 rounded-lg text-sm font-semibold transition-all duration-300 ${
+                      authMode === 'login'
+                        ? 'bg-gradient-to-r from-[#B8962E] via-[#D4AF37] to-[#F5D76E] text-black'
+                        : 'text-zinc-400 hover:text-white'
+                    }`}
+                  >
+                    Sign In
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setAuthMode('register'); setError(''); }}
+                    className={`flex-1 py-3 px-4 rounded-lg text-sm font-semibold transition-all duration-300 ${
+                      authMode === 'register'
+                        ? 'bg-gradient-to-r from-[#B8962E] via-[#D4AF37] to-[#F5D76E] text-black'
+                        : 'text-zinc-400 hover:text-white'
+                    }`}
+                  >
+                    Register
+                  </button>
+                </div>
+              )}
+
+              {/* Step Indicator for Register */}
+              {authMode === 'register' && (
+                <div className="flex items-center justify-center gap-3 mb-6">
+                  <div className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold transition-all ${
+                    registerStep >= 1 ? 'bg-[#D4AF37] text-black' : 'bg-white/10 text-zinc-500'
+                  }`}>
+                    1
+                  </div>
+                  <div className={`w-12 h-0.5 transition-all ${registerStep >= 2 ? 'bg-[#D4AF37]' : 'bg-white/10'}`} />
+                  <div className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold transition-all ${
+                    registerStep >= 2 ? 'bg-[#D4AF37] text-black' : 'bg-white/10 text-zinc-500'
+                  }`}>
+                    2
+                  </div>
+                </div>
+              )}
 
               {/* Header */}
-              <div className="text-center mb-8">
-                <h2 className="text-2xl md:text-3xl font-helvetica-bold mb-3 text-white">
-                  {authMode === 'login' ? 'Welcome Back' : 'Join Amini Academy'}
+              <div className="text-center mb-6">
+                <h2 className="text-2xl font-helvetica-bold mb-2 text-white">
+                  {authMode === 'login'
+                    ? 'Welcome Back'
+                    : registerStep === 1
+                      ? 'Create Account'
+                      : 'Professional Info'}
                 </h2>
                 <p className="text-zinc-400 text-sm">
-                  {authMode === 'login' ? 'Sign in to continue your learning' : 'Exclusive for Public Servants'}
+                  {authMode === 'login'
+                    ? 'Sign in to continue your learning'
+                    : registerStep === 1
+                      ? 'Enter your personal details'
+                      : 'Select your ministry and role'}
                 </p>
               </div>
 
-              <form onSubmit={handleSubmit} className="space-y-5">
-                {/* Name - only for register */}
-                <AnimatePresence mode="wait">
-                  {authMode === 'register' && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <label className="block text-sm font-medium text-zinc-400 mb-2">Full Name</label>
-                      <LiquidGlassInput
-                        required
-                        type="text"
-                        placeholder="Jane Doe"
-                        value={formData.name}
-                        onChange={e => setFormData({ ...formData, name: e.target.value })}
-                      />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+              {/* LOGIN FORM */}
+              {authMode === 'login' && (
+                <form onSubmit={handleSubmit} className="space-y-5">
+                  <div>
+                    <label className="block text-sm font-medium text-zinc-400 mb-2">Email</label>
+                    <LiquidGlassInput
+                      required
+                      type="email"
+                      placeholder="jane.doe@gov.bb"
+                      value={formData.email}
+                      onChange={e => {
+                        setFormData({ ...formData, email: e.target.value });
+                        setError('');
+                      }}
+                    />
+                  </div>
 
-                {/* Email */}
-                <div>
-                  <label className="block text-sm font-medium text-zinc-400 mb-2">Email</label>
-                  <LiquidGlassInput
-                    required
-                    type="email"
-                    placeholder="jane.doe@gov.bb"
-                    value={formData.email}
-                    onChange={e => {
-                      setFormData({ ...formData, email: e.target.value });
-                      setError('');
-                    }}
-                  />
+                  <div>
+                    <label className="block text-sm font-medium text-zinc-400 mb-2">Password</label>
+                    <LiquidGlassInput
+                      required
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder="Your password"
+                      value={formData.password}
+                      onChange={e => setFormData({ ...formData, password: e.target.value })}
+                      rightElement={
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="text-zinc-500 hover:text-white transition-colors"
+                        >
+                          {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        </button>
+                      }
+                    />
+                  </div>
+
+                  <AnimatePresence>
+                    {error && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="flex items-center gap-3 text-red-400 text-sm bg-red-400/10 p-4 rounded-xl border border-red-400/20"
+                      >
+                        <AlertCircle size={18} />
+                        <span>{error}</span>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="group relative w-full px-6 py-4 rounded-xl overflow-hidden bg-gradient-to-r from-[#B8962E] via-[#D4AF37] to-[#F5D76E] text-black font-bold hover:shadow-[0_0_50px_rgba(212,175,55,0.4)] transition-all duration-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <span className="relative z-10 flex items-center justify-center gap-2">
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 size={18} className="animate-spin" />
+                          Signing in...
+                        </>
+                      ) : (
+                        'Sign In'
+                      )}
+                    </span>
+                    <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0 translate-x-[-150%] group-hover:translate-x-[150%] transition-transform duration-700" />
+                  </button>
+                </form>
+              )}
+
+              {/* REGISTER STEP 1: Personal Info */}
+              {authMode === 'register' && registerStep === 1 && (
+                <div className="space-y-5">
+                  <div>
+                    <label className="block text-sm font-medium text-zinc-400 mb-2">Full Name</label>
+                    <LiquidGlassInput
+                      type="text"
+                      placeholder="Jane Doe"
+                      value={formData.name}
+                      onChange={e => { setFormData({ ...formData, name: e.target.value }); setError(''); }}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-zinc-400 mb-2">Email</label>
+                    <LiquidGlassInput
+                      type="email"
+                      placeholder="jane.doe@gov.bb"
+                      value={formData.email}
+                      onChange={e => { setFormData({ ...formData, email: e.target.value }); setError(''); }}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-zinc-400 mb-2">Password</label>
+                    <LiquidGlassInput
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder="Min 8 chars, uppercase, number"
+                      value={formData.password}
+                      onChange={e => { setFormData({ ...formData, password: e.target.value }); setError(''); }}
+                      rightElement={
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="text-zinc-500 hover:text-white transition-colors"
+                        >
+                          {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        </button>
+                      }
+                    />
+                    <p className="text-xs text-zinc-500 mt-2">Must contain uppercase, lowercase, and number</p>
+                  </div>
+
+                  <AnimatePresence>
+                    {error && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="flex items-center gap-3 text-red-400 text-sm bg-red-400/10 p-4 rounded-xl border border-red-400/20"
+                      >
+                        <AlertCircle size={18} />
+                        <span>{error}</span>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  <button
+                    type="button"
+                    onClick={handleNextStep}
+                    className="group relative w-full px-6 py-4 rounded-xl overflow-hidden bg-gradient-to-r from-[#B8962E] via-[#D4AF37] to-[#F5D76E] text-black font-bold hover:shadow-[0_0_50px_rgba(212,175,55,0.4)] transition-all duration-500"
+                  >
+                    <span className="relative z-10 flex items-center justify-center gap-2">
+                      Continue
+                      <ArrowRight size={18} />
+                    </span>
+                    <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0 translate-x-[-150%] group-hover:translate-x-[150%] transition-transform duration-700" />
+                  </button>
                 </div>
+              )}
 
-                {/* Password */}
-                <div>
-                  <label className="block text-sm font-medium text-zinc-400 mb-2">Password</label>
-                  <LiquidGlassInput
-                    required
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder={authMode === 'register' ? 'Min 8 chars, uppercase, number' : 'Your password'}
-                    value={formData.password}
-                    onChange={e => setFormData({ ...formData, password: e.target.value })}
-                    minLength={authMode === 'register' ? 8 : undefined}
-                    rightElement={
+              {/* REGISTER STEP 2: Professional Info */}
+              {authMode === 'register' && registerStep === 2 && (
+                <form onSubmit={handleSubmit} className="space-y-5">
+                  <div>
+                    <label className="block text-sm font-medium text-zinc-400 mb-2">Ministry</label>
+                    <LiquidGlassSelect
+                      value={formData.ministry}
+                      onChange={e => setFormData({ ...formData, ministry: e.target.value })}
+                      options={MINISTRIES.map(m => ({ value: m, label: m }))}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-zinc-400 mb-3">Select Role</label>
+                    <div className="grid grid-cols-2 gap-3">
                       <button
                         type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="text-zinc-500 hover:text-white transition-colors"
+                        onClick={() => setFormData({ ...formData, role: UserRole.LEARNER })}
+                        className={`p-4 rounded-xl border text-left transition-all duration-300 ${
+                          formData.role === UserRole.LEARNER
+                            ? 'bg-[#D4AF37]/[0.08] border-[#D4AF37]/30 text-[#D4AF37]'
+                            : 'bg-white/[0.02] border-white/[0.08] hover:border-white/15 text-zinc-400'
+                        }`}
                       >
-                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        <p className="text-sm font-semibold">Learner</p>
+                        <p className="text-xs text-zinc-500 mt-0.5">Learn at your pace</p>
                       </button>
-                    }
-                  />
-                  {authMode === 'register' && (
-                    <p className="text-xs text-zinc-500 mt-2">Must contain uppercase, lowercase, and number</p>
-                  )}
-                </div>
+                      <button
+                        type="button"
+                        onClick={() => setFormData({ ...formData, role: UserRole.SUPERUSER })}
+                        className={`p-4 rounded-xl border text-left transition-all duration-300 ${
+                          formData.role === UserRole.SUPERUSER
+                            ? 'bg-white/10 border-white/30 text-white'
+                            : 'bg-white/[0.02] border-white/[0.08] hover:border-white/15 text-zinc-400'
+                        }`}
+                      >
+                        <p className="text-sm font-semibold">Superuser</p>
+                        <p className="text-xs text-zinc-500 mt-0.5">Extended access</p>
+                      </button>
+                    </div>
+                  </div>
 
-                {/* Ministry & Role - only for register */}
-                <AnimatePresence mode="wait">
-                  {authMode === 'register' && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="space-y-5"
-                    >
-                      <div>
-                        <label className="block text-sm font-medium text-zinc-400 mb-2">Ministry</label>
-                        <LiquidGlassSelect
-                          value={formData.ministry}
-                          onChange={e => setFormData({ ...formData, ministry: e.target.value })}
-                          options={MINISTRIES.map(m => ({ value: m, label: m }))}
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-zinc-400 mb-3">Select Role</label>
-                        <div className="grid grid-cols-2 gap-3">
-                          <button
-                            type="button"
-                            onClick={() => setFormData({ ...formData, role: UserRole.LEARNER })}
-                            className={`p-4 rounded-xl border text-left transition-all duration-300 ${
-                              formData.role === UserRole.LEARNER
-                                ? 'bg-[#D4AF37]/[0.08] border-[#D4AF37]/30 text-[#D4AF37]'
-                                : 'bg-white/[0.02] border-white/[0.08] hover:border-white/15 text-zinc-400'
-                            }`}
-                          >
-                            <p className="text-sm font-semibold">Learner</p>
-                            <p className="text-xs text-zinc-500 mt-0.5">Learn at your pace</p>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setFormData({ ...formData, role: UserRole.SUPERUSER })}
-                            className={`p-4 rounded-xl border text-left transition-all duration-300 ${
-                              formData.role === UserRole.SUPERUSER
-                                ? 'bg-white/10 border-white/30 text-white'
-                                : 'bg-white/[0.02] border-white/[0.08] hover:border-white/15 text-zinc-400'
-                            }`}
-                          >
-                            <p className="text-sm font-semibold">Superuser</p>
-                            <p className="text-xs text-zinc-500 mt-0.5">Extended access</p>
-                          </button>
-                        </div>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                {/* Error Message */}
-                <AnimatePresence>
-                  {error && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      className="flex items-center gap-3 text-red-400 text-sm bg-red-400/10 p-4 rounded-xl border border-red-400/20"
-                    >
-                      <AlertCircle size={18} />
-                      <span>{error}</span>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                {/* Submit Button */}
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="group relative w-full px-6 py-4 rounded-xl overflow-hidden bg-gradient-to-r from-[#B8962E] via-[#D4AF37] to-[#F5D76E] text-black font-bold hover:shadow-[0_0_50px_rgba(212,175,55,0.4)] transition-all duration-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <span className="relative z-10 flex items-center justify-center gap-2">
-                    {isSubmitting ? (
-                      <>
-                        <Loader2 size={18} className="animate-spin" />
-                        {authMode === 'login' ? 'Signing in...' : 'Creating account...'}
-                      </>
-                    ) : (
-                      authMode === 'login' ? 'Sign In' : 'Create Account'
+                  <AnimatePresence>
+                    {error && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="flex items-center gap-3 text-red-400 text-sm bg-red-400/10 p-4 rounded-xl border border-red-400/20"
+                      >
+                        <AlertCircle size={18} />
+                        <span>{error}</span>
+                      </motion.div>
                     )}
-                  </span>
-                  <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0 translate-x-[-150%] group-hover:translate-x-[150%] transition-transform duration-700" />
-                </button>
+                  </AnimatePresence>
 
-                {/* Info for register */}
-                {authMode === 'register' && (
-                  <p className="text-xs text-zinc-500 text-center pt-2">
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="group relative w-full px-6 py-4 rounded-xl overflow-hidden bg-gradient-to-r from-[#B8962E] via-[#D4AF37] to-[#F5D76E] text-black font-bold hover:shadow-[0_0_50px_rgba(212,175,55,0.4)] transition-all duration-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <span className="relative z-10 flex items-center justify-center gap-2">
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 size={18} className="animate-spin" />
+                          Creating account...
+                        </>
+                      ) : (
+                        'Create Account'
+                      )}
+                    </span>
+                    <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0 translate-x-[-150%] group-hover:translate-x-[150%] transition-transform duration-700" />
+                  </button>
+
+                  <p className="text-xs text-zinc-500 text-center">
                     Your account will require admin approval before you can sign in.
                   </p>
-                )}
-              </form>
+                </form>
+              )}
             </div>
           </LiquidGlass>
         </motion.div>
