@@ -308,8 +308,8 @@
   transform: translateY(-4px);
 }
 
-/* Liquid Glass Text Effect with Luxurious Glowing Shimmer */
-@keyframes liquid-glass-shimmer {
+/* Liquid Glass Text Effect - Luxurious Dark Liquid */
+@keyframes liquid-shimmer {
   0% {
     background-position: -200% 0;
   }
@@ -318,76 +318,91 @@
   }
 }
 
-@keyframes luxury-glow-pulse {
+@keyframes liquid-dots-flow {
+  0% {
+    background-position: 0% 0%, 0% 0%, 0% 0%;
+  }
+  100% {
+    background-position: 100% 100%, 50% -50%, -30% 80%;
+  }
+}
+
+@keyframes liquid-glow {
   0%, 100% {
     box-shadow:
-      0 0 30px rgba(212, 175, 55, 0.08),
-      0 0 60px rgba(212, 175, 55, 0.04),
-      inset 0 1px 1px rgba(255, 255, 255, 0.1),
-      inset 0 -1px 1px rgba(0, 0, 0, 0.1);
+      inset 0 0 80px rgba(212, 175, 55, 0.03),
+      inset 0 0 40px rgba(0, 0, 0, 0.4),
+      0 0 20px rgba(0, 0, 0, 0.5);
   }
   50% {
     box-shadow:
-      0 0 50px rgba(212, 175, 55, 0.15),
-      0 0 100px rgba(212, 175, 55, 0.08),
-      0 0 150px rgba(245, 215, 110, 0.05),
-      inset 0 1px 2px rgba(255, 255, 255, 0.15),
-      inset 0 -1px 1px rgba(0, 0, 0, 0.1);
+      inset 0 0 100px rgba(212, 175, 55, 0.06),
+      inset 0 0 60px rgba(0, 0, 0, 0.3),
+      0 0 30px rgba(0, 0, 0, 0.4),
+      0 0 60px rgba(212, 175, 55, 0.05);
   }
 }
 
 .liquid-glass-text {
   position: relative;
   display: inline-block;
-  padding: 0.5em 1em;
+  padding: 0.6em 1.2em;
   background:
+    radial-gradient(ellipse 80% 50% at 20% 30%, rgba(212, 175, 55, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse 60% 40% at 80% 70%, rgba(245, 215, 110, 0.06) 0%, transparent 50%),
+    radial-gradient(ellipse 50% 50% at 50% 50%, rgba(212, 175, 55, 0.04) 0%, transparent 60%),
     linear-gradient(
-      135deg,
-      rgba(255, 255, 255, 0.08) 0%,
-      rgba(255, 255, 255, 0.02) 50%,
-      rgba(255, 255, 255, 0.05) 100%
+      180deg,
+      rgba(10, 10, 12, 0.85) 0%,
+      rgba(5, 5, 8, 0.92) 50%,
+      rgba(10, 10, 12, 0.88) 100%
     );
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-top-color: rgba(255, 255, 255, 0.2);
-  border-left-color: rgba(255, 255, 255, 0.15);
-  border-radius: 20px;
-  animation: luxury-glow-pulse 4s ease-in-out infinite;
+  backdrop-filter: blur(8px) saturate(120%);
+  -webkit-backdrop-filter: blur(8px) saturate(120%);
+  border: 1px solid rgba(212, 175, 55, 0.15);
+  border-top-color: rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  animation: liquid-glow 5s ease-in-out infinite;
+  overflow: hidden;
 }
 
+/* Luminous floating dots layer */
 .liquid-glass-text::before {
   content: '';
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    transparent 30%,
-    rgba(245, 215, 110, 0.12) 45%,
-    rgba(255, 255, 255, 0.25) 50%,
-    rgba(245, 215, 110, 0.12) 55%,
-    transparent 70%,
-    transparent 100%
-  );
-  background-size: 200% 100%;
-  animation: liquid-glass-shimmer 4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  background:
+    radial-gradient(circle 3px at 15% 25%, rgba(245, 215, 110, 0.5) 0%, transparent 100%),
+    radial-gradient(circle 2px at 85% 35%, rgba(255, 255, 255, 0.4) 0%, transparent 100%),
+    radial-gradient(circle 4px at 25% 75%, rgba(212, 175, 55, 0.4) 0%, transparent 100%),
+    radial-gradient(circle 2px at 70% 80%, rgba(245, 215, 110, 0.5) 0%, transparent 100%),
+    radial-gradient(circle 3px at 50% 50%, rgba(255, 255, 255, 0.3) 0%, transparent 100%),
+    radial-gradient(circle 2px at 90% 15%, rgba(212, 175, 55, 0.45) 0%, transparent 100%),
+    radial-gradient(circle 3px at 10% 90%, rgba(255, 255, 255, 0.35) 0%, transparent 100%),
+    radial-gradient(circle 2px at 60% 20%, rgba(245, 215, 110, 0.4) 0%, transparent 100%);
+  animation: liquid-dots-flow 15s linear infinite;
+  opacity: 0.9;
   pointer-events: none;
 }
 
+/* Sweeping liquid light reflection */
 .liquid-glass-text::after {
   content: '';
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 50%;
-  border-radius: 20px 20px 100px 100px;
+  inset: 0;
+  border-radius: inherit;
   background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.08) 0%,
+    105deg,
+    transparent 0%,
+    transparent 35%,
+    rgba(212, 175, 55, 0.08) 45%,
+    rgba(255, 255, 255, 0.12) 50%,
+    rgba(212, 175, 55, 0.08) 55%,
+    transparent 65%,
     transparent 100%
   );
+  background-size: 250% 100%;
+  animation: liquid-shimmer 6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
   pointer-events: none;
 }
