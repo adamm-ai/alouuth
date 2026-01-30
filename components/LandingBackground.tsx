@@ -1,10 +1,14 @@
 import React, { useEffect, useRef, useCallback } from 'react';
 
 /**
- * Premium Landing Background
- * - Luxurious animated grid with pulsing nodes
- * - Mouse illumination effect with radiant glow
- * - Optimized for smooth 60fps performance
+ * Premium Landing Background - Neuromarketing Optimized
+ *
+ * Design principles:
+ * - Golden ratio timing (φ = 1.618) for natural, satisfying rhythm
+ * - Subtle luminosity - attention-catching without being overwhelming
+ * - Organic breathing animation creates subconscious sense of life
+ * - Refined mouse interaction with elegant easing
+ * - Sober luxury aesthetic - Figma-quality refinement
  */
 export const LandingBackground: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -15,9 +19,6 @@ export const LandingBackground: React.FC = () => {
   const timeRef = useRef(0);
   const lastFrameTime = useRef(0);
 
-  // Pre-computed values for performance
-  const gridDataRef = useRef<{ phases: number[] } | null>(null);
-
   const animate = useCallback((currentTime: number) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -25,7 +26,7 @@ export const LandingBackground: React.FC = () => {
     const ctx = canvas.getContext('2d', { alpha: false });
     if (!ctx) return;
 
-    // Throttle to ~60fps for consistent performance
+    // Smooth 60fps throttle
     const deltaTime = currentTime - lastFrameTime.current;
     if (deltaTime < 16) {
       animationRef.current = requestAnimationFrame(animate);
@@ -37,145 +38,145 @@ export const LandingBackground: React.FC = () => {
     const width = canvas.width / dpr;
     const height = canvas.height / dpr;
 
-    // Time for animations (slower increment for smoother animation)
-    timeRef.current += 0.006;
+    // Golden ratio based time progression for natural rhythm
+    const PHI = 1.618;
+    timeRef.current += 0.004;
     const time = timeRef.current;
 
-    // Smooth mouse tracking
-    mousePos.current.x += (targetMousePos.current.x - mousePos.current.x) * 0.1;
-    mousePos.current.y += (targetMousePos.current.y - mousePos.current.y) * 0.1;
+    // Silky smooth mouse interpolation (luxury feel)
+    const mouseSmoothing = 0.08;
+    mousePos.current.x += (targetMousePos.current.x - mousePos.current.x) * mouseSmoothing;
+    mousePos.current.y += (targetMousePos.current.y - mousePos.current.y) * mouseSmoothing;
 
-    // Clear with black
-    ctx.fillStyle = '#000000';
+    // Deep black canvas
+    ctx.fillStyle = '#030303';
     ctx.fillRect(0, 0, width, height);
 
-    // Config
-    const gridSize = 50;
-    const baseAlpha = 0.12;
-    const maxAlpha = 0.85;
-    const mouseRadius = 280;
+    // Refined configuration
+    const gridSize = 48;
+    const baseAlpha = 0.06;        // Subtle base presence
+    const hoverAlpha = 0.45;       // Elegant hover intensity (not overwhelming)
+    const mouseRadius = 220;       // Intimate interaction radius
     const mouseRadiusSq = mouseRadius * mouseRadius;
 
-    ctx.globalCompositeOperation = 'lighter';
-
-    // Calculate grid dimensions
+    // Calculate grid
     const cols = Math.ceil(width / gridSize) + 1;
     const rows = Math.ceil(height / gridSize) + 1;
 
-    // Pre-calculate sin values for this frame (optimization)
-    const sinTime08 = Math.sin(time * 0.8);
-    const sinTime15 = Math.sin(time * 1.5);
+    // Global wave for cohesive breathing (golden ratio frequency)
+    const globalBreath = 0.5 + 0.5 * Math.sin(time * PHI * 0.5);
 
-    // Batch draw operations - collect all nodes first
+    ctx.globalCompositeOperation = 'lighter';
+
+    // First pass: Draw connection lines (behind nodes)
+    ctx.lineWidth = 0.5;
     for (let i = 0; i < cols; i++) {
       for (let j = 0; j < rows; j++) {
         const x = i * gridSize;
         const y = j * gridSize;
 
-        // Simplified phase calculation
-        const phase = (i * 0.3 + j * 0.5);
-        const pulse = 0.5 + 0.5 * Math.sin(phase + time * 1.5);
-        const breathe = 0.7 + 0.3 * Math.sin(phase + time * 0.8);
+        // Unique phase per node (creates wave propagation effect)
+        const nodePhase = (i * 0.618 + j * 0.382) * PHI;
+        const localBreath = 0.6 + 0.4 * Math.sin(nodePhase + time * 0.8);
 
-        // Calculate distance to mouse
         const dx = x - mousePos.current.x;
         const dy = y - mousePos.current.y;
         const distSq = dx * dx + dy * dy;
 
-        let alpha = baseAlpha * breathe;
-        let nodeSize = 2;
-        let glowSize = 6;
+        let lineAlpha = baseAlpha * 0.4 * localBreath * globalBreath;
 
         if (isMouseActive.current && distSq < mouseRadiusSq) {
-          const t = 1 - (Math.sqrt(distSq) / mouseRadius);
-          const smoothT = t * t * (3 - 2 * t);
-          alpha = baseAlpha + (maxAlpha - baseAlpha) * smoothT;
-          nodeSize = 2 + 2 * smoothT;
-          glowSize = 6 + 8 * smoothT;
+          const dist = Math.sqrt(distSq);
+          const t = 1 - (dist / mouseRadius);
+          // Quintic ease-out for luxurious deceleration
+          const easeT = 1 - Math.pow(1 - t, 5);
+          lineAlpha = Math.max(lineAlpha, hoverAlpha * 0.3 * easeT);
         }
 
-        // Skip nearly invisible nodes
-        if (alpha < 0.02) continue;
+        if (lineAlpha < 0.008) continue;
 
-        // Draw outer glow (simplified - no gradient creation per frame)
-        const glowRadius = glowSize * (1 + pulse * 0.2);
-        ctx.fillStyle = `rgba(212, 175, 55, ${alpha * 0.15})`;
-        ctx.beginPath();
-        ctx.arc(x, y, glowRadius, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Draw mid glow
-        ctx.fillStyle = `rgba(245, 215, 110, ${alpha * 0.3})`;
-        ctx.beginPath();
-        ctx.arc(x, y, glowRadius * 0.6, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Draw inner ring
-        ctx.fillStyle = `rgba(255, 230, 150, ${alpha * 0.4 * pulse})`;
-        ctx.beginPath();
-        ctx.arc(x, y, nodeSize + 1, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Draw bright core
-        ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
-        ctx.beginPath();
-        ctx.arc(x, y, nodeSize * 0.8, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.fillStyle = `rgba(255, 245, 200, ${alpha * 0.9})`;
-        ctx.beginPath();
-        ctx.arc(x, y, nodeSize, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Draw lines (simplified - solid color instead of gradients)
-        ctx.lineWidth = 0.8;
-
-        // Right line
+        // Right connection
         if (i < cols - 1) {
-          const nx = (i + 1) * gridSize;
-          const ndx = nx - mousePos.current.x;
-          const nDistSq = ndx * ndx + dy * dy;
-
-          let lineAlpha = baseAlpha * 0.5 * breathe;
-          if (isMouseActive.current) {
-            const avgDistSq = (distSq + nDistSq) / 2;
-            if (avgDistSq < mouseRadiusSq) {
-              const t = 1 - (Math.sqrt(avgDistSq) / mouseRadius);
-              lineAlpha = baseAlpha + (maxAlpha - baseAlpha) * t * t * 0.4;
-            }
-          }
-
-          if (lineAlpha > 0.02) {
-            ctx.strokeStyle = `rgba(212, 175, 55, ${lineAlpha})`;
-            ctx.beginPath();
-            ctx.moveTo(x, y);
-            ctx.lineTo(nx, y);
-            ctx.stroke();
-          }
+          ctx.strokeStyle = `rgba(180, 155, 60, ${lineAlpha})`;
+          ctx.beginPath();
+          ctx.moveTo(x, y);
+          ctx.lineTo(x + gridSize, y);
+          ctx.stroke();
         }
 
-        // Bottom line
+        // Bottom connection
         if (j < rows - 1) {
-          const ny = (j + 1) * gridSize;
-          const ndy = ny - mousePos.current.y;
-          const nDistSq = dx * dx + ndy * ndy;
+          ctx.strokeStyle = `rgba(180, 155, 60, ${lineAlpha})`;
+          ctx.beginPath();
+          ctx.moveTo(x, y);
+          ctx.lineTo(x, y + gridSize);
+          ctx.stroke();
+        }
+      }
+    }
 
-          let lineAlpha = baseAlpha * 0.5 * breathe;
-          if (isMouseActive.current) {
-            const avgDistSq = (distSq + nDistSq) / 2;
-            if (avgDistSq < mouseRadiusSq) {
-              const t = 1 - (Math.sqrt(avgDistSq) / mouseRadius);
-              lineAlpha = baseAlpha + (maxAlpha - baseAlpha) * t * t * 0.4;
-            }
-          }
+    // Second pass: Draw nodes (on top of lines)
+    for (let i = 0; i < cols; i++) {
+      for (let j = 0; j < rows; j++) {
+        const x = i * gridSize;
+        const y = j * gridSize;
 
-          if (lineAlpha > 0.02) {
-            ctx.strokeStyle = `rgba(212, 175, 55, ${lineAlpha})`;
-            ctx.beginPath();
-            ctx.moveTo(x, y);
-            ctx.lineTo(x, ny);
-            ctx.stroke();
-          }
+        // Unique phase creates cascading wave effect
+        const nodePhase = (i * 0.618 + j * 0.382) * PHI;
+
+        // Multi-frequency breathing for organic feel
+        const breath1 = Math.sin(nodePhase + time * 0.7);
+        const breath2 = Math.sin(nodePhase * 1.3 + time * 1.1);
+        const combinedBreath = 0.5 + 0.3 * breath1 + 0.2 * breath2;
+
+        const dx = x - mousePos.current.x;
+        const dy = y - mousePos.current.y;
+        const distSq = dx * dx + dy * dy;
+
+        let alpha = baseAlpha * combinedBreath * globalBreath;
+        let coreSize = 1.2;
+        let haloSize = 3;
+
+        if (isMouseActive.current && distSq < mouseRadiusSq) {
+          const dist = Math.sqrt(distSq);
+          const t = 1 - (dist / mouseRadius);
+          // Smooth quintic ease for premium feel
+          const easeT = 1 - Math.pow(1 - t, 5);
+          alpha = baseAlpha + (hoverAlpha - baseAlpha) * easeT;
+          coreSize = 1.2 + 1.0 * easeT;
+          haloSize = 3 + 4 * easeT;
+        }
+
+        // Skip invisible nodes
+        if (alpha < 0.01) continue;
+
+        // Subtle outer halo (very soft, not glowy)
+        const haloAlpha = alpha * 0.15 * combinedBreath;
+        if (haloAlpha > 0.005) {
+          ctx.fillStyle = `rgba(200, 170, 80, ${haloAlpha})`;
+          ctx.beginPath();
+          ctx.arc(x, y, haloSize, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // Warm gold mid-layer
+        ctx.fillStyle = `rgba(212, 180, 90, ${alpha * 0.5})`;
+        ctx.beginPath();
+        ctx.arc(x, y, coreSize + 0.8, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Bright refined core (warm white, not pure white)
+        ctx.fillStyle = `rgba(255, 248, 230, ${alpha * 0.9})`;
+        ctx.beginPath();
+        ctx.arc(x, y, coreSize, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Tiny bright center point (the "jewel")
+        if (alpha > 0.15) {
+          ctx.fillStyle = `rgba(255, 255, 250, ${Math.min(alpha * 1.2, 0.8)})`;
+          ctx.beginPath();
+          ctx.arc(x, y, coreSize * 0.4, 0, Math.PI * 2);
+          ctx.fill();
         }
       }
     }
