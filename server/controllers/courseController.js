@@ -409,11 +409,24 @@ export const addLesson = async (req, res) => {
       for (let i = 0; i < quiz.length; i++) {
         const q = quiz[i];
         if (q.question && q.options) {
+          // Validate options count: must be between 2 and 6
+          if (!Array.isArray(q.options) || q.options.length < 2 || q.options.length > 6) {
+            return res.status(400).json({
+              error: `Question ${i + 1}: Options must be between 2 and 6. Got ${q.options?.length || 0}.`
+            });
+          }
+          // Validate correctAnswer is within bounds
+          const correctAnswer = q.correctAnswer || 0;
+          if (correctAnswer < 0 || correctAnswer >= q.options.length) {
+            return res.status(400).json({
+              error: `Question ${i + 1}: Correct answer index out of bounds.`
+            });
+          }
           const quizResult = await pool.query(`
             INSERT INTO quiz_questions (lesson_id, question, options, correct_answer, explanation, order_index)
             VALUES ($1, $2, $3, $4, $5, $6)
             RETURNING *
-          `, [lesson.id, q.question, JSON.stringify(q.options), q.correctAnswer || 0, q.explanation || null, i]);
+          `, [lesson.id, q.question, JSON.stringify(q.options), correctAnswer, q.explanation || null, i]);
 
           const savedQ = quizResult.rows[0];
           savedQuiz.push({
@@ -530,6 +543,20 @@ export const updateLesson = async (req, res) => {
           continue; // Skip empty questions
         }
 
+        // Validate options count: must be between 2 and 6
+        if (q.options && (q.options.length < 2 || q.options.length > 6)) {
+          return res.status(400).json({
+            error: `Question ${i + 1}: Options must be between 2 and 6. Got ${q.options.length}.`
+          });
+        }
+        // Validate correctAnswer is within bounds
+        const correctAnswer = q.correctAnswer || 0;
+        if (q.options && (correctAnswer < 0 || correctAnswer >= q.options.length)) {
+          return res.status(400).json({
+            error: `Question ${i + 1}: Correct answer index out of bounds.`
+          });
+        }
+
         const isNewQuestion = !q.id || q.id.startsWith('q-');
 
         if (isNewQuestion) {
@@ -538,7 +565,7 @@ export const updateLesson = async (req, res) => {
             INSERT INTO quiz_questions (lesson_id, question, options, correct_answer, explanation, order_index)
             VALUES ($1, $2, $3, $4, $5, $6)
             RETURNING *
-          `, [lessonId, q.question || '', JSON.stringify(q.options || []), q.correctAnswer || 0, q.explanation || null, i]);
+          `, [lessonId, q.question || '', JSON.stringify(q.options || []), correctAnswer, q.explanation || null, i]);
 
           const savedQ = insertResult.rows[0];
           savedQuiz.push({
@@ -555,7 +582,7 @@ export const updateLesson = async (req, res) => {
             SET question = $1, options = $2, correct_answer = $3, explanation = $4, order_index = $5
             WHERE id = $6
             RETURNING *
-          `, [q.question || '', JSON.stringify(q.options || []), q.correctAnswer || 0, q.explanation || null, i, q.id]);
+          `, [q.question || '', JSON.stringify(q.options || []), correctAnswer, q.explanation || null, i, q.id]);
 
           if (updateResult.rows.length > 0) {
             const savedQ = updateResult.rows[0];
@@ -632,6 +659,19 @@ export const addQuizQuestion = async (req, res) => {
     const { lessonId } = req.params;
     const { question, options, correctAnswer, explanation, orderIndex } = req.body;
 
+    // Validate options count: must be between 2 and 6
+    if (!options || !Array.isArray(options) || options.length < 2 || options.length > 6) {
+      return res.status(400).json({
+        error: `Options must be between 2 and 6. Got ${options?.length || 0}.`
+      });
+    }
+    // Validate correctAnswer is within bounds
+    if (correctAnswer < 0 || correctAnswer >= options.length) {
+      return res.status(400).json({
+        error: 'Correct answer index out of bounds.'
+      });
+    }
+
     let finalOrderIndex = orderIndex;
     if (finalOrderIndex === undefined) {
       const maxOrder = await pool.query(
@@ -662,6 +702,21 @@ export const updateQuizQuestion = async (req, res) => {
   try {
     const { questionId } = req.params;
     const { question, options, correctAnswer, explanation, orderIndex } = req.body;
+
+    // Validate options count if provided: must be between 2 and 6
+    if (options !== undefined) {
+      if (!Array.isArray(options) || options.length < 2 || options.length > 6) {
+        return res.status(400).json({
+          error: `Options must be between 2 and 6. Got ${options?.length || 0}.`
+        });
+      }
+      // Validate correctAnswer is within bounds if both are provided
+      if (correctAnswer !== undefined && (correctAnswer < 0 || correctAnswer >= options.length)) {
+        return res.status(400).json({
+          error: 'Correct answer index out of bounds.'
+        });
+      }
+    }
 
     const result = await pool.query(`
       UPDATE quiz_questions

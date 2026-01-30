@@ -4458,6 +4458,7 @@ const App: React.FC = () => {
                                           <CheckCircle size={12} className="text-white" />
                                         )}
                                       </div>
+                                      <span className="text-xs text-zinc-500 font-medium w-5">{String.fromCharCode(65 + oIdx)}.</span>
                                       <input
                                         className="flex-1 bg-transparent text-sm text-white placeholder-zinc-600 outline-none"
                                         value={opt}
@@ -4472,8 +4473,50 @@ const App: React.FC = () => {
                                       {q.correctAnswer === oIdx && (
                                         <span className="text-[10px] text-green-400 font-helvetica-bold uppercase">Correct</span>
                                       )}
+                                      {/* Remove Option Button - only show if more than 2 options */}
+                                      {q.options.length > 2 && (
+                                        <button
+                                          type="button"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            const newQuiz = [...(activeLesson.quiz || [])];
+                                            // Remove the option
+                                            newQuiz[qIdx].options.splice(oIdx, 1);
+                                            // Adjust correctAnswer if needed
+                                            if (newQuiz[qIdx].correctAnswer === oIdx) {
+                                              // If we're removing the correct answer, set it to 0
+                                              newQuiz[qIdx].correctAnswer = 0;
+                                            } else if (newQuiz[qIdx].correctAnswer > oIdx) {
+                                              // If correct answer is after removed option, decrement it
+                                              newQuiz[qIdx].correctAnswer = newQuiz[qIdx].correctAnswer - 1;
+                                            }
+                                            updateLesson(activeLesson.id, { quiz: newQuiz });
+                                          }}
+                                          className="p-1.5 text-zinc-500 hover:text-red-400 hover:bg-red-500/10 rounded transition-all"
+                                          title="Remove option"
+                                        >
+                                          <X size={14} />
+                                        </button>
+                                      )}
                                     </div>
                                   ))}
+
+                                  {/* Add Option Button - only show if less than 6 options */}
+                                  {q.options.length < 6 && (
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        const newQuiz = [...(activeLesson.quiz || [])];
+                                        const newOptionLetter = String.fromCharCode(65 + newQuiz[qIdx].options.length);
+                                        newQuiz[qIdx].options.push(`Option ${newOptionLetter}`);
+                                        updateLesson(activeLesson.id, { quiz: newQuiz });
+                                      }}
+                                      className="w-full py-2.5 border border-dashed border-white/10 rounded-lg text-zinc-500 hover:text-[#D4AF37] hover:border-[#D4AF37]/40 hover:bg-[#D4AF37]/5 transition-all flex items-center justify-center gap-2 text-sm"
+                                    >
+                                      <Plus size={14} />
+                                      Add Option ({q.options.length}/6)
+                                    </button>
+                                  )}
                                 </div>
                               </div>
                             </div>
