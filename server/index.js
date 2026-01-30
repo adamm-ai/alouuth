@@ -35,8 +35,20 @@ async function loadApp() {
     // Trust proxy
     app.set('trust proxy', 1);
 
+    // Parse allowed origins from environment variable
+    // Supports comma-separated list: "https://academy.amini.ai,https://app.onrender.com"
+    const parseOrigins = (envVar) => {
+      return (envVar || 'http://localhost:5173')
+        .split(',')
+        .map(origin => origin.trim())
+        .filter(origin => origin.length > 0)
+        .map(origin => origin.replace(/\/$/, '')); // Remove trailing slashes
+    };
+
+    const allowedOrigins = parseOrigins(process.env.FRONTEND_URL);
+    console.log('Allowed CORS origins:', allowedOrigins);
+
     // Helmet
-    const frontendUrls = (process.env.FRONTEND_URL || 'http://localhost:5173').split(',');
     app.use(helmet({
       contentSecurityPolicy: {
         directives: {
@@ -45,7 +57,7 @@ async function loadApp() {
           styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
           fontSrc: ["'self'", "https://fonts.gstatic.com"],
           imgSrc: ["'self'", "data:", "https:", "blob:"],
-          connectSrc: ["'self'", ...frontendUrls, "https://amini-academy-api.onrender.com"],
+          connectSrc: ["'self'", ...allowedOrigins, "https://amini-academy-api.onrender.com"],
           frameSrc: ["'self'", "https://www.youtube.com", "https://drive.google.com"],
           mediaSrc: ["'self'", "https:", "blob:"],
         },
@@ -58,19 +70,24 @@ async function loadApp() {
     const { generalLimiter } = await import('./middleware/rateLimiter.js');
     app.use('/api/', generalLimiter);
 
-    // CORS
-    const allowedOrigins = (process.env.FRONTEND_URL || 'http://localhost:5173').split(',');
+    // CORS - allow multiple origins from FRONTEND_URL environment variable
     app.use(cors({
       origin: (origin, callback) => {
+        // Allow requests with no origin (mobile apps, curl, etc.)
         if (!origin) return callback(null, true);
-        if (allowedOrigins.includes(origin)) {
+
+        // Normalize origin by removing trailing slash
+        const normalizedOrigin = origin.replace(/\/$/, '');
+
+        if (allowedOrigins.includes(normalizedOrigin)) {
           callback(null, true);
         } else {
-          callback(new Error('Not allowed by CORS'));
+          console.warn(`CORS blocked origin: ${origin}`);
+          callback(new Error(`Origin ${origin} not allowed by CORS`));
         }
       },
       credentials: true,
-      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'Authorization'],
     }));
 
