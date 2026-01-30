@@ -308,101 +308,199 @@
   transform: translateY(-4px);
 }
 
-/* Liquid Glass Text Effect - Luxurious Dark Liquid */
-@keyframes liquid-shimmer {
-  0% {
-    background-position: -200% 0;
+/* Mercury Liquid Glass - Deep Luxurious Effect */
+
+/* Primary mercury blob movement - slow organic flow */
+@keyframes mercury-flow-1 {
+  0%, 100% {
+    transform: translate(0%, 0%) scale(1);
+    opacity: 0.4;
   }
-  100% {
-    background-position: 200% 0;
+  25% {
+    transform: translate(15%, 10%) scale(1.1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translate(5%, 20%) scale(0.95);
+    opacity: 0.5;
+  }
+  75% {
+    transform: translate(-10%, 5%) scale(1.05);
+    opacity: 0.45;
   }
 }
 
-@keyframes liquid-dots-flow {
-  0% {
-    background-position: 0% 0%, 0% 0%, 0% 0%;
+@keyframes mercury-flow-2 {
+  0%, 100% {
+    transform: translate(0%, 0%) scale(1);
+    opacity: 0.35;
   }
-  100% {
-    background-position: 100% 100%, 50% -50%, -30% 80%;
+  33% {
+    transform: translate(-20%, 15%) scale(1.15);
+    opacity: 0.55;
+  }
+  66% {
+    transform: translate(10%, -10%) scale(0.9);
+    opacity: 0.4;
   }
 }
 
-@keyframes liquid-glow {
+@keyframes mercury-flow-3 {
+  0%, 100% {
+    transform: translate(0%, 0%) scale(1);
+    opacity: 0.3;
+  }
+  20% {
+    transform: translate(25%, -5%) scale(1.08);
+    opacity: 0.5;
+  }
+  40% {
+    transform: translate(15%, 15%) scale(1.12);
+    opacity: 0.55;
+  }
+  60% {
+    transform: translate(-5%, 10%) scale(0.92);
+    opacity: 0.35;
+  }
+  80% {
+    transform: translate(-15%, -8%) scale(1.02);
+    opacity: 0.4;
+  }
+}
+
+/* Deep pulsing depth effect */
+@keyframes mercury-depth {
   0%, 100% {
     box-shadow:
-      inset 0 0 80px rgba(212, 175, 55, 0.03),
-      inset 0 0 40px rgba(0, 0, 0, 0.4),
-      0 0 20px rgba(0, 0, 0, 0.5);
+      inset 0 0 120px rgba(0, 0, 0, 0.7),
+      inset 0 0 60px rgba(0, 0, 0, 0.5),
+      inset 0 2px 4px rgba(255, 255, 255, 0.03),
+      0 0 40px rgba(0, 0, 0, 0.6);
   }
   50% {
     box-shadow:
-      inset 0 0 100px rgba(212, 175, 55, 0.06),
-      inset 0 0 60px rgba(0, 0, 0, 0.3),
-      0 0 30px rgba(0, 0, 0, 0.4),
-      0 0 60px rgba(212, 175, 55, 0.05);
+      inset 0 0 100px rgba(0, 0, 0, 0.6),
+      inset 0 0 80px rgba(0, 0, 0, 0.4),
+      inset 0 2px 8px rgba(212, 175, 55, 0.05),
+      0 0 50px rgba(0, 0, 0, 0.5),
+      0 0 80px rgba(212, 175, 55, 0.03);
+  }
+}
+
+/* Slow surface light crawl */
+@keyframes mercury-sheen {
+  0% {
+    transform: translateX(-100%) skewX(-15deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.6;
+  }
+  90% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateX(200%) skewX(-15deg);
+    opacity: 0;
   }
 }
 
 .liquid-glass-text {
   position: relative;
   display: inline-block;
-  padding: 0.6em 1.2em;
-  background:
-    radial-gradient(ellipse 80% 50% at 20% 30%, rgba(212, 175, 55, 0.08) 0%, transparent 50%),
-    radial-gradient(ellipse 60% 40% at 80% 70%, rgba(245, 215, 110, 0.06) 0%, transparent 50%),
-    radial-gradient(ellipse 50% 50% at 50% 50%, rgba(212, 175, 55, 0.04) 0%, transparent 60%),
-    linear-gradient(
-      180deg,
-      rgba(10, 10, 12, 0.85) 0%,
-      rgba(5, 5, 8, 0.92) 50%,
-      rgba(10, 10, 12, 0.88) 100%
-    );
-  backdrop-filter: blur(8px) saturate(120%);
-  -webkit-backdrop-filter: blur(8px) saturate(120%);
-  border: 1px solid rgba(212, 175, 55, 0.15);
-  border-top-color: rgba(255, 255, 255, 0.08);
-  border-radius: 24px;
-  animation: liquid-glow 5s ease-in-out infinite;
+  padding: 0.7em 1.4em;
+  background: linear-gradient(
+    160deg,
+    rgba(8, 8, 10, 0.95) 0%,
+    rgba(3, 3, 5, 0.98) 40%,
+    rgba(6, 6, 8, 0.96) 100%
+  );
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-top-color: rgba(255, 255, 255, 0.06);
+  border-radius: 28px;
+  animation: mercury-depth 8s ease-in-out infinite;
   overflow: hidden;
+  isolation: isolate;
 }
 
-/* Luminous floating dots layer */
+/* Mercury blob layer 1 - large slow moving */
 .liquid-glass-text::before {
   content: '';
   position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background:
-    radial-gradient(circle 3px at 15% 25%, rgba(245, 215, 110, 0.5) 0%, transparent 100%),
-    radial-gradient(circle 2px at 85% 35%, rgba(255, 255, 255, 0.4) 0%, transparent 100%),
-    radial-gradient(circle 4px at 25% 75%, rgba(212, 175, 55, 0.4) 0%, transparent 100%),
-    radial-gradient(circle 2px at 70% 80%, rgba(245, 215, 110, 0.5) 0%, transparent 100%),
-    radial-gradient(circle 3px at 50% 50%, rgba(255, 255, 255, 0.3) 0%, transparent 100%),
-    radial-gradient(circle 2px at 90% 15%, rgba(212, 175, 55, 0.45) 0%, transparent 100%),
-    radial-gradient(circle 3px at 10% 90%, rgba(255, 255, 255, 0.35) 0%, transparent 100%),
-    radial-gradient(circle 2px at 60% 20%, rgba(245, 215, 110, 0.4) 0%, transparent 100%);
-  animation: liquid-dots-flow 15s linear infinite;
-  opacity: 0.9;
+  inset: -20%;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse 100% 80% at 30% 40%,
+    rgba(212, 175, 55, 0.12) 0%,
+    rgba(212, 175, 55, 0.06) 30%,
+    rgba(245, 215, 110, 0.03) 50%,
+    transparent 70%
+  );
+  filter: blur(20px);
+  animation: mercury-flow-1 12s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   pointer-events: none;
 }
 
-/* Sweeping liquid light reflection */
+/* Mercury blob layer 2 - medium counter-flow */
 .liquid-glass-text::after {
   content: '';
   position: absolute;
-  inset: 0;
-  border-radius: inherit;
+  inset: -15%;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse 90% 70% at 70% 60%,
+    rgba(255, 255, 255, 0.08) 0%,
+    rgba(212, 175, 55, 0.05) 40%,
+    transparent 65%
+  );
+  filter: blur(15px);
+  animation: mercury-flow-2 10s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  pointer-events: none;
+}
+
+/* Additional mercury layers via box-shadow on wrapper */
+.liquid-glass-text-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+/* Third blob layer - uses a span inside h1 */
+.liquid-glass-text > .mercury-blob {
+  position: absolute;
+  inset: -25%;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse 80% 90% at 50% 30%,
+    rgba(245, 215, 110, 0.1) 0%,
+    rgba(212, 175, 55, 0.04) 35%,
+    transparent 60%
+  );
+  filter: blur(25px);
+  animation: mercury-flow-3 14s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Surface sheen reflection - the slow light crawl */
+.liquid-glass-text > .mercury-sheen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 40%;
+  height: 100%;
   background: linear-gradient(
-    105deg,
+    90deg,
     transparent 0%,
-    transparent 35%,
-    rgba(212, 175, 55, 0.08) 45%,
-    rgba(255, 255, 255, 0.12) 50%,
-    rgba(212, 175, 55, 0.08) 55%,
-    transparent 65%,
+    rgba(255, 255, 255, 0.03) 20%,
+    rgba(212, 175, 55, 0.08) 40%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(212, 175, 55, 0.08) 60%,
+    rgba(255, 255, 255, 0.03) 80%,
     transparent 100%
   );
-  background-size: 250% 100%;
-  animation: liquid-shimmer 6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  animation: mercury-sheen 8s cubic-bezier(0.25, 0, 0.25, 1) infinite;
   pointer-events: none;
+  z-index: 10;
 }
