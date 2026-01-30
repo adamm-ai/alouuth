@@ -1486,6 +1486,16 @@ const App: React.FC = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [pendingApproval, setPendingApproval] = useState(false);
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [mousePos, setMousePos] = useState({ x: 0.5, y: 0.5 });
+
+    const handleMouseMove = useCallback((e: React.MouseEvent) => {
+      if (!containerRef.current) return;
+      const rect = containerRef.current.getBoundingClientRect();
+      const x = (e.clientX - rect.left) / rect.width;
+      const y = (e.clientY - rect.top) / rect.height;
+      setMousePos({ x, y });
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
@@ -1537,117 +1547,353 @@ const App: React.FC = () => {
       }
     };
 
-    // Pending Approval Screen
+    // Pending Approval Screen with premium glass
     if (pendingApproval) {
       return (
-        <div className="min-h-screen flex items-center justify-center relative z-10 p-4">
+        <div
+          ref={containerRef}
+          onMouseMove={handleMouseMove}
+          className="min-h-screen flex items-center justify-center relative z-10 p-4 overflow-hidden"
+        >
+          {/* Premium animated background orbs */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <motion.div
+              className="absolute w-[600px] h-[600px] rounded-full"
+              style={{
+                background: 'radial-gradient(circle, rgba(212,175,55,0.15) 0%, transparent 70%)',
+                left: `${mousePos.x * 30}%`,
+                top: `${mousePos.y * 30}%`,
+              }}
+              animate={{
+                scale: [1, 1.2, 1],
+                opacity: [0.3, 0.5, 0.3],
+              }}
+              transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+            />
+            <motion.div
+              className="absolute w-[400px] h-[400px] rounded-full"
+              style={{
+                background: 'radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%)',
+                right: `${(1 - mousePos.x) * 20}%`,
+                bottom: `${(1 - mousePos.y) * 20}%`,
+              }}
+              animate={{
+                scale: [1.2, 1, 1.2],
+                opacity: [0.2, 0.4, 0.2],
+              }}
+              transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+            />
+          </div>
+
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.4 }}
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            className="relative"
           >
-            <LiquidGlass className="max-w-md w-full" hover={false}>
-              <div className="p-8 md:p-10 text-center">
-                <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-[#D4AF37]/20 to-[#D4AF37]/5 border border-[#D4AF37]/20 flex items-center justify-center mx-auto mb-6">
-                  <Clock size={32} className="text-[#D4AF37]" />
-                </div>
+            {/* Outer glow layer */}
+            <div className="absolute -inset-[2px] rounded-[32px] bg-gradient-to-br from-[#D4AF37]/30 via-transparent to-[#D4AF37]/20 blur-xl opacity-60" />
+
+            {/* Main glass container */}
+            <div className="relative max-w-md w-full rounded-[28px] overflow-hidden">
+              {/* Multi-layer glass effect */}
+              <div className="absolute inset-0 bg-gradient-to-br from-white/[0.08] via-white/[0.02] to-transparent backdrop-blur-2xl" />
+              <div className="absolute inset-0 bg-gradient-to-tr from-[#D4AF37]/[0.03] via-transparent to-white/[0.02]" />
+
+              {/* Animated border glow */}
+              <div className="absolute inset-0 rounded-[28px] border border-white/[0.1]" />
+              <motion.div
+                className="absolute inset-0 rounded-[28px] border-2 border-transparent"
+                style={{
+                  background: `linear-gradient(${mousePos.x * 360}deg, transparent, rgba(212,175,55,0.3), transparent) border-box`,
+                  WebkitMask: 'linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0)',
+                  WebkitMaskComposite: 'xor',
+                  maskComposite: 'exclude',
+                }}
+              />
+
+              {/* Mouse-reactive liquid light */}
+              <div
+                className="absolute inset-0 pointer-events-none transition-opacity duration-300"
+                style={{
+                  background: `radial-gradient(600px circle at ${mousePos.x * 100}% ${mousePos.y * 100}%, rgba(212,175,55,0.15), transparent 50%)`,
+                }}
+              />
+
+              {/* Content */}
+              <div className="relative p-10 text-center">
+                <motion.div
+                  className="w-20 h-20 rounded-2xl mx-auto mb-6 relative"
+                  animate={{
+                    boxShadow: [
+                      '0 0 30px rgba(212,175,55,0.3)',
+                      '0 0 50px rgba(212,175,55,0.5)',
+                      '0 0 30px rgba(212,175,55,0.3)',
+                    ]
+                  }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                >
+                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[#D4AF37]/30 to-[#D4AF37]/10 backdrop-blur-xl border border-[#D4AF37]/30" />
+                  <div className="relative w-full h-full flex items-center justify-center">
+                    <Clock size={36} className="text-[#D4AF37] drop-shadow-[0_0_15px_rgba(212,175,55,0.8)]" />
+                  </div>
+                </motion.div>
+
                 <h2 className="text-2xl font-helvetica-bold mb-4 text-white">Registration Submitted</h2>
-                <p className="text-zinc-400 mb-6 text-sm leading-relaxed">
+                <p className="text-zinc-400 mb-8 text-sm leading-relaxed">
                   Your account is pending approval from an administrator.
                   You will be able to log in once your account has been approved.
                 </p>
-                <div className="bg-white/[0.03] rounded-xl p-4 mb-6 text-left border border-white/[0.06]">
-                  <p className="text-xs text-zinc-500 mb-1">Email</p>
-                  <p className="text-white">{formData.email}</p>
+
+                <div className="relative rounded-xl overflow-hidden mb-8">
+                  <div className="absolute inset-0 bg-white/[0.03] backdrop-blur-xl" />
+                  <div className="absolute inset-0 border border-white/[0.06] rounded-xl" />
+                  <div className="relative p-4 text-left">
+                    <p className="text-xs text-zinc-500 mb-1">Email</p>
+                    <p className="text-white font-medium">{formData.email}</p>
+                  </div>
                 </div>
-                <LiquidGlassButton
-                  variant="secondary"
+
+                <motion.button
                   onClick={() => {
                     setPendingApproval(false);
                     setAuthMode('login');
                     setFormData({ ...formData, password: '' });
                   }}
-                  className="w-full"
+                  className="w-full relative overflow-hidden rounded-xl px-6 py-4 font-semibold text-white group"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                 >
-                  Back to Login
-                </LiquidGlassButton>
+                  <div className="absolute inset-0 bg-white/[0.06] backdrop-blur-xl border border-white/[0.1] rounded-xl group-hover:border-white/20 transition-colors" />
+                  <span className="relative z-10">Back to Login</span>
+                </motion.button>
               </div>
-            </LiquidGlass>
+            </div>
           </motion.div>
         </div>
       );
     }
 
     return (
-      <div className="min-h-screen flex items-center justify-center relative z-10 p-4">
+      <div
+        ref={containerRef}
+        onMouseMove={handleMouseMove}
+        className="min-h-screen flex items-center justify-center relative z-10 p-4 overflow-hidden"
+      >
+        {/* ===== PREMIUM ANIMATED BACKGROUND ===== */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          {/* Large floating orbs */}
+          <motion.div
+            className="absolute w-[800px] h-[800px] rounded-full"
+            style={{
+              background: 'radial-gradient(circle, rgba(212,175,55,0.12) 0%, rgba(212,175,55,0.05) 40%, transparent 70%)',
+              left: '-20%',
+              top: '-30%',
+            }}
+            animate={{
+              x: [0, 100, 0],
+              y: [0, 50, 0],
+              scale: [1, 1.1, 1],
+            }}
+            transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <motion.div
+            className="absolute w-[600px] h-[600px] rounded-full"
+            style={{
+              background: 'radial-gradient(circle, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 40%, transparent 70%)',
+              right: '-15%',
+              bottom: '-20%',
+            }}
+            animate={{
+              x: [0, -80, 0],
+              y: [0, -60, 0],
+              scale: [1.1, 1, 1.1],
+            }}
+            transition={{ duration: 15, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+          />
+
+          {/* Mouse-reactive glow */}
+          <motion.div
+            className="absolute w-[500px] h-[500px] rounded-full pointer-events-none"
+            style={{
+              background: 'radial-gradient(circle, rgba(212,175,55,0.2) 0%, transparent 60%)',
+              left: `calc(${mousePos.x * 100}% - 250px)`,
+              top: `calc(${mousePos.y * 100}% - 250px)`,
+            }}
+            animate={{
+              opacity: [0.3, 0.6, 0.3],
+            }}
+            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+          />
+
+          {/* Floating particles */}
+          {[...Array(6)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute w-2 h-2 rounded-full"
+              style={{
+                background: i % 2 === 0 ? 'rgba(212,175,55,0.6)' : 'rgba(255,255,255,0.4)',
+                left: `${15 + i * 15}%`,
+                top: `${20 + (i % 3) * 25}%`,
+              }}
+              animate={{
+                y: [0, -30, 0],
+                opacity: [0.3, 0.8, 0.3],
+                scale: [1, 1.5, 1],
+              }}
+              transition={{
+                duration: 4 + i,
+                repeat: Infinity,
+                ease: "easeInOut",
+                delay: i * 0.5
+              }}
+            />
+          ))}
+        </div>
+
+        {/* ===== MAIN AUTH CONTAINER ===== */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="w-full max-w-md"
+          initial={{ opacity: 0, y: 30, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+          className="w-full max-w-md relative"
         >
-          <LiquidGlass hover={false}>
-            <div className="p-8 md:p-10">
+          {/* Outer glow layers */}
+          <div className="absolute -inset-[3px] rounded-[34px] bg-gradient-to-br from-[#D4AF37]/40 via-[#D4AF37]/10 to-[#D4AF37]/30 blur-2xl opacity-50 animate-pulse" />
+          <div className="absolute -inset-[1px] rounded-[30px] bg-gradient-to-br from-[#D4AF37]/20 via-transparent to-white/10 blur-lg" />
+
+          {/* Main glass card */}
+          <div className="relative rounded-[28px] overflow-hidden">
+            {/* Multi-layer glass background */}
+            <div className="absolute inset-0 bg-gradient-to-br from-white/[0.1] via-white/[0.03] to-transparent backdrop-blur-3xl" />
+            <div className="absolute inset-0 bg-gradient-to-tr from-[#D4AF37]/[0.04] via-transparent to-white/[0.03]" />
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(255,255,255,0.08),transparent_60%)]" />
+
+            {/* Animated liquid border */}
+            <div className="absolute inset-0 rounded-[28px]">
+              <motion.div
+                className="absolute inset-0 rounded-[28px]"
+                style={{
+                  background: `conic-gradient(from ${mousePos.x * 360}deg at ${mousePos.x * 100}% ${mousePos.y * 100}%, rgba(212,175,55,0.5), transparent 60%, rgba(255,255,255,0.3), transparent 100%)`,
+                  padding: '1px',
+                }}
+                animate={{
+                  rotate: [0, 360],
+                }}
+                transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+              />
+            </div>
+            <div className="absolute inset-[1px] rounded-[27px] bg-gradient-to-br from-[#111113] via-[#0a0a0b] to-[#111113]" />
+
+            {/* Inner glass layer */}
+            <div className="absolute inset-[1px] rounded-[27px] bg-gradient-to-br from-white/[0.06] via-transparent to-transparent backdrop-blur-xl" />
+
+            {/* Mouse-reactive liquid highlight */}
+            <div
+              className="absolute inset-0 pointer-events-none transition-opacity duration-200"
+              style={{
+                background: `radial-gradient(500px circle at ${mousePos.x * 100}% ${mousePos.y * 100}%, rgba(212,175,55,0.12), transparent 50%)`,
+              }}
+            />
+
+            {/* Secondary liquid ripple */}
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                background: `radial-gradient(700px circle at ${mousePos.x * 100}% ${mousePos.y * 100}%, rgba(255,255,255,0.04), transparent 60%)`,
+              }}
+            />
+
+            {/* Top edge highlight */}
+            <div className="absolute inset-x-6 top-0 h-[1px] bg-gradient-to-r from-transparent via-[#D4AF37]/40 to-transparent" />
+
+            {/* Content */}
+            <div className="relative p-8 md:p-10">
               {/* Back Button */}
-              <button
+              <motion.button
                 type="button"
                 onClick={() => setCurrentView('LANDING')}
-                className="text-zinc-500 hover:text-white flex items-center gap-2 text-sm transition-colors mb-6"
+                className="text-zinc-500 hover:text-[#D4AF37] flex items-center gap-2 text-sm transition-all duration-300 mb-8 group"
+                whileHover={{ x: -4 }}
               >
-                <ArrowLeft size={16} /> Back
-              </button>
+                <ArrowLeft size={16} className="group-hover:drop-shadow-[0_0_8px_rgba(212,175,55,0.5)]" />
+                <span>Back</span>
+              </motion.button>
 
-              {/* Login/Register Tabs */}
-              <div className="flex mb-8 bg-white/[0.03] rounded-xl p-1 border border-white/[0.06]">
-                <button
-                  type="button"
-                  onClick={() => { setAuthMode('login'); setError(''); }}
-                  className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all duration-300 ${
-                    authMode === 'login'
-                      ? 'bg-gradient-to-r from-[#D4AF37] to-[#F5D76E] text-black'
-                      : 'text-zinc-400 hover:text-white'
-                  }`}
-                >
-                  Sign In
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { setAuthMode('register'); setError(''); }}
-                  className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all duration-300 ${
-                    authMode === 'register'
-                      ? 'bg-gradient-to-r from-[#D4AF37] to-[#F5D76E] text-black'
-                      : 'text-zinc-400 hover:text-white'
-                  }`}
-                >
-                  Register
-                </button>
+              {/* Premium Tab Switcher */}
+              <div className="relative mb-8">
+                <div className="absolute inset-0 bg-white/[0.03] backdrop-blur-xl rounded-2xl border border-white/[0.06]" />
+                <div className="relative flex p-1.5">
+                  <motion.div
+                    className="absolute top-1.5 bottom-1.5 rounded-xl"
+                    style={{ width: 'calc(50% - 6px)' }}
+                    animate={{
+                      x: authMode === 'login' ? 6 : 'calc(100% + 6px)',
+                    }}
+                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-r from-[#B8962E] via-[#D4AF37] to-[#F5D76E] rounded-xl" />
+                    <div className="absolute inset-0 rounded-xl shadow-[0_0_30px_rgba(212,175,55,0.4)]" />
+                  </motion.div>
+                  <button
+                    type="button"
+                    onClick={() => { setAuthMode('login'); setError(''); }}
+                    className={`flex-1 py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-300 relative z-10 ${
+                      authMode === 'login' ? 'text-black' : 'text-zinc-400 hover:text-white'
+                    }`}
+                  >
+                    Sign In
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setAuthMode('register'); setError(''); }}
+                    className={`flex-1 py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-300 relative z-10 ${
+                      authMode === 'register' ? 'text-black' : 'text-zinc-400 hover:text-white'
+                    }`}
+                  >
+                    Register
+                  </button>
+                </div>
               </div>
 
-              <h2 className="text-2xl font-helvetica-bold mb-2 text-center text-white">
-                {authMode === 'login' ? 'Welcome Back' : 'Join Amini Academy'}
-              </h2>
-              <p className="text-zinc-400 text-center mb-8 text-sm">
-                {authMode === 'login' ? 'Sign in to continue your learning' : 'Exclusive for Public Servants'}
-              </p>
+              {/* Header */}
+              <motion.div
+                key={authMode}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+                className="text-center mb-8"
+              >
+                <h2 className="text-2xl md:text-3xl font-helvetica-bold mb-3 text-white">
+                  {authMode === 'login' ? 'Welcome Back' : 'Join Amini Academy'}
+                </h2>
+                <p className="text-zinc-400 text-sm">
+                  {authMode === 'login' ? 'Sign in to continue your learning journey' : 'Exclusive training for Public Servants'}
+                </p>
+              </motion.div>
 
               <form onSubmit={handleSubmit} className="space-y-5">
                 {/* Name - only for register */}
                 <AnimatePresence mode="wait">
                   {authMode === 'register' && (
                     <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.2 }}
+                      initial={{ opacity: 0, height: 0, y: -10 }}
+                      animate={{ opacity: 1, height: 'auto', y: 0 }}
+                      exit={{ opacity: 0, height: 0, y: -10 }}
+                      transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
                     >
                       <label className="block text-sm font-medium text-zinc-400 mb-2">Full Name</label>
-                      <LiquidGlassInput
-                        required
-                        type="text"
-                        placeholder="Jane Doe"
-                        value={formData.name}
-                        onChange={e => setFormData({ ...formData, name: e.target.value })}
-                      />
+                      <div className="relative group">
+                        <div className="absolute inset-0 bg-gradient-to-r from-[#D4AF37]/20 to-transparent rounded-xl opacity-0 group-focus-within:opacity-100 blur-xl transition-opacity" />
+                        <input
+                          required
+                          type="text"
+                          placeholder="Jane Doe"
+                          value={formData.name}
+                          onChange={e => setFormData({ ...formData, name: e.target.value })}
+                          className="relative w-full bg-white/[0.04] backdrop-blur-xl border border-white/[0.08] group-hover:border-white/15 rounded-xl px-4 py-4 text-white placeholder-zinc-500 focus:outline-none focus:border-[#D4AF37]/50 focus:ring-2 focus:ring-[#D4AF37]/20 transition-all duration-300"
+                        />
+                      </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -1655,40 +1901,49 @@ const App: React.FC = () => {
                 {/* Email */}
                 <div>
                   <label className="block text-sm font-medium text-zinc-400 mb-2">Email</label>
-                  <LiquidGlassInput
-                    required
-                    type="email"
-                    placeholder="jane.doe@gov.bb"
-                    value={formData.email}
-                    onChange={e => {
-                      setFormData({ ...formData, email: e.target.value });
-                      setError('');
-                    }}
-                  />
+                  <div className="relative group">
+                    <div className="absolute inset-0 bg-gradient-to-r from-[#D4AF37]/20 to-transparent rounded-xl opacity-0 group-focus-within:opacity-100 blur-xl transition-opacity" />
+                    <input
+                      required
+                      type="email"
+                      placeholder="jane.doe@gov.bb"
+                      value={formData.email}
+                      onChange={e => {
+                        setFormData({ ...formData, email: e.target.value });
+                        setError('');
+                      }}
+                      className="relative w-full bg-white/[0.04] backdrop-blur-xl border border-white/[0.08] group-hover:border-white/15 rounded-xl px-4 py-4 text-white placeholder-zinc-500 focus:outline-none focus:border-[#D4AF37]/50 focus:ring-2 focus:ring-[#D4AF37]/20 transition-all duration-300"
+                    />
+                  </div>
                 </div>
 
                 {/* Password */}
                 <div>
                   <label className="block text-sm font-medium text-zinc-400 mb-2">Password</label>
-                  <LiquidGlassInput
-                    required
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder={authMode === 'register' ? 'Min 8 chars, uppercase, number' : 'Your password'}
-                    value={formData.password}
-                    onChange={e => setFormData({ ...formData, password: e.target.value })}
-                    minLength={authMode === 'register' ? 8 : undefined}
-                    rightElement={
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="text-zinc-500 hover:text-white transition-colors"
-                      >
-                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                      </button>
-                    }
-                  />
+                  <div className="relative group">
+                    <div className="absolute inset-0 bg-gradient-to-r from-[#D4AF37]/20 to-transparent rounded-xl opacity-0 group-focus-within:opacity-100 blur-xl transition-opacity" />
+                    <input
+                      required
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder={authMode === 'register' ? 'Min 8 chars, uppercase, number' : 'Your password'}
+                      value={formData.password}
+                      onChange={e => setFormData({ ...formData, password: e.target.value })}
+                      minLength={authMode === 'register' ? 8 : undefined}
+                      className="relative w-full bg-white/[0.04] backdrop-blur-xl border border-white/[0.08] group-hover:border-white/15 rounded-xl px-4 py-4 pr-12 text-white placeholder-zinc-500 focus:outline-none focus:border-[#D4AF37]/50 focus:ring-2 focus:ring-[#D4AF37]/20 transition-all duration-300"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-[#D4AF37] transition-colors"
+                    >
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
                   {authMode === 'register' && (
-                    <p className="text-xs text-zinc-500 mt-2">Must contain uppercase, lowercase, and number</p>
+                    <p className="text-xs text-zinc-500 mt-2 flex items-center gap-1">
+                      <span className="w-1 h-1 rounded-full bg-[#D4AF37]/60" />
+                      Must contain uppercase, lowercase, and number
+                    </p>
                   )}
                 </div>
 
@@ -1696,46 +1951,72 @@ const App: React.FC = () => {
                 <AnimatePresence mode="wait">
                   {authMode === 'register' && (
                     <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.2 }}
+                      initial={{ opacity: 0, height: 0, y: -10 }}
+                      animate={{ opacity: 1, height: 'auto', y: 0 }}
+                      exit={{ opacity: 0, height: 0, y: -10 }}
+                      transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
                       className="space-y-5"
                     >
                       <div>
                         <label className="block text-sm font-medium text-zinc-400 mb-2">Ministry</label>
-                        <LiquidGlassSelect
-                          value={formData.ministry}
-                          onChange={e => setFormData({ ...formData, ministry: e.target.value })}
-                          options={MINISTRIES.map(m => ({ value: m, label: m }))}
-                        />
+                        <div className="relative group">
+                          <div className="absolute inset-0 bg-gradient-to-r from-[#D4AF37]/20 to-transparent rounded-xl opacity-0 group-focus-within:opacity-100 blur-xl transition-opacity" />
+                          <select
+                            value={formData.ministry}
+                            onChange={e => setFormData({ ...formData, ministry: e.target.value })}
+                            className="relative w-full bg-white/[0.04] backdrop-blur-xl border border-white/[0.08] group-hover:border-white/15 rounded-xl px-4 py-4 text-white appearance-none cursor-pointer focus:outline-none focus:border-[#D4AF37]/50 focus:ring-2 focus:ring-[#D4AF37]/20 transition-all duration-300"
+                          >
+                            {MINISTRIES.map(m => (
+                              <option key={m} value={m} className="bg-zinc-900 text-white">{m}</option>
+                            ))}
+                          </select>
+                          <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-400">
+                            <ChevronDown size={18} />
+                          </div>
+                        </div>
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-zinc-400 mb-2">Select Role</label>
+                        <label className="block text-sm font-medium text-zinc-400 mb-3">Select Role</label>
                         <div className="grid grid-cols-2 gap-3">
-                          <button
-                            type="button"
-                            onClick={() => setFormData({ ...formData, role: UserRole.LEARNER })}
-                            className={`p-3 rounded-xl border text-sm transition-all duration-300 ${
-                              formData.role === UserRole.LEARNER
-                                ? 'bg-[#D4AF37]/15 border-[#D4AF37]/40 text-[#D4AF37]'
-                                : 'bg-white/[0.02] border-white/[0.08] hover:border-white/15 text-zinc-400'
-                            }`}
-                          >
-                            Learner
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setFormData({ ...formData, role: UserRole.SUPERUSER })}
-                            className={`p-3 rounded-xl border text-sm transition-all duration-300 ${
-                              formData.role === UserRole.SUPERUSER
-                                ? 'bg-white/10 border-white/30 text-white'
-                                : 'bg-white/[0.02] border-white/[0.08] hover:border-white/15 text-zinc-400'
-                            }`}
-                          >
-                            Superuser
-                          </button>
+                          {[
+                            { role: UserRole.LEARNER, label: 'Learner', desc: 'Learn at your pace' },
+                            { role: UserRole.SUPERUSER, label: 'Superuser', desc: 'Extended access' }
+                          ].map((item) => (
+                            <motion.button
+                              key={item.role}
+                              type="button"
+                              onClick={() => setFormData({ ...formData, role: item.role })}
+                              className={`relative p-4 rounded-xl text-left transition-all duration-300 overflow-hidden group ${
+                                formData.role === item.role
+                                  ? ''
+                                  : 'hover:bg-white/[0.02]'
+                              }`}
+                              whileHover={{ scale: 1.02 }}
+                              whileTap={{ scale: 0.98 }}
+                            >
+                              {/* Background */}
+                              <div className={`absolute inset-0 rounded-xl transition-all duration-300 ${
+                                formData.role === item.role
+                                  ? 'bg-gradient-to-br from-[#D4AF37]/20 to-[#D4AF37]/5 border-[#D4AF37]/40'
+                                  : 'bg-white/[0.02] border-white/[0.08] group-hover:border-white/15'
+                              } border`} />
+
+                              {/* Selected glow */}
+                              {formData.role === item.role && (
+                                <div className="absolute inset-0 rounded-xl shadow-[0_0_20px_rgba(212,175,55,0.2)]" />
+                              )}
+
+                              <div className="relative">
+                                <p className={`text-sm font-semibold mb-0.5 ${
+                                  formData.role === item.role ? 'text-[#D4AF37]' : 'text-zinc-300'
+                                }`}>
+                                  {item.label}
+                                </p>
+                                <p className="text-xs text-zinc-500">{item.desc}</p>
+                              </div>
+                            </motion.button>
+                          ))}
                         </div>
                       </div>
                     </motion.div>
@@ -1746,38 +2027,68 @@ const App: React.FC = () => {
                 <AnimatePresence>
                   {error && (
                     <motion.div
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      className="flex items-center gap-2 text-red-400 text-sm bg-red-400/10 p-3 rounded-xl border border-red-400/20"
+                      initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                      className="relative rounded-xl overflow-hidden"
                     >
-                      <AlertCircle size={16} />
-                      {error}
+                      <div className="absolute inset-0 bg-red-500/10 backdrop-blur-xl border border-red-500/20 rounded-xl" />
+                      <div className="relative flex items-center gap-3 p-4">
+                        <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-red-500/20 flex items-center justify-center">
+                          <AlertCircle size={16} className="text-red-400" />
+                        </div>
+                        <p className="text-sm text-red-400 flex-1">{error}</p>
+                      </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
 
-                {/* Submit Button */}
-                <LiquidGlassButton type="submit" className="w-full" disabled={isSubmitting}>
-                  {isSubmitting ? (
-                    <span className="flex items-center justify-center gap-2">
-                      <Loader2 size={18} className="animate-spin" />
-                      {authMode === 'login' ? 'Signing in...' : 'Registering...'}
+                {/* Premium Submit Button */}
+                <motion.button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="relative w-full overflow-hidden rounded-xl group"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  {/* Button glow */}
+                  <div className="absolute -inset-1 bg-gradient-to-r from-[#B8962E] via-[#D4AF37] to-[#F5D76E] rounded-xl blur-lg opacity-50 group-hover:opacity-80 transition-opacity" />
+
+                  {/* Button background */}
+                  <div className="relative bg-gradient-to-r from-[#B8962E] via-[#D4AF37] to-[#F5D76E] rounded-xl px-6 py-4">
+                    {/* Shine effect */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+
+                    <span className="relative z-10 flex items-center justify-center gap-2 font-semibold text-black">
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 size={18} className="animate-spin" />
+                          {authMode === 'login' ? 'Signing in...' : 'Creating account...'}
+                        </>
+                      ) : (
+                        authMode === 'login' ? 'Sign In' : 'Create Account'
+                      )}
                     </span>
-                  ) : (
-                    authMode === 'login' ? 'Sign In' : 'Create Account'
-                  )}
-                </LiquidGlassButton>
+                  </div>
+                </motion.button>
 
                 {/* Info for register */}
-                {authMode === 'register' && (
-                  <p className="text-xs text-zinc-500 text-center mt-4">
-                    Your account will require admin approval before you can sign in.
-                  </p>
-                )}
+                <AnimatePresence>
+                  {authMode === 'register' && (
+                    <motion.p
+                      initial={{ opacity: 0, y: 5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 5 }}
+                      className="text-xs text-zinc-500 text-center pt-2 flex items-center justify-center gap-2"
+                    >
+                      <Clock size={12} className="text-[#D4AF37]/60" />
+                      Your account will require admin approval before you can sign in.
+                    </motion.p>
+                  )}
+                </AnimatePresence>
               </form>
             </div>
-          </LiquidGlass>
+          </div>
         </motion.div>
       </div>
     );

@@ -36,6 +36,12 @@ async function fetchAPI<T>(
   const data = await response.json();
 
   if (!response.ok) {
+    // Handle express-validator errors (array format)
+    if (data.errors && Array.isArray(data.errors)) {
+      const errorMessages = data.errors.map((err: any) => err.msg).join('. ');
+      throw new Error(errorMessages || 'Validation failed');
+    }
+    // Handle standard error format
     throw new Error(data.error || 'API request failed');
   }
 
