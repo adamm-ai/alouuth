@@ -307,3 +307,55 @@
 .hover-lift:hover {
   transform: translateY(-4px);
 }
+
+/* Liquid Glass Text Effect with Glowing Shimmer */
+@keyframes liquid-glass-shimmer {
+  0% {
+    background-position: -200% 0;
+    box-shadow: 0 0 20px rgba(212, 175, 55, 0.1), inset 0 0 20px rgba(255, 255, 255, 0.02);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(212, 175, 55, 0.3), inset 0 0 30px rgba(255, 255, 255, 0.08);
+  }
+  100% {
+    background-position: 200% 0;
+    box-shadow: 0 0 20px rgba(212, 175, 55, 0.1), inset 0 0 20px rgba(255, 255, 255, 0.02);
+  }
+}
+
+.liquid-glass-text {
+  position: relative;
+  display: inline-block;
+  padding: 0.1em 0.4em;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.03) 0%,
+    rgba(212, 175, 55, 0.08) 25%,
+    rgba(255, 255, 255, 0.15) 50%,
+    rgba(212, 175, 55, 0.08) 75%,
+    rgba(255, 255, 255, 0.03) 100%
+  );
+  background-size: 200% 100%;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  animation: liquid-glass-shimmer 3s ease-in-out infinite;
+}
+
+.liquid-glass-text::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(212, 175, 55, 0.4) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: liquid-glass-shimmer 3s ease-in-out infinite;
+  opacity: 0.5;
+  pointer-events: none;
+}
