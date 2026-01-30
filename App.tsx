@@ -4502,7 +4502,7 @@ const App: React.FC = () => {
       );
     }
 
-    // --- User Management Section (Liquid Glass Design) ---
+    // --- User Management Section (Premium Liquid Glass Design) ---
     const UserManagementSection = () => {
       const filteredUsers = allUsers.filter(u => {
         const matchesSearch = userSearchQuery === '' ||
@@ -4512,42 +4512,102 @@ const App: React.FC = () => {
         return matchesSearch && matchesRole;
       });
 
+      // Stats for header
+      const activeUsers = allUsers.filter(u => u.is_approved && u.is_active).length;
+      const adminCount = allUsers.filter(u => u.role === 'ADMIN' || u.role === 'SUBADMIN').length;
+
       return (
         <div className="space-y-8">
-          {/* Header */}
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
-            <div>
-              <h2 className="text-3xl font-helvetica-bold">User Management</h2>
-              <p className="text-zinc-400 mt-1">Approve, manage, and monitor user accounts</p>
-            </div>
-            <div className="flex items-center gap-2 text-sm">
-              <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10">
-                <Users size={16} className="text-zinc-500" />
-                <span className="text-white font-medium">{allUsers.length}</span>
-                <span className="text-zinc-500">total users</span>
+          {/* Premium Header with Stats */}
+          <div className="relative">
+            <div className="absolute -inset-1 bg-gradient-to-r from-[#D4AF37]/10 via-transparent to-[#D4AF37]/10 rounded-[32px] blur-2xl opacity-50" />
+            <div className="relative rounded-3xl overflow-hidden">
+              {/* Glass background */}
+              <div className="absolute inset-0 backdrop-blur-xl bg-white/[0.02] border border-white/[0.06]" />
+              {/* Subtle gradient overlay */}
+              <div className="absolute inset-0 bg-gradient-to-br from-[#D4AF37]/[0.03] via-transparent to-purple-500/[0.02]" />
+              {/* Top highlight */}
+              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+
+              <div className="relative p-8">
+                <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+                  <div>
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#D4AF37]/20 to-[#D4AF37]/5 border border-[#D4AF37]/30 flex items-center justify-center shadow-[0_0_20px_rgba(212,175,55,0.15)]">
+                        <Users size={24} className="text-[#D4AF37]" />
+                      </div>
+                      <div>
+                        <h2 className="text-3xl font-helvetica-bold text-white">User Management</h2>
+                        <p className="text-zinc-500 text-sm">Control access and permissions across your organization</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Stats Pills */}
+                  <div className="flex flex-wrap gap-3">
+                    <div className="group relative">
+                      <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/20 to-emerald-600/10 rounded-2xl blur-lg opacity-0 group-hover:opacity-100 transition-all duration-500" />
+                      <div className="relative px-5 py-3 rounded-2xl bg-white/[0.03] border border-white/[0.06] hover:border-emerald-500/30 transition-all">
+                        <div className="text-2xl font-helvetica-bold text-white">{activeUsers}</div>
+                        <div className="text-xs text-emerald-400/80 flex items-center gap-1.5">
+                          <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                          Active Users
+                        </div>
+                      </div>
+                    </div>
+                    <div className="group relative">
+                      <div className="absolute inset-0 bg-gradient-to-r from-[#D4AF37]/20 to-yellow-600/10 rounded-2xl blur-lg opacity-0 group-hover:opacity-100 transition-all duration-500" />
+                      <div className="relative px-5 py-3 rounded-2xl bg-white/[0.03] border border-white/[0.06] hover:border-[#D4AF37]/30 transition-all">
+                        <div className="text-2xl font-helvetica-bold text-white">{pendingUsers.length}</div>
+                        <div className="text-xs text-[#D4AF37]/80 flex items-center gap-1.5">
+                          <div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37]" />
+                          Pending
+                        </div>
+                      </div>
+                    </div>
+                    <div className="group relative">
+                      <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-purple-600/10 rounded-2xl blur-lg opacity-0 group-hover:opacity-100 transition-all duration-500" />
+                      <div className="relative px-5 py-3 rounded-2xl bg-white/[0.03] border border-white/[0.06] hover:border-purple-500/30 transition-all">
+                        <div className="text-2xl font-helvetica-bold text-white">{adminCount}</div>
+                        <div className="text-xs text-purple-400/80 flex items-center gap-1.5">
+                          <div className="w-1.5 h-1.5 rounded-full bg-purple-400" />
+                          Administrators
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Pending Approvals - Liquid Glass Card */}
+          {/* Pending Approvals - Premium Liquid Glass */}
           {pendingUsers.length > 0 && (
-            <div className="relative group">
-              {/* Outer glow */}
-              <div className="absolute -inset-1 bg-gradient-to-r from-yellow-500/20 via-yellow-400/10 to-yellow-500/20 rounded-[28px] blur-xl opacity-60 group-hover:opacity-100 transition-all duration-700" />
+            <div className="relative group/pending">
+              {/* Animated outer glow */}
+              <div className="absolute -inset-2 bg-gradient-to-r from-[#D4AF37]/30 via-orange-500/20 to-[#D4AF37]/30 rounded-[32px] blur-2xl opacity-40 group-hover/pending:opacity-70 transition-all duration-1000 animate-pulse" />
 
-              <div className="relative rounded-3xl overflow-hidden backdrop-blur-2xl bg-gradient-to-br from-yellow-900/20 via-black/40 to-black/60 border border-yellow-500/30 shadow-[0_8px_32px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.1)] p-8">
-                {/* Inner highlight */}
-                <div className="absolute inset-0 bg-gradient-to-b from-yellow-400/5 via-transparent to-transparent pointer-events-none" />
+              <div className="relative rounded-3xl overflow-hidden">
+                {/* Multi-layer glass effect */}
+                <div className="absolute inset-0 backdrop-blur-2xl bg-gradient-to-br from-[#D4AF37]/[0.08] via-black/40 to-black/60" />
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(212,175,55,0.15),transparent_50%)]" />
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,rgba(212,175,55,0.08),transparent_50%)]" />
+                <div className="absolute inset-0 border border-[#D4AF37]/30 rounded-3xl" />
+                {/* Top edge highlight */}
+                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#D4AF37]/50 to-transparent" />
 
-                <div className="relative z-10">
+                <div className="relative p-8">
                   <div className="flex items-center justify-between mb-8">
                     <div className="flex items-center gap-4">
-                      <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-yellow-400/30 to-yellow-500/10 border border-yellow-400/40 flex items-center justify-center shadow-[0_0_30px_rgba(250,204,21,0.2)]">
-                        <Clock size={28} className="text-[#D4AF37] drop-shadow-[0_0_10px_rgba(250,204,21,0.5)]" />
+                      <div className="relative">
+                        <div className="absolute inset-0 bg-[#D4AF37]/30 rounded-2xl blur-xl animate-pulse" />
+                        <div className="relative w-14 h-14 rounded-2xl bg-gradient-to-br from-[#D4AF37]/40 to-[#D4AF37]/10 border border-[#D4AF37]/50 flex items-center justify-center shadow-[0_0_30px_rgba(212,175,55,0.3)]">
+                          <Clock size={28} className="text-[#D4AF37] drop-shadow-[0_0_10px_rgba(212,175,55,0.5)]" />
+                        </div>
                       </div>
                       <div>
                         <h3 className="text-2xl font-helvetica-bold text-white">Pending Approvals</h3>
-                        <p className="text-sm text-[#D4AF37]/80">{pendingUsers.length} user{pendingUsers.length > 1 ? 's' : ''} awaiting your review</p>
+                        <p className="text-sm text-[#D4AF37]/70">{pendingUsers.length} user{pendingUsers.length > 1 ? 's' : ''} awaiting your review</p>
                       </div>
                     </div>
                   </div>
@@ -4556,26 +4616,29 @@ const App: React.FC = () => {
                     {pendingUsers.map((pendingUser, idx) => (
                       <div
                         key={pendingUser.id}
-                        className="group/card relative overflow-hidden rounded-2xl bg-gradient-to-r from-white/[0.06] to-white/[0.02] border border-white/10 hover:border-[#D4AF37]/50 transition-all duration-500 p-5"
+                        className="group/card relative overflow-hidden rounded-2xl transition-all duration-500"
                         style={{ animationDelay: `${idx * 100}ms` }}
                       >
-                        {/* Hover glow effect */}
-                        <div className="absolute inset-0 opacity-0 group-hover/card:opacity-100 transition-opacity duration-500">
-                          <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/5 via-transparent to-transparent" />
-                        </div>
+                        {/* Card glass layers */}
+                        <div className="absolute inset-0 backdrop-blur-md bg-white/[0.04]" />
+                        <div className="absolute inset-0 bg-gradient-to-r from-white/[0.06] to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity duration-500" />
+                        <div className="absolute inset-0 border border-white/[0.08] group-hover/card:border-[#D4AF37]/40 rounded-2xl transition-colors duration-500" />
 
-                        <div className="relative z-10 flex items-center justify-between">
+                        <div className="relative p-5 flex items-center justify-between">
                           <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-zinc-700 to-zinc-800 border border-white/10 flex items-center justify-center font-helvetica-bold text-lg text-white shadow-lg">
-                              {pendingUser.name.charAt(0).toUpperCase()}
+                            <div className="relative">
+                              <div className="absolute inset-0 bg-zinc-500/20 rounded-xl blur-md group-hover/card:bg-[#D4AF37]/20 transition-colors duration-500" />
+                              <div className="relative w-12 h-12 rounded-xl bg-gradient-to-br from-zinc-700 to-zinc-800 border border-white/10 group-hover/card:border-[#D4AF37]/30 flex items-center justify-center font-helvetica-bold text-lg text-white shadow-lg transition-all duration-500">
+                                {pendingUser.name.charAt(0).toUpperCase()}
+                              </div>
                             </div>
                             <div>
-                              <div className="font-helvetica-bold text-white text-lg">{pendingUser.name}</div>
+                              <div className="font-helvetica-bold text-white text-lg group-hover/card:text-[#D4AF37] transition-colors duration-300">{pendingUser.name}</div>
                               <div className="text-sm text-zinc-400">{pendingUser.email}</div>
                               <div className="flex items-center gap-3 mt-1">
                                 <span className="text-xs text-zinc-500">{pendingUser.ministry}</span>
                                 <span className="w-1 h-1 rounded-full bg-zinc-600" />
-                                <span className="text-xs px-2 py-0.5 rounded-full bg-white/10 text-zinc-400">{pendingUser.role}</span>
+                                <span className="text-xs px-2 py-0.5 rounded-full bg-white/[0.06] border border-white/[0.08] text-zinc-400">{pendingUser.role}</span>
                                 <span className="w-1 h-1 rounded-full bg-zinc-600" />
                                 <span className="text-xs text-zinc-500">{new Date(pendingUser.created_at).toLocaleDateString()}</span>
                               </div>
@@ -4586,23 +4649,34 @@ const App: React.FC = () => {
                             <button
                               onClick={() => handleApproveUser(pendingUser.id)}
                               disabled={processingUser === pendingUser.id}
-                              className="group/btn relative px-6 py-3 rounded-xl bg-gradient-to-r from-green-500/20 to-green-600/10 border border-green-500/30 text-green-400 hover:border-green-400/50 hover:shadow-[0_0_20px_rgba(34,197,94,0.2)] transition-all duration-300 flex items-center gap-2 font-medium disabled:opacity-50"
+                              className="group/btn relative px-5 py-2.5 rounded-xl overflow-hidden transition-all duration-300 disabled:opacity-50"
                             >
-                              {processingUser === pendingUser.id ? (
-                                <Loader2 size={18} className="animate-spin" />
-                              ) : (
-                                <UserCheck size={18} />
-                              )}
-                              <span className="hidden sm:inline">Approve</span>
+                              <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/20 to-emerald-600/10" />
+                              <div className="absolute inset-0 bg-emerald-500/20 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300" />
+                              <div className="absolute inset-0 border border-emerald-500/30 group-hover/btn:border-emerald-400/60 rounded-xl transition-colors duration-300" />
+                              <div className="absolute inset-0 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]" />
+                              <div className="relative flex items-center gap-2 text-emerald-400 font-medium">
+                                {processingUser === pendingUser.id ? (
+                                  <Loader2 size={16} className="animate-spin" />
+                                ) : (
+                                  <UserCheck size={16} />
+                                )}
+                                <span className="hidden sm:inline">Approve</span>
+                              </div>
                             </button>
 
                             <button
                               onClick={() => handleRejectUser(pendingUser.id)}
                               disabled={processingUser === pendingUser.id}
-                              className="group/btn relative px-6 py-3 rounded-xl bg-gradient-to-r from-red-500/20 to-red-600/10 border border-red-500/30 text-red-400 hover:border-red-400/50 hover:shadow-[0_0_20px_rgba(239,68,68,0.2)] transition-all duration-300 flex items-center gap-2 font-medium disabled:opacity-50"
+                              className="group/btn relative px-5 py-2.5 rounded-xl overflow-hidden transition-all duration-300 disabled:opacity-50"
                             >
-                              <UserX size={18} />
-                              <span className="hidden sm:inline">Reject</span>
+                              <div className="absolute inset-0 bg-gradient-to-r from-red-500/20 to-red-600/10" />
+                              <div className="absolute inset-0 bg-red-500/20 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300" />
+                              <div className="absolute inset-0 border border-red-500/30 group-hover/btn:border-red-400/60 rounded-xl transition-colors duration-300" />
+                              <div className="relative flex items-center gap-2 text-red-400 font-medium">
+                                <UserX size={16} />
+                                <span className="hidden sm:inline">Reject</span>
+                              </div>
                             </button>
                           </div>
                         </div>
@@ -4614,148 +4688,244 @@ const App: React.FC = () => {
             </div>
           )}
 
-          {/* No Pending Users - Clean State */}
+          {/* No Pending Users - Premium State */}
           {pendingUsers.length === 0 && !loadingPending && (
-            <GlassCard className="text-center py-12">
-              <div className="w-20 h-20 rounded-2xl bg-green-500/10 border border-green-500/20 flex items-center justify-center mx-auto mb-6">
-                <CheckCircle size={40} className="text-green-400" />
+            <div className="relative group">
+              <div className="absolute -inset-1 bg-gradient-to-r from-emerald-500/10 via-transparent to-emerald-500/10 rounded-[28px] blur-xl opacity-0 group-hover:opacity-100 transition-all duration-700" />
+              <div className="relative rounded-3xl overflow-hidden">
+                <div className="absolute inset-0 backdrop-blur-xl bg-white/[0.02] border border-white/[0.06]" />
+                <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/[0.03] via-transparent to-transparent" />
+                <div className="relative text-center py-16 px-8">
+                  <div className="relative inline-block mb-6">
+                    <div className="absolute inset-0 bg-emerald-500/20 rounded-2xl blur-xl" />
+                    <div className="relative w-20 h-20 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-emerald-600/10 border border-emerald-500/30 flex items-center justify-center">
+                      <CheckCircle size={40} className="text-emerald-400" />
+                    </div>
+                  </div>
+                  <h3 className="text-2xl font-helvetica-bold text-white mb-2">All Caught Up!</h3>
+                  <p className="text-zinc-500 max-w-md mx-auto">No pending user approvals at this time. New registration requests will appear here.</p>
+                </div>
               </div>
-              <h3 className="text-xl font-helvetica-bold text-white mb-2">All Caught Up!</h3>
-              <p className="text-zinc-400">No pending user approvals at this time.</p>
-            </GlassCard>
+            </div>
           )}
 
-          {/* Search, Filter and Create User */}
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1 relative">
-              <input
-                type="text"
-                placeholder="Search users by name or email..."
-                value={userSearchQuery}
-                onChange={(e) => setUserSearchQuery(e.target.value)}
-                className="w-full bg-white/[0.03] backdrop-blur-sm border border-white/[0.08] rounded-2xl p-4 pl-12 text-white focus:ring-2 focus:ring-[#D4AF37]/30 focus:border-[#D4AF37]/40 outline-none transition-all placeholder-zinc-600"
-              />
-              <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" />
-            </div>
-            <div className="flex gap-2 flex-wrap">
-              {['ALL', 'LEARNER', 'SUPERUSER', 'SUBADMIN', 'ADMIN'].map(role => (
-                <button
-                  key={role}
-                  onClick={() => setUserFilterRole(role)}
-                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${userFilterRole === role
-                    ? 'bg-[#D4AF37] text-black shadow-[0_0_15px_rgba(212,175,55,0.3)]'
-                    : 'bg-white/[0.03] backdrop-blur-sm border border-white/[0.08] text-zinc-400 hover:bg-white/[0.06] hover:border-white/[0.15]'
+          {/* Search, Filter and Create - Premium Controls */}
+          <div className="relative">
+            <div className="absolute inset-0 backdrop-blur-lg bg-white/[0.01] rounded-2xl border border-white/[0.04]" />
+            <div className="relative p-4 flex flex-col lg:flex-row gap-4">
+              {/* Search Input */}
+              <div className="flex-1 relative group/search">
+                <div className="absolute inset-0 bg-gradient-to-r from-[#D4AF37]/5 to-transparent rounded-2xl opacity-0 group-focus-within/search:opacity-100 transition-opacity duration-300" />
+                <div className="absolute inset-0 border border-white/[0.06] group-focus-within/search:border-[#D4AF37]/30 rounded-2xl transition-colors duration-300" />
+                <input
+                  type="text"
+                  placeholder="Search users by name or email..."
+                  value={userSearchQuery}
+                  onChange={(e) => setUserSearchQuery(e.target.value)}
+                  className="relative w-full bg-transparent rounded-2xl p-4 pl-12 text-white focus:outline-none placeholder-zinc-600"
+                />
+                <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" />
+              </div>
+
+              {/* Role Filters */}
+              <div className="flex gap-2 flex-wrap">
+                {['ALL', 'LEARNER', 'SUPERUSER', 'SUBADMIN', 'ADMIN'].map(role => (
+                  <button
+                    key={role}
+                    onClick={() => setUserFilterRole(role)}
+                    className={`relative px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 overflow-hidden ${
+                      userFilterRole === role
+                        ? 'text-black'
+                        : 'text-zinc-400 hover:text-white'
                     }`}
-                >
-                  {role === 'ALL' ? 'All' : role}
-                </button>
-              ))}
+                  >
+                    {userFilterRole === role && (
+                      <>
+                        <div className="absolute inset-0 bg-gradient-to-r from-[#D4AF37] to-yellow-500" />
+                        <div className="absolute inset-0 shadow-[0_0_20px_rgba(212,175,55,0.4)]" />
+                      </>
+                    )}
+                    {userFilterRole !== role && (
+                      <div className="absolute inset-0 bg-white/[0.03] border border-white/[0.06] hover:border-white/[0.12] rounded-xl transition-colors duration-300" />
+                    )}
+                    <span className="relative">{role === 'ALL' ? 'All' : role}</span>
+                  </button>
+                ))}
+              </div>
+
+              {/* Create User Button */}
+              <button
+                onClick={() => setShowCreateUserModal(true)}
+                className="relative px-6 py-3 rounded-xl overflow-hidden group/create transition-all duration-300"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-[#D4AF37] to-yellow-500" />
+                <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 to-[#D4AF37] opacity-0 group-hover/create:opacity-100 transition-opacity duration-300" />
+                <div className="absolute inset-0 shadow-[0_0_25px_rgba(212,175,55,0.3)] group-hover/create:shadow-[0_0_35px_rgba(212,175,55,0.5)] transition-shadow duration-300" />
+                <div className="relative flex items-center gap-2 text-black font-medium">
+                  <UserPlus size={18} />
+                  Create User
+                </div>
+              </button>
             </div>
-            <button
-              onClick={() => setShowCreateUserModal(true)}
-              className="px-6 py-3 rounded-xl bg-gradient-to-r from-[#D4AF37] to-yellow-500 text-black font-medium flex items-center gap-2 hover:shadow-[0_0_25px_rgba(212,175,55,0.4)] transition-all"
-            >
-              <Plus size={18} />
-              Create User
-            </button>
           </div>
 
-          {/* All Users List - Liquid Glass */}
-          <div className="relative group">
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-white/[0.05] via-transparent to-white/[0.05] rounded-[28px] blur-lg opacity-0 group-hover:opacity-100 transition-all duration-700" />
-            <div className="relative rounded-3xl overflow-hidden backdrop-blur-xl bg-white/[0.02] border border-white/[0.08] shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
-              <div className="p-6 border-b border-white/[0.06] flex items-center justify-between">
-                <h3 className="text-lg font-helvetica-bold text-white">All Users ({filteredUsers.length})</h3>
-                <div className="text-xs text-zinc-500">Click on a user to manage</div>
+          {/* All Users List - Premium Liquid Glass */}
+          <div className="relative group/list">
+            <div className="absolute -inset-1 bg-gradient-to-r from-white/[0.03] via-transparent to-white/[0.03] rounded-[32px] blur-xl opacity-0 group-hover/list:opacity-100 transition-all duration-700" />
+
+            <div className="relative rounded-3xl overflow-hidden">
+              {/* Glass background */}
+              <div className="absolute inset-0 backdrop-blur-xl bg-white/[0.015]" />
+              <div className="absolute inset-0 border border-white/[0.06]" />
+              {/* Subtle gradient */}
+              <div className="absolute inset-0 bg-gradient-to-b from-white/[0.02] to-transparent" />
+
+              {/* Header */}
+              <div className="relative p-6 border-b border-white/[0.04]">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <h3 className="text-xl font-helvetica-bold text-white">All Users</h3>
+                    <span className="px-3 py-1 rounded-full bg-white/[0.04] border border-white/[0.06] text-sm text-zinc-400">{filteredUsers.length}</span>
+                  </div>
+                  <div className="text-xs text-zinc-600">Manage roles, passwords & permissions</div>
+                </div>
               </div>
 
               {loadingUsers ? (
-                <div className="p-12 text-center">
-                  <Loader2 size={32} className="animate-spin text-[#D4AF37] mx-auto" />
-                  <p className="text-zinc-500 mt-4">Loading users...</p>
+                <div className="relative p-16 text-center">
+                  <div className="relative inline-block">
+                    <div className="absolute inset-0 bg-[#D4AF37]/20 rounded-full blur-xl animate-pulse" />
+                    <Loader2 size={40} className="relative animate-spin text-[#D4AF37]" />
+                  </div>
+                  <p className="text-zinc-500 mt-6">Loading users...</p>
                 </div>
               ) : (
-                <div className="divide-y divide-white/[0.04]">
-                  {filteredUsers.map(u => (
-                    <div key={u.id} className="group/user">
-                      <div className="p-5 hover:bg-white/[0.02] transition-all duration-300 flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                          <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-helvetica-bold text-lg transition-all ${
-                            u.role === 'ADMIN' ? 'bg-gradient-to-br from-[#D4AF37]/30 to-[#D4AF37]/10 border border-[#D4AF37]/40 text-[#D4AF37]' :
-                            u.role === 'SUBADMIN' ? 'bg-gradient-to-br from-purple-500/30 to-purple-500/10 border border-purple-500/40 text-purple-400' :
-                            u.role === 'SUPERUSER' ? 'bg-gradient-to-br from-blue-500/30 to-blue-500/10 border border-blue-500/40 text-blue-400' :
-                            u.is_approved ? 'bg-gradient-to-br from-zinc-700 to-zinc-800 border border-white/10 text-white' :
-                            'bg-zinc-800/50 border border-zinc-700/50 text-zinc-500'
-                          }`}>
-                            {u.name?.charAt(0).toUpperCase() || '?'}
-                          </div>
-                          <div>
-                            <div className="font-medium text-white flex items-center gap-2">
-                              {u.name}
-                              {!u.is_approved && (
-                                <span className="text-[10px] px-2 py-0.5 rounded-full bg-yellow-400/20 text-[#D4AF37] border border-yellow-400/30">PENDING</span>
-                              )}
-                              {!u.is_active && (
-                                <span className="text-[10px] px-2 py-0.5 rounded-full bg-red-400/20 text-red-400 border border-red-400/30">INACTIVE</span>
-                              )}
+                <div className="relative divide-y divide-white/[0.03]">
+                  {filteredUsers.map((u, idx) => (
+                    <div key={u.id} className="group/user relative">
+                      {/* User Row */}
+                      <div className="relative p-5 transition-all duration-300">
+                        {/* Hover background */}
+                        <div className="absolute inset-0 bg-gradient-to-r from-white/[0.02] via-white/[0.01] to-transparent opacity-0 group-hover/user:opacity-100 transition-opacity duration-300" />
+                        {/* Left accent on hover */}
+                        <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-gradient-to-b from-[#D4AF37] to-yellow-600 opacity-0 group-hover/user:opacity-100 transition-opacity duration-300" />
+
+                        <div className="relative flex items-center justify-between">
+                          <div className="flex items-center gap-4">
+                            {/* Avatar with role-based styling */}
+                            <div className="relative">
+                              <div className={`absolute inset-0 rounded-xl blur-md transition-all duration-300 ${
+                                u.role === 'ADMIN' ? 'bg-[#D4AF37]/30 group-hover/user:bg-[#D4AF37]/50' :
+                                u.role === 'SUBADMIN' ? 'bg-purple-500/30 group-hover/user:bg-purple-500/50' :
+                                u.role === 'SUPERUSER' ? 'bg-blue-500/30 group-hover/user:bg-blue-500/50' :
+                                'bg-zinc-500/20 group-hover/user:bg-zinc-500/30'
+                              }`} />
+                              <div className={`relative w-12 h-12 rounded-xl flex items-center justify-center font-helvetica-bold text-lg transition-all duration-300 ${
+                                u.role === 'ADMIN' ? 'bg-gradient-to-br from-[#D4AF37]/30 to-[#D4AF37]/10 border border-[#D4AF37]/40 text-[#D4AF37]' :
+                                u.role === 'SUBADMIN' ? 'bg-gradient-to-br from-purple-500/30 to-purple-500/10 border border-purple-500/40 text-purple-400' :
+                                u.role === 'SUPERUSER' ? 'bg-gradient-to-br from-blue-500/30 to-blue-500/10 border border-blue-500/40 text-blue-400' :
+                                u.is_approved ? 'bg-gradient-to-br from-zinc-700 to-zinc-800 border border-white/10 text-white' :
+                                'bg-zinc-800/50 border border-zinc-700/50 text-zinc-500'
+                              }`}>
+                                {u.name?.charAt(0).toUpperCase() || '?'}
+                              </div>
                             </div>
-                            <div className="text-sm text-zinc-500">{u.email}</div>
-                            <div className="text-xs text-zinc-600 mt-0.5">{u.ministry}</div>
+
+                            <div>
+                              <div className="font-medium text-white flex items-center gap-2 group-hover/user:text-[#D4AF37] transition-colors duration-300">
+                                {u.name}
+                                {!u.is_approved && (
+                                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#D4AF37]/10 text-[#D4AF37] border border-[#D4AF37]/20">PENDING</span>
+                                )}
+                                {!u.is_active && (
+                                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-red-500/10 text-red-400 border border-red-500/20">INACTIVE</span>
+                                )}
+                              </div>
+                              <div className="text-sm text-zinc-500">{u.email}</div>
+                              <div className="text-xs text-zinc-600 mt-0.5">{u.ministry}</div>
+                            </div>
                           </div>
-                        </div>
 
-                        <div className="flex items-center gap-3">
-                          {/* Role Selector */}
-                          <select
-                            value={u.role}
-                            onChange={(e) => handleUpdateUserRole(u.id, e.target.value)}
-                            className="bg-white/[0.03] border border-white/[0.08] rounded-lg px-3 py-1.5 text-sm text-white focus:ring-1 focus:ring-[#D4AF37]/30 outline-none cursor-pointer"
-                          >
-                            <option value="LEARNER" className="bg-zinc-900">LEARNER</option>
-                            <option value="SUPERUSER" className="bg-zinc-900">SUPERUSER</option>
-                            <option value="SUBADMIN" className="bg-zinc-900">SUBADMIN</option>
-                            <option value="ADMIN" className="bg-zinc-900">ADMIN</option>
-                          </select>
+                          <div className="flex items-center gap-3">
+                            {/* Role Selector - Premium Dropdown */}
+                            <div className="relative">
+                              <select
+                                value={u.role}
+                                onChange={(e) => handleUpdateUserRole(u.id, e.target.value)}
+                                className="appearance-none bg-white/[0.03] border border-white/[0.08] hover:border-white/[0.15] rounded-xl px-4 py-2 pr-8 text-sm text-white focus:ring-1 focus:ring-[#D4AF37]/30 focus:border-[#D4AF37]/30 outline-none cursor-pointer transition-all duration-300"
+                              >
+                                <option value="LEARNER" className="bg-zinc-900">LEARNER</option>
+                                <option value="SUPERUSER" className="bg-zinc-900">SUPERUSER</option>
+                                <option value="SUBADMIN" className="bg-zinc-900">SUBADMIN</option>
+                                <option value="ADMIN" className="bg-zinc-900">ADMIN</option>
+                              </select>
+                              <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" />
+                            </div>
 
-                          {/* Password Viewing */}
-                          <button
-                            onClick={() => handleViewPassword(u.id)}
-                            className="p-2 rounded-lg bg-white/[0.03] border border-white/[0.08] text-zinc-400 hover:text-white hover:bg-white/[0.06] transition-all"
-                            title="View Password"
-                          >
-                            {viewingPasswordUserId === u.id && loadingPassword ? (
-                              <Loader2 size={16} className="animate-spin" />
-                            ) : viewingPasswordUserId === u.id ? (
-                              <EyeOff size={16} />
-                            ) : (
-                              <Eye size={16} />
-                            )}
-                          </button>
+                            {/* Action Buttons */}
+                            <div className="flex items-center gap-1.5">
+                              <button
+                                onClick={() => handleViewPassword(u.id)}
+                                className="relative p-2.5 rounded-xl overflow-hidden group/btn transition-all duration-300"
+                                title="View Password"
+                              >
+                                <div className="absolute inset-0 bg-white/[0.03] border border-white/[0.06] group-hover/btn:border-white/[0.15] rounded-xl transition-colors duration-300" />
+                                <div className="absolute inset-0 bg-gradient-to-r from-[#D4AF37]/10 to-transparent opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300" />
+                                <div className="relative text-zinc-400 group-hover/btn:text-white transition-colors duration-300">
+                                  {viewingPasswordUserId === u.id && loadingPassword ? (
+                                    <Loader2 size={16} className="animate-spin" />
+                                  ) : viewingPasswordUserId === u.id ? (
+                                    <EyeOff size={16} />
+                                  ) : (
+                                    <Eye size={16} />
+                                  )}
+                                </div>
+                              </button>
 
-                          {/* Reset Password */}
-                          <button
-                            onClick={() => setResetPasswordUserId(u.id)}
-                            className="p-2 rounded-lg bg-white/[0.03] border border-white/[0.08] text-zinc-400 hover:text-yellow-400 hover:border-yellow-400/30 transition-all"
-                            title="Reset Password"
-                          >
-                            <Key size={16} />
-                          </button>
+                              <button
+                                onClick={() => setResetPasswordUserId(u.id)}
+                                className="relative p-2.5 rounded-xl overflow-hidden group/btn transition-all duration-300"
+                                title="Reset Password"
+                              >
+                                <div className="absolute inset-0 bg-white/[0.03] border border-white/[0.06] group-hover/btn:border-[#D4AF37]/30 rounded-xl transition-colors duration-300" />
+                                <div className="absolute inset-0 bg-gradient-to-r from-[#D4AF37]/10 to-transparent opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300" />
+                                <div className="relative text-zinc-400 group-hover/btn:text-[#D4AF37] transition-colors duration-300">
+                                  <Key size={16} />
+                                </div>
+                              </button>
+                            </div>
 
-                          <Badge type={u.is_approved ? 'success' : 'warning'}>{u.is_approved ? 'Active' : 'Pending'}</Badge>
+                            {/* Status Badge */}
+                            <div className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all duration-300 ${
+                              u.is_approved
+                                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                                : 'bg-[#D4AF37]/10 text-[#D4AF37] border border-[#D4AF37]/20'
+                            }`}>
+                              {u.is_approved ? 'Active' : 'Pending'}
+                            </div>
+                          </div>
                         </div>
                       </div>
 
-                      {/* Password Display Row */}
+                      {/* Password Display - Expandable */}
                       {viewingPasswordUserId === u.id && !loadingPassword && (
-                        <div className="px-5 pb-4 -mt-2">
-                          <div className="p-3 rounded-lg bg-white/[0.02] border border-white/[0.05] flex items-center gap-3">
-                            <Lock size={14} className="text-zinc-500" />
-                            <span className="text-sm text-zinc-400">Password:</span>
-                            {viewedPasswords[u.id] ? (
-                              <code className="text-sm text-[#D4AF37] font-mono bg-black/30 px-2 py-0.5 rounded">{viewedPasswords[u.id]}</code>
-                            ) : (
-                              <span className="text-sm text-zinc-500 italic">Not available (user set their own password)</span>
-                            )}
+                        <div className="relative px-5 pb-5 -mt-1">
+                          <div className="relative rounded-xl overflow-hidden">
+                            <div className="absolute inset-0 bg-gradient-to-r from-[#D4AF37]/[0.03] to-transparent" />
+                            <div className="absolute inset-0 border border-[#D4AF37]/10 rounded-xl" />
+                            <div className="relative p-4 flex items-center gap-4">
+                              <div className="w-8 h-8 rounded-lg bg-[#D4AF37]/10 border border-[#D4AF37]/20 flex items-center justify-center">
+                                <Lock size={14} className="text-[#D4AF37]" />
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <span className="text-sm text-zinc-500">Password:</span>
+                                {viewedPasswords[u.id] ? (
+                                  <code className="text-sm text-[#D4AF37] font-mono bg-black/40 px-3 py-1 rounded-lg border border-[#D4AF37]/20">{viewedPasswords[u.id]}</code>
+                                ) : (
+                                  <span className="text-sm text-zinc-600 italic">Not available (user set their own password)</span>
+                                )}
+                              </div>
+                            </div>
                           </div>
                         </div>
                       )}
@@ -4763,8 +4933,11 @@ const App: React.FC = () => {
                   ))}
 
                   {filteredUsers.length === 0 && (
-                    <div className="p-12 text-center text-zinc-500">
-                      No users found matching your criteria.
+                    <div className="relative p-16 text-center">
+                      <div className="w-16 h-16 rounded-2xl bg-white/[0.03] border border-white/[0.06] flex items-center justify-center mx-auto mb-4">
+                        <Users size={32} className="text-zinc-600" />
+                      </div>
+                      <p className="text-zinc-500">No users found matching your criteria.</p>
                     </div>
                   )}
                 </div>
@@ -4772,151 +4945,227 @@ const App: React.FC = () => {
             </div>
           </div>
 
-          {/* Create User Modal */}
+          {/* Create User Modal - Premium Design */}
           {showCreateUserModal && (
-            <div className="fixed inset-0 z-[100] flex items-center justify-center">
-              <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setShowCreateUserModal(false)} />
-              <div className="relative w-full max-w-lg mx-4">
-                <div className="absolute -inset-1 bg-gradient-to-r from-[#D4AF37]/30 via-yellow-500/20 to-[#D4AF37]/30 rounded-[28px] blur-xl opacity-60" />
-                <div className="relative rounded-3xl overflow-hidden backdrop-blur-2xl bg-gradient-to-br from-zinc-900/95 via-black/95 to-zinc-900/95 border border-[#D4AF37]/30 shadow-[0_8px_32px_rgba(0,0,0,0.5)] p-8">
-                  <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#D4AF37]/30 to-[#D4AF37]/10 border border-[#D4AF37]/40 flex items-center justify-center">
-                        <UserPlus size={24} className="text-[#D4AF37]" />
-                      </div>
-                      <div>
-                        <h3 className="text-xl font-helvetica-bold text-white">Create New User</h3>
-                        <p className="text-sm text-zinc-500">User will be auto-approved</p>
-                      </div>
-                    </div>
-                    <button onClick={() => setShowCreateUserModal(false)} className="p-2 rounded-lg hover:bg-white/10 transition-colors">
-                      <X size={20} className="text-zinc-400" />
-                    </button>
-                  </div>
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+              <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setShowCreateUserModal(false)} />
 
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm text-zinc-400 mb-2">Full Name *</label>
-                      <input
-                        type="text"
-                        value={createUserData.name}
-                        onChange={(e) => setCreateUserData(prev => ({ ...prev, name: e.target.value }))}
-                        className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl p-3 text-white focus:ring-2 focus:ring-[#D4AF37]/30 focus:border-[#D4AF37]/40 outline-none"
-                        placeholder="John Doe"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm text-zinc-400 mb-2">Email Address *</label>
-                      <input
-                        type="email"
-                        value={createUserData.email}
-                        onChange={(e) => setCreateUserData(prev => ({ ...prev, email: e.target.value }))}
-                        className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl p-3 text-white focus:ring-2 focus:ring-[#D4AF37]/30 focus:border-[#D4AF37]/40 outline-none"
-                        placeholder="john@ministry.gov"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm text-zinc-400 mb-2">Password *</label>
-                      <input
-                        type="text"
-                        value={createUserData.password}
-                        onChange={(e) => setCreateUserData(prev => ({ ...prev, password: e.target.value }))}
-                        className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl p-3 text-white focus:ring-2 focus:ring-[#D4AF37]/30 focus:border-[#D4AF37]/40 outline-none font-mono"
-                        placeholder="Initial password"
-                      />
-                      <p className="text-xs text-zinc-600 mt-1">This password will be viewable by admins</p>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm text-zinc-400 mb-2">Ministry</label>
-                        <input
-                          type="text"
-                          value={createUserData.ministry}
-                          onChange={(e) => setCreateUserData(prev => ({ ...prev, ministry: e.target.value }))}
-                          className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl p-3 text-white focus:ring-2 focus:ring-[#D4AF37]/30 focus:border-[#D4AF37]/40 outline-none"
-                          placeholder="Finance Ministry"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm text-zinc-400 mb-2">Role</label>
-                        <select
-                          value={createUserData.role}
-                          onChange={(e) => setCreateUserData(prev => ({ ...prev, role: e.target.value }))}
-                          className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl p-3 text-white focus:ring-2 focus:ring-[#D4AF37]/30 focus:border-[#D4AF37]/40 outline-none"
-                        >
-                          <option value="LEARNER" className="bg-zinc-900">LEARNER</option>
-                          <option value="SUPERUSER" className="bg-zinc-900">SUPERUSER</option>
-                          <option value="SUBADMIN" className="bg-zinc-900">SUBADMIN</option>
-                          <option value="ADMIN" className="bg-zinc-900">ADMIN</option>
-                        </select>
-                      </div>
-                    </div>
-                  </div>
+              <div className="relative w-full max-w-lg">
+                {/* Glow effect */}
+                <div className="absolute -inset-4 bg-gradient-to-r from-[#D4AF37]/20 via-yellow-500/10 to-[#D4AF37]/20 rounded-[40px] blur-2xl opacity-60" />
 
-                  <div className="flex gap-3 mt-8">
-                    <button
-                      onClick={() => setShowCreateUserModal(false)}
-                      className="flex-1 px-4 py-3 rounded-xl bg-white/[0.03] border border-white/[0.08] text-zinc-400 hover:bg-white/[0.06] transition-all"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={handleCreateUser}
-                      disabled={creatingUser || !createUserData.email || !createUserData.password || !createUserData.name}
-                      className="flex-1 px-4 py-3 rounded-xl bg-gradient-to-r from-[#D4AF37] to-yellow-500 text-black font-medium hover:shadow-[0_0_25px_rgba(212,175,55,0.4)] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                    >
-                      {creatingUser ? <Loader2 size={18} className="animate-spin" /> : <UserPlus size={18} />}
-                      Create User
-                    </button>
+                <div className="relative rounded-3xl overflow-hidden">
+                  {/* Glass layers */}
+                  <div className="absolute inset-0 backdrop-blur-2xl bg-gradient-to-br from-zinc-900/98 via-black/98 to-zinc-900/98" />
+                  <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(212,175,55,0.08),transparent_50%)]" />
+                  <div className="absolute inset-0 border border-[#D4AF37]/20 rounded-3xl" />
+                  <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#D4AF37]/40 to-transparent" />
+
+                  <div className="relative p-8">
+                    {/* Header */}
+                    <div className="flex items-center justify-between mb-8">
+                      <div className="flex items-center gap-4">
+                        <div className="relative">
+                          <div className="absolute inset-0 bg-[#D4AF37]/30 rounded-xl blur-lg" />
+                          <div className="relative w-14 h-14 rounded-xl bg-gradient-to-br from-[#D4AF37]/30 to-[#D4AF37]/10 border border-[#D4AF37]/40 flex items-center justify-center">
+                            <UserPlus size={28} className="text-[#D4AF37]" />
+                          </div>
+                        </div>
+                        <div>
+                          <h3 className="text-2xl font-helvetica-bold text-white">Create New User</h3>
+                          <p className="text-sm text-zinc-500">User will be auto-approved</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => setShowCreateUserModal(false)}
+                        className="p-2 rounded-xl bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-300"
+                      >
+                        <X size={20} className="text-zinc-400" />
+                      </button>
+                    </div>
+
+                    {/* Form Fields */}
+                    <div className="space-y-5">
+                      <div>
+                        <label className="block text-sm text-zinc-400 mb-2 font-medium">Full Name *</label>
+                        <div className="relative group/input">
+                          <div className="absolute inset-0 bg-gradient-to-r from-[#D4AF37]/5 to-transparent rounded-xl opacity-0 group-focus-within/input:opacity-100 transition-opacity duration-300" />
+                          <div className="absolute inset-0 border border-white/[0.06] group-focus-within/input:border-[#D4AF37]/30 rounded-xl transition-colors duration-300" />
+                          <input
+                            type="text"
+                            value={createUserData.name}
+                            onChange={(e) => setCreateUserData(prev => ({ ...prev, name: e.target.value }))}
+                            className="relative w-full bg-transparent rounded-xl p-4 text-white focus:outline-none placeholder-zinc-600"
+                            placeholder="John Doe"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm text-zinc-400 mb-2 font-medium">Email Address *</label>
+                        <div className="relative group/input">
+                          <div className="absolute inset-0 bg-gradient-to-r from-[#D4AF37]/5 to-transparent rounded-xl opacity-0 group-focus-within/input:opacity-100 transition-opacity duration-300" />
+                          <div className="absolute inset-0 border border-white/[0.06] group-focus-within/input:border-[#D4AF37]/30 rounded-xl transition-colors duration-300" />
+                          <input
+                            type="email"
+                            value={createUserData.email}
+                            onChange={(e) => setCreateUserData(prev => ({ ...prev, email: e.target.value }))}
+                            className="relative w-full bg-transparent rounded-xl p-4 text-white focus:outline-none placeholder-zinc-600"
+                            placeholder="john@ministry.gov"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm text-zinc-400 mb-2 font-medium">Password *</label>
+                        <div className="relative group/input">
+                          <div className="absolute inset-0 bg-gradient-to-r from-[#D4AF37]/5 to-transparent rounded-xl opacity-0 group-focus-within/input:opacity-100 transition-opacity duration-300" />
+                          <div className="absolute inset-0 border border-white/[0.06] group-focus-within/input:border-[#D4AF37]/30 rounded-xl transition-colors duration-300" />
+                          <input
+                            type="text"
+                            value={createUserData.password}
+                            onChange={(e) => setCreateUserData(prev => ({ ...prev, password: e.target.value }))}
+                            className="relative w-full bg-transparent rounded-xl p-4 text-white focus:outline-none placeholder-zinc-600 font-mono"
+                            placeholder="Initial password"
+                          />
+                        </div>
+                        <p className="text-xs text-zinc-600 mt-2 flex items-center gap-1.5">
+                          <Eye size={12} />
+                          This password will be viewable by admins
+                        </p>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm text-zinc-400 mb-2 font-medium">Ministry</label>
+                          <div className="relative group/input">
+                            <div className="absolute inset-0 bg-gradient-to-r from-[#D4AF37]/5 to-transparent rounded-xl opacity-0 group-focus-within/input:opacity-100 transition-opacity duration-300" />
+                            <div className="absolute inset-0 border border-white/[0.06] group-focus-within/input:border-[#D4AF37]/30 rounded-xl transition-colors duration-300" />
+                            <input
+                              type="text"
+                              value={createUserData.ministry}
+                              onChange={(e) => setCreateUserData(prev => ({ ...prev, ministry: e.target.value }))}
+                              className="relative w-full bg-transparent rounded-xl p-4 text-white focus:outline-none placeholder-zinc-600"
+                              placeholder="Finance Ministry"
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-sm text-zinc-400 mb-2 font-medium">Role</label>
+                          <div className="relative group/input">
+                            <div className="absolute inset-0 border border-white/[0.06] group-focus-within/input:border-[#D4AF37]/30 rounded-xl transition-colors duration-300" />
+                            <select
+                              value={createUserData.role}
+                              onChange={(e) => setCreateUserData(prev => ({ ...prev, role: e.target.value }))}
+                              className="relative w-full bg-transparent rounded-xl p-4 text-white focus:outline-none cursor-pointer appearance-none"
+                            >
+                              <option value="LEARNER" className="bg-zinc-900">LEARNER</option>
+                              <option value="SUPERUSER" className="bg-zinc-900">SUPERUSER</option>
+                              <option value="SUBADMIN" className="bg-zinc-900">SUBADMIN</option>
+                              <option value="ADMIN" className="bg-zinc-900">ADMIN</option>
+                            </select>
+                            <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex gap-4 mt-8">
+                      <button
+                        onClick={() => setShowCreateUserModal(false)}
+                        className="flex-1 relative px-6 py-4 rounded-xl overflow-hidden group/btn transition-all duration-300"
+                      >
+                        <div className="absolute inset-0 bg-white/[0.03] border border-white/[0.06] group-hover/btn:border-white/[0.12] rounded-xl transition-colors duration-300" />
+                        <span className="relative text-zinc-400 group-hover/btn:text-white font-medium transition-colors duration-300">Cancel</span>
+                      </button>
+                      <button
+                        onClick={handleCreateUser}
+                        disabled={creatingUser || !createUserData.email || !createUserData.password || !createUserData.name}
+                        className="flex-1 relative px-6 py-4 rounded-xl overflow-hidden group/btn transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <div className="absolute inset-0 bg-gradient-to-r from-[#D4AF37] to-yellow-500" />
+                        <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 to-[#D4AF37] opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300" />
+                        <div className="absolute inset-0 shadow-[0_0_30px_rgba(212,175,55,0.4)] group-hover/btn:shadow-[0_0_40px_rgba(212,175,55,0.6)] transition-shadow duration-300" />
+                        <span className="relative flex items-center justify-center gap-2 text-black font-medium">
+                          {creatingUser ? <Loader2 size={18} className="animate-spin" /> : <UserPlus size={18} />}
+                          Create User
+                        </span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Reset Password Modal */}
+          {/* Reset Password Modal - Premium Design */}
           {resetPasswordUserId && (
-            <div className="fixed inset-0 z-[100] flex items-center justify-center">
-              <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => { setResetPasswordUserId(null); setNewPasswordValue(''); }} />
-              <div className="relative w-full max-w-md mx-4">
-                <div className="absolute -inset-1 bg-gradient-to-r from-yellow-500/20 via-orange-500/20 to-yellow-500/20 rounded-[28px] blur-xl opacity-60" />
-                <div className="relative rounded-3xl overflow-hidden backdrop-blur-2xl bg-gradient-to-br from-zinc-900/95 via-black/95 to-zinc-900/95 border border-yellow-500/30 shadow-[0_8px_32px_rgba(0,0,0,0.5)] p-8">
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-yellow-400/30 to-orange-500/10 border border-yellow-400/40 flex items-center justify-center">
-                      <Key size={24} className="text-yellow-400" />
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+              <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => { setResetPasswordUserId(null); setNewPasswordValue(''); }} />
+
+              <div className="relative w-full max-w-md">
+                {/* Glow effect */}
+                <div className="absolute -inset-4 bg-gradient-to-r from-yellow-500/20 via-orange-500/15 to-yellow-500/20 rounded-[40px] blur-2xl opacity-60" />
+
+                <div className="relative rounded-3xl overflow-hidden">
+                  {/* Glass layers */}
+                  <div className="absolute inset-0 backdrop-blur-2xl bg-gradient-to-br from-zinc-900/98 via-black/98 to-zinc-900/98" />
+                  <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(250,204,21,0.08),transparent_50%)]" />
+                  <div className="absolute inset-0 border border-yellow-500/20 rounded-3xl" />
+                  <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-yellow-400/40 to-transparent" />
+
+                  <div className="relative p-8">
+                    <div className="flex items-center gap-4 mb-8">
+                      <div className="relative">
+                        <div className="absolute inset-0 bg-yellow-500/30 rounded-xl blur-lg" />
+                        <div className="relative w-14 h-14 rounded-xl bg-gradient-to-br from-yellow-400/30 to-orange-500/10 border border-yellow-400/40 flex items-center justify-center">
+                          <Key size={28} className="text-yellow-400" />
+                        </div>
+                      </div>
+                      <div>
+                        <h3 className="text-2xl font-helvetica-bold text-white">Reset Password</h3>
+                        <p className="text-sm text-zinc-500">Set a new password for this user</p>
+                      </div>
                     </div>
+
                     <div>
-                      <h3 className="text-xl font-helvetica-bold text-white">Reset Password</h3>
-                      <p className="text-sm text-zinc-500">Set a new password for this user</p>
+                      <label className="block text-sm text-zinc-400 mb-2 font-medium">New Password</label>
+                      <div className="relative group/input">
+                        <div className="absolute inset-0 bg-gradient-to-r from-yellow-500/5 to-transparent rounded-xl opacity-0 group-focus-within/input:opacity-100 transition-opacity duration-300" />
+                        <div className="absolute inset-0 border border-white/[0.06] group-focus-within/input:border-yellow-400/30 rounded-xl transition-colors duration-300" />
+                        <input
+                          type="text"
+                          value={newPasswordValue}
+                          onChange={(e) => setNewPasswordValue(e.target.value)}
+                          className="relative w-full bg-transparent rounded-xl p-4 text-white focus:outline-none placeholder-zinc-600 font-mono"
+                          placeholder="Enter new password (min 6 characters)"
+                        />
+                      </div>
                     </div>
-                  </div>
 
-                  <div>
-                    <label className="block text-sm text-zinc-400 mb-2">New Password</label>
-                    <input
-                      type="text"
-                      value={newPasswordValue}
-                      onChange={(e) => setNewPasswordValue(e.target.value)}
-                      className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl p-3 text-white focus:ring-2 focus:ring-yellow-400/30 focus:border-yellow-400/40 outline-none font-mono"
-                      placeholder="Enter new password (min 6 characters)"
-                    />
-                  </div>
-
-                  <div className="flex gap-3 mt-6">
-                    <button
-                      onClick={() => { setResetPasswordUserId(null); setNewPasswordValue(''); }}
-                      className="flex-1 px-4 py-3 rounded-xl bg-white/[0.03] border border-white/[0.08] text-zinc-400 hover:bg-white/[0.06] transition-all"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={handleResetPassword}
-                      disabled={resettingPassword || newPasswordValue.length < 6}
-                      className="flex-1 px-4 py-3 rounded-xl bg-gradient-to-r from-yellow-400 to-orange-500 text-black font-medium hover:shadow-[0_0_25px_rgba(250,204,21,0.4)] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                    >
-                      {resettingPassword ? <Loader2 size={18} className="animate-spin" /> : <Key size={18} />}
-                      Reset Password
-                    </button>
+                    <div className="flex gap-4 mt-8">
+                      <button
+                        onClick={() => { setResetPasswordUserId(null); setNewPasswordValue(''); }}
+                        className="flex-1 relative px-6 py-4 rounded-xl overflow-hidden group/btn transition-all duration-300"
+                      >
+                        <div className="absolute inset-0 bg-white/[0.03] border border-white/[0.06] group-hover/btn:border-white/[0.12] rounded-xl transition-colors duration-300" />
+                        <span className="relative text-zinc-400 group-hover/btn:text-white font-medium transition-colors duration-300">Cancel</span>
+                      </button>
+                      <button
+                        onClick={handleResetPassword}
+                        disabled={resettingPassword || newPasswordValue.length < 6}
+                        className="flex-1 relative px-6 py-4 rounded-xl overflow-hidden group/btn transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 to-orange-500" />
+                        <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-yellow-500 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300" />
+                        <div className="absolute inset-0 shadow-[0_0_30px_rgba(250,204,21,0.4)] group-hover/btn:shadow-[0_0_40px_rgba(250,204,21,0.6)] transition-shadow duration-300" />
+                        <span className="relative flex items-center justify-center gap-2 text-black font-medium">
+                          {resettingPassword ? <Loader2 size={18} className="animate-spin" /> : <Key size={18} />}
+                          Reset Password
+                        </span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
