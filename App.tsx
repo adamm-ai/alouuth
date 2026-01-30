@@ -47,7 +47,10 @@ import {
   TrendingUp,
   BarChart3,
   PieChart as PieChartIcon,
-  Building2
+  Building2,
+  Key,
+  UserPlus,
+  Search
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from 'recharts';
 import { LiquidBackground } from './components/LiquidBackground';
@@ -3277,6 +3280,21 @@ const App: React.FC = () => {
     const [userSearchQuery, setUserSearchQuery] = useState('');
     const [userFilterRole, setUserFilterRole] = useState<string>('ALL');
 
+    // Create User Modal State
+    const [showCreateUserModal, setShowCreateUserModal] = useState(false);
+    const [createUserData, setCreateUserData] = useState({ email: '', password: '', name: '', ministry: '', role: 'LEARNER' });
+    const [creatingUser, setCreatingUser] = useState(false);
+
+    // Password Viewing State
+    const [viewingPasswordUserId, setViewingPasswordUserId] = useState<string | null>(null);
+    const [viewedPasswords, setViewedPasswords] = useState<Record<string, string | null>>({});
+    const [loadingPassword, setLoadingPassword] = useState(false);
+
+    // Reset Password Modal State
+    const [resetPasswordUserId, setResetPasswordUserId] = useState<string | null>(null);
+    const [newPasswordValue, setNewPasswordValue] = useState('');
+    const [resettingPassword, setResettingPassword] = useState(false);
+
     // Track deleted lessons for backend sync
     const [deletedLessonIds, setDeletedLessonIds] = useState<string[]>([]);
 
@@ -3402,6 +3420,81 @@ const App: React.FC = () => {
         console.error('Failed to reject user:', err);
       } finally {
         setProcessingUser(null);
+      }
+    };
+
+    // Create new user handler
+    const handleCreateUser = async () => {
+      if (!createUserData.email || !createUserData.password || !createUserData.name) {
+        showToast('error', 'Missing Fields', 'Please fill in all required fields.');
+        return;
+      }
+      setCreatingUser(true);
+      try {
+        const result = await api.admin.createUser(createUserData);
+        setAllUsers(prev => [result.user, ...prev]);
+        setShowCreateUserModal(false);
+        setCreateUserData({ email: '', password: '', name: '', ministry: '', role: 'LEARNER' });
+        showToast('success', 'User Created', `${result.user.name} has been created successfully.`);
+      } catch (err: any) {
+        console.error('Failed to create user:', err);
+        showToast('error', 'Creation Failed', err.message || 'Failed to create user. Please try again.');
+      } finally {
+        setCreatingUser(false);
+      }
+    };
+
+    // View user password handler
+    const handleViewPassword = async (userId: string) => {
+      if (viewedPasswords[userId] !== undefined) {
+        // Already loaded, just toggle visibility
+        setViewingPasswordUserId(viewingPasswordUserId === userId ? null : userId);
+        return;
+      }
+      setLoadingPassword(true);
+      setViewingPasswordUserId(userId);
+      try {
+        const result = await api.admin.getUserPassword(userId);
+        setViewedPasswords(prev => ({ ...prev, [userId]: result.password }));
+      } catch (err) {
+        console.error('Failed to get password:', err);
+        setViewedPasswords(prev => ({ ...prev, [userId]: null }));
+      } finally {
+        setLoadingPassword(false);
+      }
+    };
+
+    // Reset user password handler
+    const handleResetPassword = async () => {
+      if (!resetPasswordUserId || !newPasswordValue || newPasswordValue.length < 6) {
+        showToast('error', 'Invalid Password', 'Password must be at least 6 characters.');
+        return;
+      }
+      setResettingPassword(true);
+      try {
+        await api.admin.resetUserPassword(resetPasswordUserId, newPasswordValue);
+        // Update the cached password
+        setViewedPasswords(prev => ({ ...prev, [resetPasswordUserId]: newPasswordValue }));
+        setResetPasswordUserId(null);
+        setNewPasswordValue('');
+        showToast('success', 'Password Reset', 'User password has been reset successfully.');
+      } catch (err: any) {
+        console.error('Failed to reset password:', err);
+        showToast('error', 'Reset Failed', err.message || 'Failed to reset password. Please try again.');
+      } finally {
+        setResettingPassword(false);
+      }
+    };
+
+    // Update user role handler
+    const handleUpdateUserRole = async (userId: string, newRole: string) => {
+      try {
+        await api.admin.updateUser(userId, { role: newRole });
+        setAllUsers(prev => prev.map(u => u.id === userId ? { ...u, role: newRole } : u));
+        showToast('success', 'Role Updated', `User role has been updated to ${newRole}.`);
+      } catch (err: any) {
+        console.error('Failed to update user role:', err);
+        showToast('error', 'Update Failed', err.message || 'Failed to update user role.');
       }
     };
 
@@ -3580,7 +3673,7 @@ const App: React.FC = () => {
               orderIndex: i
             });
           } else {
-            // Update existing lesson with order
+            // Update existing lesson with order (including quiz data)
             await dataService.updateLesson(lesson.id, {
               title: lesson.title,
               type: lesson.type,
@@ -3590,6 +3683,7 @@ const App: React.FC = () => {
               fileName: lesson.fileName,
               pageCount: lesson.pageCount,
               content: lesson.content,
+              quiz: lesson.quiz,
               orderIndex: i
             });
           }
@@ -4531,7 +4625,7 @@ const App: React.FC = () => {
             </GlassCard>
           )}
 
-          {/* Search and Filter */}
+          {/* Search, Filter and Create User */}
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 relative">
               <input
@@ -4539,77 +4633,295 @@ const App: React.FC = () => {
                 placeholder="Search users by name or email..."
                 value={userSearchQuery}
                 onChange={(e) => setUserSearchQuery(e.target.value)}
-                className="w-full bg-zinc-900/50 border border-white/10 rounded-xl p-4 pl-12 text-white focus:ring-2 focus:ring-yellow-400/50 outline-none transition-all placeholder-zinc-600"
+                className="w-full bg-white/[0.03] backdrop-blur-sm border border-white/[0.08] rounded-2xl p-4 pl-12 text-white focus:ring-2 focus:ring-[#D4AF37]/30 focus:border-[#D4AF37]/40 outline-none transition-all placeholder-zinc-600"
               />
-              <Users size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" />
+              <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" />
             </div>
-            <div className="flex gap-2">
-              {['ALL', 'LEARNER', 'SUPERUSER', 'ADMIN'].map(role => (
+            <div className="flex gap-2 flex-wrap">
+              {['ALL', 'LEARNER', 'SUPERUSER', 'SUBADMIN', 'ADMIN'].map(role => (
                 <button
                   key={role}
                   onClick={() => setUserFilterRole(role)}
                   className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${userFilterRole === role
-                    ? 'bg-yellow-400 text-black'
-                    : 'bg-white/5 border border-white/10 text-zinc-400 hover:bg-white/10'
+                    ? 'bg-[#D4AF37] text-black shadow-[0_0_15px_rgba(212,175,55,0.3)]'
+                    : 'bg-white/[0.03] backdrop-blur-sm border border-white/[0.08] text-zinc-400 hover:bg-white/[0.06] hover:border-white/[0.15]'
                     }`}
                 >
-                  {role === 'ALL' ? 'All Users' : role}
+                  {role === 'ALL' ? 'All' : role}
                 </button>
               ))}
             </div>
+            <button
+              onClick={() => setShowCreateUserModal(true)}
+              className="px-6 py-3 rounded-xl bg-gradient-to-r from-[#D4AF37] to-yellow-500 text-black font-medium flex items-center gap-2 hover:shadow-[0_0_25px_rgba(212,175,55,0.4)] transition-all"
+            >
+              <Plus size={18} />
+              Create User
+            </button>
           </div>
 
-          {/* All Users List */}
-          <GlassCard className="p-0 overflow-hidden">
-            <div className="p-6 border-b border-white/10">
-              <h3 className="text-lg font-helvetica-bold">All Users ({filteredUsers.length})</h3>
-            </div>
-
-            {loadingUsers ? (
-              <div className="p-12 text-center">
-                <Loader2 size={32} className="animate-spin text-[#D4AF37] mx-auto" />
-                <p className="text-zinc-500 mt-4">Loading users...</p>
+          {/* All Users List - Liquid Glass */}
+          <div className="relative group">
+            <div className="absolute -inset-0.5 bg-gradient-to-r from-white/[0.05] via-transparent to-white/[0.05] rounded-[28px] blur-lg opacity-0 group-hover:opacity-100 transition-all duration-700" />
+            <div className="relative rounded-3xl overflow-hidden backdrop-blur-xl bg-white/[0.02] border border-white/[0.08] shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
+              <div className="p-6 border-b border-white/[0.06] flex items-center justify-between">
+                <h3 className="text-lg font-helvetica-bold text-white">All Users ({filteredUsers.length})</h3>
+                <div className="text-xs text-zinc-500">Click on a user to manage</div>
               </div>
-            ) : (
-              <div className="divide-y divide-white/5">
-                {filteredUsers.map(u => (
-                  <div key={u.id} className="p-4 hover:bg-white/[0.02] transition-colors flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center font-helvetica-bold ${u.is_approved ? 'bg-yellow-400 text-black' : 'bg-zinc-700 text-zinc-400'
-                        }`}>
-                        {u.name?.charAt(0).toUpperCase() || '?'}
+
+              {loadingUsers ? (
+                <div className="p-12 text-center">
+                  <Loader2 size={32} className="animate-spin text-[#D4AF37] mx-auto" />
+                  <p className="text-zinc-500 mt-4">Loading users...</p>
+                </div>
+              ) : (
+                <div className="divide-y divide-white/[0.04]">
+                  {filteredUsers.map(u => (
+                    <div key={u.id} className="group/user">
+                      <div className="p-5 hover:bg-white/[0.02] transition-all duration-300 flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-helvetica-bold text-lg transition-all ${
+                            u.role === 'ADMIN' ? 'bg-gradient-to-br from-[#D4AF37]/30 to-[#D4AF37]/10 border border-[#D4AF37]/40 text-[#D4AF37]' :
+                            u.role === 'SUBADMIN' ? 'bg-gradient-to-br from-purple-500/30 to-purple-500/10 border border-purple-500/40 text-purple-400' :
+                            u.role === 'SUPERUSER' ? 'bg-gradient-to-br from-blue-500/30 to-blue-500/10 border border-blue-500/40 text-blue-400' :
+                            u.is_approved ? 'bg-gradient-to-br from-zinc-700 to-zinc-800 border border-white/10 text-white' :
+                            'bg-zinc-800/50 border border-zinc-700/50 text-zinc-500'
+                          }`}>
+                            {u.name?.charAt(0).toUpperCase() || '?'}
+                          </div>
+                          <div>
+                            <div className="font-medium text-white flex items-center gap-2">
+                              {u.name}
+                              {!u.is_approved && (
+                                <span className="text-[10px] px-2 py-0.5 rounded-full bg-yellow-400/20 text-[#D4AF37] border border-yellow-400/30">PENDING</span>
+                              )}
+                              {!u.is_active && (
+                                <span className="text-[10px] px-2 py-0.5 rounded-full bg-red-400/20 text-red-400 border border-red-400/30">INACTIVE</span>
+                              )}
+                            </div>
+                            <div className="text-sm text-zinc-500">{u.email}</div>
+                            <div className="text-xs text-zinc-600 mt-0.5">{u.ministry}</div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-3">
+                          {/* Role Selector */}
+                          <select
+                            value={u.role}
+                            onChange={(e) => handleUpdateUserRole(u.id, e.target.value)}
+                            className="bg-white/[0.03] border border-white/[0.08] rounded-lg px-3 py-1.5 text-sm text-white focus:ring-1 focus:ring-[#D4AF37]/30 outline-none cursor-pointer"
+                          >
+                            <option value="LEARNER" className="bg-zinc-900">LEARNER</option>
+                            <option value="SUPERUSER" className="bg-zinc-900">SUPERUSER</option>
+                            <option value="SUBADMIN" className="bg-zinc-900">SUBADMIN</option>
+                            <option value="ADMIN" className="bg-zinc-900">ADMIN</option>
+                          </select>
+
+                          {/* Password Viewing */}
+                          <button
+                            onClick={() => handleViewPassword(u.id)}
+                            className="p-2 rounded-lg bg-white/[0.03] border border-white/[0.08] text-zinc-400 hover:text-white hover:bg-white/[0.06] transition-all"
+                            title="View Password"
+                          >
+                            {viewingPasswordUserId === u.id && loadingPassword ? (
+                              <Loader2 size={16} className="animate-spin" />
+                            ) : viewingPasswordUserId === u.id ? (
+                              <EyeOff size={16} />
+                            ) : (
+                              <Eye size={16} />
+                            )}
+                          </button>
+
+                          {/* Reset Password */}
+                          <button
+                            onClick={() => setResetPasswordUserId(u.id)}
+                            className="p-2 rounded-lg bg-white/[0.03] border border-white/[0.08] text-zinc-400 hover:text-yellow-400 hover:border-yellow-400/30 transition-all"
+                            title="Reset Password"
+                          >
+                            <Key size={16} />
+                          </button>
+
+                          <Badge type={u.is_approved ? 'success' : 'warning'}>{u.is_approved ? 'Active' : 'Pending'}</Badge>
+                        </div>
+                      </div>
+
+                      {/* Password Display Row */}
+                      {viewingPasswordUserId === u.id && !loadingPassword && (
+                        <div className="px-5 pb-4 -mt-2">
+                          <div className="p-3 rounded-lg bg-white/[0.02] border border-white/[0.05] flex items-center gap-3">
+                            <Lock size={14} className="text-zinc-500" />
+                            <span className="text-sm text-zinc-400">Password:</span>
+                            {viewedPasswords[u.id] ? (
+                              <code className="text-sm text-[#D4AF37] font-mono bg-black/30 px-2 py-0.5 rounded">{viewedPasswords[u.id]}</code>
+                            ) : (
+                              <span className="text-sm text-zinc-500 italic">Not available (user set their own password)</span>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+
+                  {filteredUsers.length === 0 && (
+                    <div className="p-12 text-center text-zinc-500">
+                      No users found matching your criteria.
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Create User Modal */}
+          {showCreateUserModal && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center">
+              <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setShowCreateUserModal(false)} />
+              <div className="relative w-full max-w-lg mx-4">
+                <div className="absolute -inset-1 bg-gradient-to-r from-[#D4AF37]/30 via-yellow-500/20 to-[#D4AF37]/30 rounded-[28px] blur-xl opacity-60" />
+                <div className="relative rounded-3xl overflow-hidden backdrop-blur-2xl bg-gradient-to-br from-zinc-900/95 via-black/95 to-zinc-900/95 border border-[#D4AF37]/30 shadow-[0_8px_32px_rgba(0,0,0,0.5)] p-8">
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#D4AF37]/30 to-[#D4AF37]/10 border border-[#D4AF37]/40 flex items-center justify-center">
+                        <UserPlus size={24} className="text-[#D4AF37]" />
                       </div>
                       <div>
-                        <div className="font-medium text-white flex items-center gap-2">
-                          {u.name}
-                          {!u.is_approved && (
-                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-yellow-400/20 text-[#D4AF37]">PENDING</span>
-                          )}
-                          {!u.is_active && (
-                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-red-400/20 text-red-400">INACTIVE</span>
-                          )}
-                        </div>
-                        <div className="text-sm text-zinc-500">{u.email}</div>
+                        <h3 className="text-xl font-helvetica-bold text-white">Create New User</h3>
+                        <p className="text-sm text-zinc-500">User will be auto-approved</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-4">
-                      <div className="text-right hidden md:block">
-                        <div className="text-sm text-zinc-400">{u.ministry}</div>
-                        <div className="text-xs text-zinc-600">{u.role}</div>
-                      </div>
-                      <Badge type={u.is_approved ? 'success' : 'warning'}>{u.is_approved ? 'Active' : 'Pending'}</Badge>
-                    </div>
+                    <button onClick={() => setShowCreateUserModal(false)} className="p-2 rounded-lg hover:bg-white/10 transition-colors">
+                      <X size={20} className="text-zinc-400" />
+                    </button>
                   </div>
-                ))}
 
-                {filteredUsers.length === 0 && (
-                  <div className="p-12 text-center text-zinc-500">
-                    No users found matching your criteria.
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm text-zinc-400 mb-2">Full Name *</label>
+                      <input
+                        type="text"
+                        value={createUserData.name}
+                        onChange={(e) => setCreateUserData(prev => ({ ...prev, name: e.target.value }))}
+                        className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl p-3 text-white focus:ring-2 focus:ring-[#D4AF37]/30 focus:border-[#D4AF37]/40 outline-none"
+                        placeholder="John Doe"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-zinc-400 mb-2">Email Address *</label>
+                      <input
+                        type="email"
+                        value={createUserData.email}
+                        onChange={(e) => setCreateUserData(prev => ({ ...prev, email: e.target.value }))}
+                        className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl p-3 text-white focus:ring-2 focus:ring-[#D4AF37]/30 focus:border-[#D4AF37]/40 outline-none"
+                        placeholder="john@ministry.gov"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-zinc-400 mb-2">Password *</label>
+                      <input
+                        type="text"
+                        value={createUserData.password}
+                        onChange={(e) => setCreateUserData(prev => ({ ...prev, password: e.target.value }))}
+                        className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl p-3 text-white focus:ring-2 focus:ring-[#D4AF37]/30 focus:border-[#D4AF37]/40 outline-none font-mono"
+                        placeholder="Initial password"
+                      />
+                      <p className="text-xs text-zinc-600 mt-1">This password will be viewable by admins</p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm text-zinc-400 mb-2">Ministry</label>
+                        <input
+                          type="text"
+                          value={createUserData.ministry}
+                          onChange={(e) => setCreateUserData(prev => ({ ...prev, ministry: e.target.value }))}
+                          className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl p-3 text-white focus:ring-2 focus:ring-[#D4AF37]/30 focus:border-[#D4AF37]/40 outline-none"
+                          placeholder="Finance Ministry"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-zinc-400 mb-2">Role</label>
+                        <select
+                          value={createUserData.role}
+                          onChange={(e) => setCreateUserData(prev => ({ ...prev, role: e.target.value }))}
+                          className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl p-3 text-white focus:ring-2 focus:ring-[#D4AF37]/30 focus:border-[#D4AF37]/40 outline-none"
+                        >
+                          <option value="LEARNER" className="bg-zinc-900">LEARNER</option>
+                          <option value="SUPERUSER" className="bg-zinc-900">SUPERUSER</option>
+                          <option value="SUBADMIN" className="bg-zinc-900">SUBADMIN</option>
+                          <option value="ADMIN" className="bg-zinc-900">ADMIN</option>
+                        </select>
+                      </div>
+                    </div>
                   </div>
-                )}
+
+                  <div className="flex gap-3 mt-8">
+                    <button
+                      onClick={() => setShowCreateUserModal(false)}
+                      className="flex-1 px-4 py-3 rounded-xl bg-white/[0.03] border border-white/[0.08] text-zinc-400 hover:bg-white/[0.06] transition-all"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleCreateUser}
+                      disabled={creatingUser || !createUserData.email || !createUserData.password || !createUserData.name}
+                      className="flex-1 px-4 py-3 rounded-xl bg-gradient-to-r from-[#D4AF37] to-yellow-500 text-black font-medium hover:shadow-[0_0_25px_rgba(212,175,55,0.4)] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    >
+                      {creatingUser ? <Loader2 size={18} className="animate-spin" /> : <UserPlus size={18} />}
+                      Create User
+                    </button>
+                  </div>
+                </div>
               </div>
-            )}
-          </GlassCard>
+            </div>
+          )}
+
+          {/* Reset Password Modal */}
+          {resetPasswordUserId && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center">
+              <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => { setResetPasswordUserId(null); setNewPasswordValue(''); }} />
+              <div className="relative w-full max-w-md mx-4">
+                <div className="absolute -inset-1 bg-gradient-to-r from-yellow-500/20 via-orange-500/20 to-yellow-500/20 rounded-[28px] blur-xl opacity-60" />
+                <div className="relative rounded-3xl overflow-hidden backdrop-blur-2xl bg-gradient-to-br from-zinc-900/95 via-black/95 to-zinc-900/95 border border-yellow-500/30 shadow-[0_8px_32px_rgba(0,0,0,0.5)] p-8">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-yellow-400/30 to-orange-500/10 border border-yellow-400/40 flex items-center justify-center">
+                      <Key size={24} className="text-yellow-400" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-helvetica-bold text-white">Reset Password</h3>
+                      <p className="text-sm text-zinc-500">Set a new password for this user</p>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm text-zinc-400 mb-2">New Password</label>
+                    <input
+                      type="text"
+                      value={newPasswordValue}
+                      onChange={(e) => setNewPasswordValue(e.target.value)}
+                      className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl p-3 text-white focus:ring-2 focus:ring-yellow-400/30 focus:border-yellow-400/40 outline-none font-mono"
+                      placeholder="Enter new password (min 6 characters)"
+                    />
+                  </div>
+
+                  <div className="flex gap-3 mt-6">
+                    <button
+                      onClick={() => { setResetPasswordUserId(null); setNewPasswordValue(''); }}
+                      className="flex-1 px-4 py-3 rounded-xl bg-white/[0.03] border border-white/[0.08] text-zinc-400 hover:bg-white/[0.06] transition-all"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleResetPassword}
+                      disabled={resettingPassword || newPasswordValue.length < 6}
+                      className="flex-1 px-4 py-3 rounded-xl bg-gradient-to-r from-yellow-400 to-orange-500 text-black font-medium hover:shadow-[0_0_25px_rgba(250,204,21,0.4)] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    >
+                      {resettingPassword ? <Loader2 size={18} className="animate-spin" /> : <Key size={18} />}
+                      Reset Password
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       );
     };

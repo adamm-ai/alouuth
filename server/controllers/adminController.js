@@ -1,4 +1,5 @@
 import pool from '../config/database.js';
+import bcrypt from 'bcryptjs';
 
 // Get admin dashboard stats with real data
 export const getDashboardStats = async (req, res) => {
@@ -531,5 +532,189 @@ export const setLessonPassingScore = async (req, res) => {
   } catch (error) {
     console.error('Set lesson passing score error:', error);
     res.status(500).json({ error: 'Failed to set passing score.' });
+  }
+};
+
+// ===========================================
+// ADMIN: CREATE USER (bypasses approval)
+// ===========================================
+export const createUser = async (req, res) => {
+  try {
+    const { email, password, name, ministry, role = 'LEARNER' } = req.body;
+
+    // Validate required fields
+    if (!email || !password || !name) {
+      return res.status(400).json({ error: 'Email, password, and name are required.' });
+    }
+
+    // Check if user exists
+    const existingUser = await pool.query(
+      'SELECT id FROM users WHERE email = $1',
+      [email.toLowerCase()]
+    );
+
+    if (existingUser.rows.length > 0) {
+      return res.status(400).json({ error: 'Email already registered.' });
+    }
+
+    // Hash password
+    const salt = await bcrypt.genSalt(12);
+    const passwordHash = await bcrypt.hash(password, salt);
+
+    // Create user with is_approved = true (admin-created users are auto-approved)
+    // Also store the plain password for admin viewing (security tradeoff per user request)
+    const result = await pool.query(
+      `INSERT INTO users (email, password_hash, password_plain, name, ministry, role, is_approved, approved_by, approved_at)
+       VALUES ($1, $2, $3, $4, $5, $6, true, $7, CURRENT_TIMESTAMP)
+       RETURNING id, email, name, role, ministry, created_at, is_approved`,
+      [email.toLowerCase(), passwordHash, password, name, ministry || 'Unassigned', role, req.user.id]
+    );
+
+    const user = result.rows[0];
+
+    res.status(201).json({
+      message: 'User created successfully',
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        ministry: user.ministry,
+        isApproved: user.is_approved
+      }
+    });
+  } catch (error) {
+    console.error('Create user error:', error);
+    // Handle missing password_plain column gracefully
+    if (error.code === '42703') {
+      // Column doesn't exist, try without password_plain
+      try {
+        const { email, password, name, ministry, role = 'LEARNER' } = req.body;
+        const salt = await bcrypt.genSalt(12);
+        const passwordHash = await bcrypt.hash(password, salt);
+
+        const result = await pool.query(
+          `INSERT INTO users (email, password_hash, name, ministry, role, is_approved, approved_by, approved_at)
+           VALUES ($1, $2, $3, $4, $5, true, $6, CURRENT_TIMESTAMP)
+           RETURNING id, email, name, role, ministry, created_at, is_approved`,
+          [email.toLowerCase(), passwordHash, name, ministry || 'Unassigned', role, req.user.id]
+        );
+
+        const user = result.rows[0];
+        return res.status(201).json({
+          message: 'User created successfully (password viewing not available - database migration needed)',
+          user: {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            role: user.role,
+            ministry: user.ministry,
+            isApproved: user.is_approved
+          }
+        });
+      } catch (innerError) {
+        console.error('Fallback create user error:', innerError);
+        return res.status(500).json({ error: 'Failed to create user.' });
+      }
+    }
+    res.status(500).json({ error: 'Failed to create user.' });
+  }
+};
+
+// ===========================================
+// ADMIN: RESET USER PASSWORD
+// ===========================================
+export const resetUserPassword = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { newPassword } = req.body;
+
+    if (!newPassword || newPassword.length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters.' });
+    }
+
+    // Check if user exists
+    const userCheck = await pool.query('SELECT id, email FROM users WHERE id = $1', [userId]);
+    if (userCheck.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found.' });
+    }
+
+    // Hash new password
+    const salt = await bcrypt.genSalt(12);
+    const passwordHash = await bcrypt.hash(newPassword, salt);
+
+    // Update password hash and plain password
+    try {
+      await pool.query(
+        `UPDATE users SET password_hash = $1, password_plain = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3`,
+        [passwordHash, newPassword, userId]
+      );
+    } catch (dbErr) {
+      // Fallback if password_plain column doesn't exist
+      if (dbErr.code === '42703') {
+        await pool.query(
+          `UPDATE users SET password_hash = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2`,
+          [passwordHash, userId]
+        );
+      } else {
+        throw dbErr;
+      }
+    }
+
+    res.json({
+      message: 'Password reset successfully',
+      userId: userId
+    });
+  } catch (error) {
+    console.error('Reset password error:', error);
+    res.status(500).json({ error: 'Failed to reset password.' });
+  }
+};
+
+// ===========================================
+// ADMIN: GET USER PASSWORD (if stored)
+// ===========================================
+export const getUserPassword = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const result = await pool.query(
+      'SELECT id, email, name, password_plain FROM users WHERE id = $1',
+      [userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found.' });
+    }
+
+    const user = result.rows[0];
+
+    if (!user.password_plain) {
+      return res.json({
+        userId: user.id,
+        email: user.email,
+        name: user.name,
+        password: null,
+        message: 'Password not available. User may have set their own password or database migration needed.'
+      });
+    }
+
+    res.json({
+      userId: user.id,
+      email: user.email,
+      name: user.name,
+      password: user.password_plain
+    });
+  } catch (error) {
+    console.error('Get user password error:', error);
+    // Handle missing column
+    if (error.code === '42703') {
+      return res.json({
+        userId: req.params.userId,
+        password: null,
+        message: 'Password viewing not available. Database migration needed to add password_plain column.'
+      });
+    }
+    res.status(500).json({ error: 'Failed to get password.' });
   }
 };

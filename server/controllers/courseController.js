@@ -373,7 +373,8 @@ export const addLesson = async (req, res) => {
       pageCount,
       content,
       isExternalLink,
-      orderIndex
+      orderIndex,
+      quiz
     } = req.body;
 
     // Get max order index if not provided
@@ -402,6 +403,30 @@ export const addLesson = async (req, res) => {
 
     const lesson = result.rows[0];
 
+    // If quiz questions were provided, create them
+    let savedQuiz = [];
+    if (quiz && Array.isArray(quiz) && quiz.length > 0) {
+      for (let i = 0; i < quiz.length; i++) {
+        const q = quiz[i];
+        if (q.question && q.options) {
+          const quizResult = await pool.query(`
+            INSERT INTO quiz_questions (lesson_id, question, options, correct_answer, explanation, order_index)
+            VALUES ($1, $2, $3, $4, $5, $6)
+            RETURNING *
+          `, [lesson.id, q.question, JSON.stringify(q.options), q.correctAnswer || 0, q.explanation || null, i]);
+
+          const savedQ = quizResult.rows[0];
+          savedQuiz.push({
+            id: savedQ.id,
+            question: savedQ.question,
+            options: savedQ.options,
+            correctAnswer: savedQ.correct_answer,
+            explanation: savedQ.explanation
+          });
+        }
+      }
+    }
+
     // Return lesson in camelCase format
     res.status(201).json({
       message: 'Lesson added successfully',
@@ -417,7 +442,7 @@ export const addLesson = async (req, res) => {
         fileName: lesson.file_name,
         pageCount: lesson.page_count,
         content: lesson.content,
-        quiz: []
+        quiz: savedQuiz
       }
     });
   } catch (error) {
@@ -431,6 +456,7 @@ export const updateLesson = async (req, res) => {
   try {
     const { lessonId } = req.params;
     const updates = req.body;
+    const { quiz } = updates;
 
     const setClauses = [];
     const values = [];
@@ -443,6 +469,7 @@ export const updateLesson = async (req, res) => {
     ];
 
     for (const [key, value] of Object.entries(updates)) {
+      if (key === 'quiz') continue; // Handle quiz separately
       const snakeKey = key.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
       if (allowedFields.includes(snakeKey)) {
         setClauses.push(`${snakeKey} = $${paramCount}`);
@@ -451,25 +478,111 @@ export const updateLesson = async (req, res) => {
       }
     }
 
-    if (setClauses.length === 0) {
-      return res.status(400).json({ error: 'No valid fields to update.' });
+    // Update lesson fields if there are any
+    let lesson;
+    if (setClauses.length > 0) {
+      setClauses.push('updated_at = CURRENT_TIMESTAMP');
+      values.push(lessonId);
+
+      const result = await pool.query(`
+        UPDATE lessons
+        SET ${setClauses.join(', ')}
+        WHERE id = $${paramCount}
+        RETURNING *
+      `, values);
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Lesson not found.' });
+      }
+      lesson = result.rows[0];
+    } else {
+      // Just fetch the lesson if no fields to update
+      const result = await pool.query('SELECT * FROM lessons WHERE id = $1', [lessonId]);
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Lesson not found.' });
+      }
+      lesson = result.rows[0];
     }
 
-    setClauses.push('updated_at = CURRENT_TIMESTAMP');
-    values.push(lessonId);
+    // Handle quiz synchronization if quiz array is provided
+    let savedQuiz = [];
+    if (quiz !== undefined && Array.isArray(quiz)) {
+      // Get existing quiz questions for this lesson
+      const existingQuizResult = await pool.query(
+        'SELECT id FROM quiz_questions WHERE lesson_id = $1',
+        [lessonId]
+      );
+      const existingIds = existingQuizResult.rows.map(q => q.id);
 
-    const result = await pool.query(`
-      UPDATE lessons
-      SET ${setClauses.join(', ')}
-      WHERE id = $${paramCount}
-      RETURNING *
-    `, values);
+      // Track which IDs from the new quiz are real (not temp IDs starting with 'q-')
+      const newQuizRealIds = quiz.filter(q => q.id && !q.id.startsWith('q-')).map(q => q.id);
 
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Lesson not found.' });
+      // Delete quiz questions that are no longer in the new quiz
+      const idsToDelete = existingIds.filter(id => !newQuizRealIds.includes(id));
+      for (const idToDelete of idsToDelete) {
+        await pool.query('DELETE FROM quiz_questions WHERE id = $1', [idToDelete]);
+      }
+
+      // Update existing questions and add new ones
+      for (let i = 0; i < quiz.length; i++) {
+        const q = quiz[i];
+        if (!q.question && (!q.options || q.options.length === 0)) {
+          continue; // Skip empty questions
+        }
+
+        const isNewQuestion = !q.id || q.id.startsWith('q-');
+
+        if (isNewQuestion) {
+          // Insert new question
+          const insertResult = await pool.query(`
+            INSERT INTO quiz_questions (lesson_id, question, options, correct_answer, explanation, order_index)
+            VALUES ($1, $2, $3, $4, $5, $6)
+            RETURNING *
+          `, [lessonId, q.question || '', JSON.stringify(q.options || []), q.correctAnswer || 0, q.explanation || null, i]);
+
+          const savedQ = insertResult.rows[0];
+          savedQuiz.push({
+            id: savedQ.id,
+            question: savedQ.question,
+            options: savedQ.options,
+            correctAnswer: savedQ.correct_answer,
+            explanation: savedQ.explanation
+          });
+        } else {
+          // Update existing question
+          const updateResult = await pool.query(`
+            UPDATE quiz_questions
+            SET question = $1, options = $2, correct_answer = $3, explanation = $4, order_index = $5
+            WHERE id = $6
+            RETURNING *
+          `, [q.question || '', JSON.stringify(q.options || []), q.correctAnswer || 0, q.explanation || null, i, q.id]);
+
+          if (updateResult.rows.length > 0) {
+            const savedQ = updateResult.rows[0];
+            savedQuiz.push({
+              id: savedQ.id,
+              question: savedQ.question,
+              options: savedQ.options,
+              correctAnswer: savedQ.correct_answer,
+              explanation: savedQ.explanation
+            });
+          }
+        }
+      }
+    } else {
+      // Fetch existing quiz if not updating
+      const quizResult = await pool.query(
+        'SELECT * FROM quiz_questions WHERE lesson_id = $1 ORDER BY order_index',
+        [lessonId]
+      );
+      savedQuiz = quizResult.rows.map(q => ({
+        id: q.id,
+        question: q.question,
+        options: q.options,
+        correctAnswer: q.correct_answer,
+        explanation: q.explanation
+      }));
     }
-
-    const lesson = result.rows[0];
 
     // Return lesson in camelCase format
     res.json({
@@ -485,7 +598,8 @@ export const updateLesson = async (req, res) => {
         fileUrl: lesson.file_url,
         fileName: lesson.file_name,
         pageCount: lesson.page_count,
-        content: lesson.content
+        content: lesson.content,
+        quiz: savedQuiz
       }
     });
   } catch (error) {

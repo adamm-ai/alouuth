@@ -59,6 +59,20 @@ export const requireRole = (...roles) => {
   };
 };
 
+// Middleware specifically for user management - only ADMIN, not SUBADMIN
+export const requireUserManagement = (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({ error: 'Authentication required.' });
+  }
+
+  // Only full ADMIN can manage users, not SUBADMIN
+  if (req.user.role !== 'ADMIN') {
+    return res.status(403).json({ error: 'User management requires full administrator privileges.' });
+  }
+
+  next();
+};
+
 export const optionalAuth = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;

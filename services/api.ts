@@ -463,6 +463,24 @@ export const adminAPI = {
       body: JSON.stringify(data),
     }),
 
+  // Create new user (Admin only)
+  createUser: (data: { email: string; password: string; name: string; ministry?: string; role?: string }) =>
+    fetchAPI<{ message: string; user: any }>('/admin/users', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  // Reset user password (Admin only)
+  resetUserPassword: (userId: string, newPassword: string) =>
+    fetchAPI<{ message: string; userId: string }>(`/admin/users/${userId}/reset-password`, {
+      method: 'POST',
+      body: JSON.stringify({ newPassword }),
+    }),
+
+  // Get user password (Admin only - if stored)
+  getUserPassword: (userId: string) =>
+    fetchAPI<{ userId: string; email?: string; name?: string; password: string | null; message?: string }>(`/admin/users/${userId}/password`),
+
   getCoursesWithStats: () =>
     fetchAPI<{ courses: any[] }>('/admin/courses'),
 
