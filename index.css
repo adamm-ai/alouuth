@@ -308,39 +308,52 @@
   transform: translateY(-4px);
 }
 
-/* Liquid Glass Text Effect with Glowing Shimmer */
+/* Liquid Glass Text Effect with Luxurious Glowing Shimmer */
 @keyframes liquid-glass-shimmer {
   0% {
     background-position: -200% 0;
-    box-shadow: 0 0 20px rgba(212, 175, 55, 0.1), inset 0 0 20px rgba(255, 255, 255, 0.02);
-  }
-  50% {
-    box-shadow: 0 0 40px rgba(212, 175, 55, 0.3), inset 0 0 30px rgba(255, 255, 255, 0.08);
   }
   100% {
     background-position: 200% 0;
-    box-shadow: 0 0 20px rgba(212, 175, 55, 0.1), inset 0 0 20px rgba(255, 255, 255, 0.02);
+  }
+}
+
+@keyframes luxury-glow-pulse {
+  0%, 100% {
+    box-shadow:
+      0 0 30px rgba(212, 175, 55, 0.08),
+      0 0 60px rgba(212, 175, 55, 0.04),
+      inset 0 1px 1px rgba(255, 255, 255, 0.1),
+      inset 0 -1px 1px rgba(0, 0, 0, 0.1);
+  }
+  50% {
+    box-shadow:
+      0 0 50px rgba(212, 175, 55, 0.15),
+      0 0 100px rgba(212, 175, 55, 0.08),
+      0 0 150px rgba(245, 215, 110, 0.05),
+      inset 0 1px 2px rgba(255, 255, 255, 0.15),
+      inset 0 -1px 1px rgba(0, 0, 0, 0.1);
   }
 }
 
 .liquid-glass-text {
   position: relative;
   display: inline-block;
-  padding: 0.1em 0.4em;
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0.03) 0%,
-    rgba(212, 175, 55, 0.08) 25%,
-    rgba(255, 255, 255, 0.15) 50%,
-    rgba(212, 175, 55, 0.08) 75%,
-    rgba(255, 255, 255, 0.03) 100%
-  );
-  background-size: 200% 100%;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  animation: liquid-glass-shimmer 3s ease-in-out infinite;
+  padding: 0.5em 1em;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.08) 0%,
+      rgba(255, 255, 255, 0.02) 50%,
+      rgba(255, 255, 255, 0.05) 100%
+    );
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-top-color: rgba(255, 255, 255, 0.2);
+  border-left-color: rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  animation: luxury-glow-pulse 4s ease-in-out infinite;
 }
 
 .liquid-glass-text::before {
@@ -351,11 +364,30 @@
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(212, 175, 55, 0.4) 50%,
+    transparent 30%,
+    rgba(245, 215, 110, 0.12) 45%,
+    rgba(255, 255, 255, 0.25) 50%,
+    rgba(245, 215, 110, 0.12) 55%,
+    transparent 70%,
     transparent 100%
   );
   background-size: 200% 100%;
-  animation: liquid-glass-shimmer 3s ease-in-out infinite;
-  opacity: 0.5;
+  animation: liquid-glass-shimmer 4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  pointer-events: none;
+}
+
+.liquid-glass-text::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  border-radius: 20px 20px 100px 100px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.08) 0%,
+    transparent 100%
+  );
   pointer-events: none;
 }
