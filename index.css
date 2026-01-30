@@ -368,22 +368,23 @@
   }
 }
 
-/* Deep pulsing depth effect */
+/* Deep pulsing depth effect with liquid glow */
 @keyframes mercury-depth {
   0%, 100% {
     box-shadow:
-      inset 0 0 120px rgba(0, 0, 0, 0.7),
-      inset 0 0 60px rgba(0, 0, 0, 0.5),
-      inset 0 2px 4px rgba(255, 255, 255, 0.03),
-      0 0 40px rgba(0, 0, 0, 0.6);
+      inset 0 0 60px rgba(0, 0, 0, 0.4),
+      inset 0 0 30px rgba(0, 0, 0, 0.3),
+      inset 0 1px 2px rgba(255, 255, 255, 0.05),
+      0 0 30px rgba(0, 0, 0, 0.4),
+      0 0 60px rgba(212, 175, 55, 0.05);
   }
   50% {
     box-shadow:
-      inset 0 0 100px rgba(0, 0, 0, 0.6),
-      inset 0 0 80px rgba(0, 0, 0, 0.4),
-      inset 0 2px 8px rgba(212, 175, 55, 0.05),
-      0 0 50px rgba(0, 0, 0, 0.5),
-      0 0 80px rgba(212, 175, 55, 0.03);
+      inset 0 0 50px rgba(0, 0, 0, 0.35),
+      inset 0 0 40px rgba(0, 0, 0, 0.25),
+      inset 0 1px 4px rgba(212, 175, 55, 0.08),
+      0 0 40px rgba(0, 0, 0, 0.35),
+      0 0 80px rgba(212, 175, 55, 0.08);
   }
 }
 
@@ -411,14 +412,14 @@
   padding: 0.7em 1.4em;
   background: linear-gradient(
     160deg,
-    rgba(8, 8, 10, 0.95) 0%,
-    rgba(3, 3, 5, 0.98) 40%,
-    rgba(6, 6, 8, 0.96) 100%
+    rgba(8, 8, 10, 0.65) 0%,
+    rgba(3, 3, 5, 0.7) 40%,
+    rgba(6, 6, 8, 0.65) 100%
   );
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  border: 1px solid rgba(255, 255, 255, 0.04);
-  border-top-color: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-top-color: rgba(255, 255, 255, 0.12);
   border-radius: 28px;
   animation: mercury-depth 8s ease-in-out infinite;
   overflow: hidden;

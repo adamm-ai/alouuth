@@ -1119,12 +1119,12 @@ const App: React.FC = () => {
             transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.3 }}
             className="max-w-5xl mx-auto text-center relative"
           >
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-helvetica-bold leading-[1.15] mb-8 tracking-tight liquid-glass-text uppercase">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-helvetica-bold leading-[1.2] mb-8 tracking-tight liquid-glass-text uppercase">
               <span className="mercury-blob" aria-hidden="true" />
               <span className="mercury-sheen" aria-hidden="true" />
-              <span className="relative z-[1] text-white">NATIONAL AI INFRASTRUCTURE</span>
+              <span className="relative z-[1] text-white whitespace-nowrap">NATIONAL AI INFRASTRUCTURE</span>
               <br />
-              <span className="relative z-[1] text-transparent bg-clip-text bg-gradient-to-r from-[#F5D76E] via-[#D4AF37] to-[#B8962E]">
+              <span className="relative z-[1] text-transparent bg-clip-text bg-gradient-to-r from-[#F5D76E] via-[#D4AF37] to-[#B8962E] whitespace-nowrap">
                 REQUIRES NATIONAL EXPERTISE.
               </span>
             </h1>
