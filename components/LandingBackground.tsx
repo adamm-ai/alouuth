@@ -1,14 +1,8 @@
 import React, { useEffect, useRef, useCallback } from 'react';
 
 /**
- * Premium Landing Background - Neuromarketing Optimized
- *
- * Design principles:
- * - Golden ratio timing (φ = 1.618) for natural, satisfying rhythm
- * - Subtle luminosity - attention-catching without being overwhelming
- * - Organic breathing animation creates subconscious sense of life
- * - Refined mouse interaction with elegant easing
- * - Sober luxury aesthetic - Figma-quality refinement
+ * Premium Landing Background - Liquid Gold Dots
+ * Small, refined, liquid-like animation
  */
 export const LandingBackground: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -26,7 +20,6 @@ export const LandingBackground: React.FC = () => {
     const ctx = canvas.getContext('2d', { alpha: false });
     if (!ctx) return;
 
-    // Smooth 60fps throttle
     const deltaTime = currentTime - lastFrameTime.current;
     if (deltaTime < 16) {
       animationRef.current = requestAnimationFrame(animate);
@@ -38,75 +31,59 @@ export const LandingBackground: React.FC = () => {
     const width = canvas.width / dpr;
     const height = canvas.height / dpr;
 
-    // Golden ratio based time progression for natural rhythm
-    const PHI = 1.618;
-    timeRef.current += 0.004;
+    // Slow liquid time flow
+    timeRef.current += 0.003;
     const time = timeRef.current;
 
-    // Silky smooth mouse interpolation (luxury feel)
-    const mouseSmoothing = 0.08;
-    mousePos.current.x += (targetMousePos.current.x - mousePos.current.x) * mouseSmoothing;
-    mousePos.current.y += (targetMousePos.current.y - mousePos.current.y) * mouseSmoothing;
+    // Ultra smooth mouse tracking (liquid feel)
+    mousePos.current.x += (targetMousePos.current.x - mousePos.current.x) * 0.06;
+    mousePos.current.y += (targetMousePos.current.y - mousePos.current.y) * 0.06;
 
-    // Deep black canvas
-    ctx.fillStyle = '#030303';
+    // Pure black
+    ctx.fillStyle = '#000000';
     ctx.fillRect(0, 0, width, height);
 
-    // Refined configuration
-    const gridSize = 48;
-    const baseAlpha = 0.06;        // Subtle base presence
-    const hoverAlpha = 0.45;       // Elegant hover intensity (not overwhelming)
-    const mouseRadius = 220;       // Intimate interaction radius
+    const gridSize = 50;
+    const mouseRadius = 180;
     const mouseRadiusSq = mouseRadius * mouseRadius;
 
-    // Calculate grid
     const cols = Math.ceil(width / gridSize) + 1;
     const rows = Math.ceil(height / gridSize) + 1;
 
-    // Global wave for cohesive breathing (golden ratio frequency)
-    const globalBreath = 0.5 + 0.5 * Math.sin(time * PHI * 0.5);
-
+    // Draw lines first
     ctx.globalCompositeOperation = 'lighter';
 
-    // First pass: Draw connection lines (behind nodes)
-    ctx.lineWidth = 0.5;
     for (let i = 0; i < cols; i++) {
       for (let j = 0; j < rows; j++) {
         const x = i * gridSize;
         const y = j * gridSize;
 
-        // Unique phase per node (creates wave propagation effect)
-        const nodePhase = (i * 0.618 + j * 0.382) * PHI;
-        const localBreath = 0.6 + 0.4 * Math.sin(nodePhase + time * 0.8);
-
         const dx = x - mousePos.current.x;
         const dy = y - mousePos.current.y;
         const distSq = dx * dx + dy * dy;
 
-        let lineAlpha = baseAlpha * 0.4 * localBreath * globalBreath;
+        // Liquid wave phase
+        const phase = i * 0.4 + j * 0.3;
+        const wave = Math.sin(phase + time * 0.6) * 0.5 + 0.5;
+
+        let lineAlpha = 0.03 + 0.02 * wave;
 
         if (isMouseActive.current && distSq < mouseRadiusSq) {
-          const dist = Math.sqrt(distSq);
-          const t = 1 - (dist / mouseRadius);
-          // Quintic ease-out for luxurious deceleration
-          const easeT = 1 - Math.pow(1 - t, 5);
-          lineAlpha = Math.max(lineAlpha, hoverAlpha * 0.3 * easeT);
+          const t = 1 - Math.sqrt(distSq) / mouseRadius;
+          const smooth = t * t * t;
+          lineAlpha = 0.03 + 0.12 * smooth;
         }
 
-        if (lineAlpha < 0.008) continue;
+        ctx.strokeStyle = `rgba(160, 130, 50, ${lineAlpha})`;
+        ctx.lineWidth = 0.5;
 
-        // Right connection
         if (i < cols - 1) {
-          ctx.strokeStyle = `rgba(180, 155, 60, ${lineAlpha})`;
           ctx.beginPath();
           ctx.moveTo(x, y);
           ctx.lineTo(x + gridSize, y);
           ctx.stroke();
         }
-
-        // Bottom connection
         if (j < rows - 1) {
-          ctx.strokeStyle = `rgba(180, 155, 60, ${lineAlpha})`;
           ctx.beginPath();
           ctx.moveTo(x, y);
           ctx.lineTo(x, y + gridSize);
@@ -115,69 +92,45 @@ export const LandingBackground: React.FC = () => {
       }
     }
 
-    // Second pass: Draw nodes (on top of lines)
+    // Draw small liquid dots
     for (let i = 0; i < cols; i++) {
       for (let j = 0; j < rows; j++) {
         const x = i * gridSize;
         const y = j * gridSize;
 
-        // Unique phase creates cascading wave effect
-        const nodePhase = (i * 0.618 + j * 0.382) * PHI;
-
-        // Multi-frequency breathing for organic feel
-        const breath1 = Math.sin(nodePhase + time * 0.7);
-        const breath2 = Math.sin(nodePhase * 1.3 + time * 1.1);
-        const combinedBreath = 0.5 + 0.3 * breath1 + 0.2 * breath2;
-
         const dx = x - mousePos.current.x;
         const dy = y - mousePos.current.y;
         const distSq = dx * dx + dy * dy;
 
-        let alpha = baseAlpha * combinedBreath * globalBreath;
-        let coreSize = 1.2;
-        let haloSize = 3;
+        // Liquid breathing - slow, organic
+        const phase = i * 0.5 + j * 0.4;
+        const liquidBreath = Math.sin(phase + time * 0.5) * 0.5 + 0.5;
+        const liquidPulse = Math.sin(phase * 1.7 + time * 0.8) * 0.3 + 0.7;
+
+        let alpha = 0.08 + 0.06 * liquidBreath * liquidPulse;
+        let dotSize = 1.5;
 
         if (isMouseActive.current && distSq < mouseRadiusSq) {
-          const dist = Math.sqrt(distSq);
-          const t = 1 - (dist / mouseRadius);
-          // Smooth quintic ease for premium feel
-          const easeT = 1 - Math.pow(1 - t, 5);
-          alpha = baseAlpha + (hoverAlpha - baseAlpha) * easeT;
-          coreSize = 1.2 + 1.0 * easeT;
-          haloSize = 3 + 4 * easeT;
+          const t = 1 - Math.sqrt(distSq) / mouseRadius;
+          // Liquid ease - cubic for smooth pooling effect
+          const liquid = t * t * (3 - 2 * t);
+          alpha = 0.08 + 0.5 * liquid;
+          dotSize = 1.5 + 1.2 * liquid;
         }
 
-        // Skip invisible nodes
-        if (alpha < 0.01) continue;
+        if (alpha < 0.02) continue;
 
-        // Subtle outer halo (very soft, not glowy)
-        const haloAlpha = alpha * 0.15 * combinedBreath;
-        if (haloAlpha > 0.005) {
-          ctx.fillStyle = `rgba(200, 170, 80, ${haloAlpha})`;
-          ctx.beginPath();
-          ctx.arc(x, y, haloSize, 0, Math.PI * 2);
-          ctx.fill();
-        }
-
-        // Warm gold mid-layer
-        ctx.fillStyle = `rgba(212, 180, 90, ${alpha * 0.5})`;
+        // Single soft glow (not multiple rings)
+        ctx.fillStyle = `rgba(180, 150, 70, ${alpha * 0.4})`;
         ctx.beginPath();
-        ctx.arc(x, y, coreSize + 0.8, 0, Math.PI * 2);
+        ctx.arc(x, y, dotSize + 2, 0, Math.PI * 2);
         ctx.fill();
 
-        // Bright refined core (warm white, not pure white)
-        ctx.fillStyle = `rgba(255, 248, 230, ${alpha * 0.9})`;
+        // Small liquid gold core
+        ctx.fillStyle = `rgba(220, 190, 100, ${alpha})`;
         ctx.beginPath();
-        ctx.arc(x, y, coreSize, 0, Math.PI * 2);
+        ctx.arc(x, y, dotSize, 0, Math.PI * 2);
         ctx.fill();
-
-        // Tiny bright center point (the "jewel")
-        if (alpha > 0.15) {
-          ctx.fillStyle = `rgba(255, 255, 250, ${Math.min(alpha * 1.2, 0.8)})`;
-          ctx.beginPath();
-          ctx.arc(x, y, coreSize * 0.4, 0, Math.PI * 2);
-          ctx.fill();
-        }
       }
     }
 
