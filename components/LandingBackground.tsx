@@ -1,8 +1,14 @@
 import React, { useEffect, useRef, useCallback } from 'react';
 
 /**
- * Premium Landing Background - Liquid Gold Dots
- * Small, refined, liquid-like animation
+ * Premium 4K Landing Background - Intelligence Network
+ *
+ * Neuromarketing Design Principles:
+ * - Precision dots convey accuracy and intelligence
+ * - Subtle luminance suggests active thinking
+ * - Network connections imply knowledge interconnection
+ * - Smooth animations create subconscious trust
+ * - High-quality rendering signals premium brand
  */
 export const LandingBackground: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -17,11 +23,16 @@ export const LandingBackground: React.FC = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext('2d', { alpha: false });
+    // High quality 4K rendering context
+    const ctx = canvas.getContext('2d', {
+      alpha: false,
+      desynchronized: true
+    });
     if (!ctx) return;
 
+    // 60fps lock
     const deltaTime = currentTime - lastFrameTime.current;
-    if (deltaTime < 16) {
+    if (deltaTime < 16.67) {
       animationRef.current = requestAnimationFrame(animate);
       return;
     }
@@ -31,28 +42,35 @@ export const LandingBackground: React.FC = () => {
     const width = canvas.width / dpr;
     const height = canvas.height / dpr;
 
-    // Slow liquid time flow
-    timeRef.current += 0.003;
+    // Slow, intelligent time flow
+    timeRef.current += 0.002;
     const time = timeRef.current;
 
-    // Ultra smooth mouse tracking (liquid feel)
-    mousePos.current.x += (targetMousePos.current.x - mousePos.current.x) * 0.06;
-    mousePos.current.y += (targetMousePos.current.y - mousePos.current.y) * 0.06;
+    // Silky mouse interpolation (intelligence feels smooth)
+    mousePos.current.x += (targetMousePos.current.x - mousePos.current.x) * 0.05;
+    mousePos.current.y += (targetMousePos.current.y - mousePos.current.y) * 0.05;
 
-    // Pure black
-    ctx.fillStyle = '#000000';
+    // Deep intelligent black
+    ctx.fillStyle = '#020202';
     ctx.fillRect(0, 0, width, height);
 
-    const gridSize = 50;
-    const mouseRadius = 180;
+    // High quality anti-aliasing
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+
+    const gridSize = 52;
+    const mouseRadius = 200;
     const mouseRadiusSq = mouseRadius * mouseRadius;
 
     const cols = Math.ceil(width / gridSize) + 1;
     const rows = Math.ceil(height / gridSize) + 1;
 
-    // Draw lines first
+    // Subtle global intelligence pulse (like a thinking brain)
+    const intelligencePulse = 0.5 + 0.5 * Math.sin(time * 0.3);
+
     ctx.globalCompositeOperation = 'lighter';
 
+    // PASS 1: Draw precise connection lines (neural network feel)
     for (let i = 0; i < cols; i++) {
       for (let j = 0; j < rows; j++) {
         const x = i * gridSize;
@@ -62,27 +80,38 @@ export const LandingBackground: React.FC = () => {
         const dy = y - mousePos.current.y;
         const distSq = dx * dx + dy * dy;
 
-        // Liquid wave phase
-        const phase = i * 0.4 + j * 0.3;
-        const wave = Math.sin(phase + time * 0.6) * 0.5 + 0.5;
+        // Intelligent wave propagation (like thought patterns)
+        const phase = (i * 0.3 + j * 0.4) * Math.PI;
+        const thoughtWave = Math.sin(phase + time * 0.4) * 0.5 + 0.5;
 
-        let lineAlpha = 0.03 + 0.02 * wave;
+        // Base: barely visible, suggests latent intelligence
+        let lineAlpha = 0.025 + 0.015 * thoughtWave * intelligencePulse;
 
+        // Mouse proximity: awakened intelligence
         if (isMouseActive.current && distSq < mouseRadiusSq) {
-          const t = 1 - Math.sqrt(distSq) / mouseRadius;
-          const smooth = t * t * t;
-          lineAlpha = 0.03 + 0.12 * smooth;
+          const dist = Math.sqrt(distSq);
+          const t = 1 - dist / mouseRadius;
+          // Smooth quartic ease - feels intelligent, not mechanical
+          const ease = t * t * t * t;
+          lineAlpha = Math.max(lineAlpha, 0.08 * ease);
         }
 
-        ctx.strokeStyle = `rgba(160, 130, 50, ${lineAlpha})`;
-        ctx.lineWidth = 0.5;
+        if (lineAlpha < 0.01) continue;
 
+        // Crisp, precise lines (intelligence = precision)
+        ctx.strokeStyle = `rgba(140, 115, 55, ${lineAlpha})`;
+        ctx.lineWidth = 0.6;
+        ctx.lineCap = 'round';
+
+        // Horizontal connection
         if (i < cols - 1) {
           ctx.beginPath();
           ctx.moveTo(x, y);
           ctx.lineTo(x + gridSize, y);
           ctx.stroke();
         }
+
+        // Vertical connection
         if (j < rows - 1) {
           ctx.beginPath();
           ctx.moveTo(x, y);
@@ -92,7 +121,7 @@ export const LandingBackground: React.FC = () => {
       }
     }
 
-    // Draw small liquid dots
+    // PASS 2: Draw high-quality precision dots (nodes of intelligence)
     for (let i = 0; i < cols; i++) {
       for (let j = 0; j < rows; j++) {
         const x = i * gridSize;
@@ -102,35 +131,65 @@ export const LandingBackground: React.FC = () => {
         const dy = y - mousePos.current.y;
         const distSq = dx * dx + dy * dy;
 
-        // Liquid breathing - slow, organic
-        const phase = i * 0.5 + j * 0.4;
-        const liquidBreath = Math.sin(phase + time * 0.5) * 0.5 + 0.5;
-        const liquidPulse = Math.sin(phase * 1.7 + time * 0.8) * 0.3 + 0.7;
+        // Multi-layer thought patterns (complex intelligence)
+        const phase1 = (i * 0.4 + j * 0.3) * Math.PI;
+        const phase2 = (i * 0.2 + j * 0.5) * Math.PI * 1.3;
 
-        let alpha = 0.08 + 0.06 * liquidBreath * liquidPulse;
-        let dotSize = 1.5;
+        const thought1 = Math.sin(phase1 + time * 0.35) * 0.5 + 0.5;
+        const thought2 = Math.sin(phase2 + time * 0.55) * 0.3 + 0.7;
+        const combinedThought = thought1 * thought2;
 
+        // Base luminance: subtle presence, latent intelligence
+        let luminance = 0.06 + 0.04 * combinedThought * intelligencePulse;
+        let dotRadius = 1.1;
+
+        // Mouse proximity: activated intelligence node
         if (isMouseActive.current && distSq < mouseRadiusSq) {
-          const t = 1 - Math.sqrt(distSq) / mouseRadius;
-          // Liquid ease - cubic for smooth pooling effect
-          const liquid = t * t * (3 - 2 * t);
-          alpha = 0.08 + 0.5 * liquid;
-          dotSize = 1.5 + 1.2 * liquid;
+          const dist = Math.sqrt(distSq);
+          const t = 1 - dist / mouseRadius;
+          // Quintic ease for premium, intelligent feel
+          const ease = t * t * t * (t * (t * 6 - 15) + 10);
+          luminance = 0.06 + 0.45 * ease;
+          dotRadius = 1.1 + 0.9 * ease;
         }
 
-        if (alpha < 0.02) continue;
+        if (luminance < 0.02) continue;
 
-        // Single soft glow (not multiple rings)
-        ctx.fillStyle = `rgba(180, 150, 70, ${alpha * 0.4})`;
+        // LAYER 1: Subtle ambient luminance (intelligence aura)
+        // Not a glow - a refined luminance field
+        const ambientRadius = dotRadius * 3;
+        const ambientAlpha = luminance * 0.12;
+        ctx.fillStyle = `rgba(160, 135, 70, ${ambientAlpha})`;
         ctx.beginPath();
-        ctx.arc(x, y, dotSize + 2, 0, Math.PI * 2);
+        ctx.arc(x, y, ambientRadius, 0, Math.PI * 2);
         ctx.fill();
 
-        // Small liquid gold core
-        ctx.fillStyle = `rgba(220, 190, 100, ${alpha})`;
+        // LAYER 2: Inner luminance (focused intelligence)
+        const innerRadius = dotRadius * 1.8;
+        const innerAlpha = luminance * 0.25;
+        ctx.fillStyle = `rgba(185, 160, 90, ${innerAlpha})`;
         ctx.beginPath();
-        ctx.arc(x, y, dotSize, 0, Math.PI * 2);
+        ctx.arc(x, y, innerRadius, 0, Math.PI * 2);
         ctx.fill();
+
+        // LAYER 3: Precision core (the intelligence itself)
+        // Warm gold-white: inviting yet sophisticated
+        const coreAlpha = luminance * 0.9;
+        ctx.fillStyle = `rgba(235, 215, 160, ${coreAlpha})`;
+        ctx.beginPath();
+        ctx.arc(x, y, dotRadius, 0, Math.PI * 2);
+        ctx.fill();
+
+        // LAYER 4: Crisp center point (peak intelligence)
+        // Only visible on brighter nodes - creates hierarchy
+        if (luminance > 0.2) {
+          const peakAlpha = Math.min((luminance - 0.2) * 2, 0.7);
+          const peakRadius = dotRadius * 0.5;
+          ctx.fillStyle = `rgba(255, 250, 235, ${peakAlpha})`;
+          ctx.beginPath();
+          ctx.arc(x, y, peakRadius, 0, Math.PI * 2);
+          ctx.fill();
+        }
       }
     }
 
@@ -142,11 +201,15 @@ export const LandingBackground: React.FC = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext('2d', { alpha: false });
+    const ctx = canvas.getContext('2d', {
+      alpha: false,
+      desynchronized: true
+    });
     if (!ctx) return;
 
     const resize = () => {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      // Support up to 3x DPI for 4K+ displays
+      const dpr = Math.min(window.devicePixelRatio || 1, 3);
       const width = window.innerWidth;
       const height = window.innerHeight;
 
@@ -155,6 +218,10 @@ export const LandingBackground: React.FC = () => {
       canvas.style.width = `${width}px`;
       canvas.style.height = `${height}px`;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      // Enable high-quality rendering
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
     };
 
     const handleMouseMove = (e: MouseEvent) => {
@@ -174,7 +241,7 @@ export const LandingBackground: React.FC = () => {
     window.addEventListener('mousemove', handleMouseMove, { passive: true });
     window.addEventListener('mouseleave', handleMouseLeave, { passive: true });
 
-    // Start animation with timestamp
+    // Start animation
     animationRef.current = requestAnimationFrame((t) => animate(t));
 
     return () => {
@@ -189,7 +256,7 @@ export const LandingBackground: React.FC = () => {
 
   return (
     <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden" style={{ contain: 'strict' }}>
-      <div className="absolute inset-0 bg-black" />
+      <div className="absolute inset-0 bg-[#020202]" />
       <canvas
         ref={canvasRef}
         className="absolute inset-0"
