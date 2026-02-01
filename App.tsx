@@ -4594,7 +4594,7 @@ const App: React.FC = () => {
                             <HelpCircle size={16} className="text-[#D4AF37]" />
                             <h3 className="text-sm font-helvetica-bold text-white">Questions</h3>
                             <span className="ml-auto text-xs text-zinc-500 bg-zinc-800 px-2 py-0.5 rounded-full">
-                              {activeLesson.quiz?.length || 0} / 5
+                              {activeLesson.quiz?.length || 0} / 15
                             </span>
                           </div>
                         </div>
@@ -4721,7 +4721,7 @@ const App: React.FC = () => {
                           ))}
 
                           {/* Add Question Button */}
-                          {(activeLesson.quiz?.length || 0) < 5 ? (
+                          {(activeLesson.quiz?.length || 0) < 15 ? (
                             <button
                               onClick={() => {
                                 const newQuiz = [...(activeLesson.quiz || []), { id: `q-${Date.now()}`, question: '', options: ['Option A', 'Option B'], correctAnswer: 0 }];
@@ -4734,7 +4734,7 @@ const App: React.FC = () => {
                             </button>
                           ) : (
                             <div className="text-center py-4 text-zinc-500 text-sm bg-zinc-900/30 rounded-xl border border-white/[0.06]">
-                              Maximum 5 questions reached
+                              Maximum 15 questions reached
                             </div>
                           )}
                         </div>
