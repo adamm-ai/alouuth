@@ -865,13 +865,19 @@ const App: React.FC = () => {
         {/* Logo section with premium treatment */}
         <div className="p-8 relative">
 
-          <h1
-            className="text-2xl font-helvetica-bold tracking-wider cursor-pointer group"
+          <div
+            className="cursor-pointer group"
             onClick={() => setCurrentView('LANDING')}
           >
-            <span className="text-[#D4AF37] group-hover:brightness-110 transition-all">AMINI</span>
-            <span className="font-helvetica-light text-white/70 group-hover:text-white transition-colors ml-1">ACADEMY</span>
-          </h1>
+            <svg width="193" height="40" viewBox="0 0 1926 400" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-48 h-auto group-hover:brightness-110 transition-all">
+              <path d="M1925.41 400H1825.38V0H1925.41V400Z" fill="white"/>
+              <path d="M1400.29 400H1312.78V0H1368.25L1639.82 244.8H1650.35V0H1737.87V400H1682.39L1410.82 155.2H1400.29V400Z" fill="white"/>
+              <path d="M1225.26 400H1125.24V0H1225.26V400Z" fill="white"/>
+              <path d="M625.132 400H537.613V0H674.577L787.666 244.8H790.179L903.268 0H1037.72V400H950.2V175L955.854 104H947.247L804.001 400H773.216L629.969 105.067H621.99L625.132 175V400Z" fill="white"/>
+              <path d="M450.095 0V400H350.505V110.4H349.211L113.17 400H0V390.4L329.164 0H450.095Z" fill="white"/>
+            </svg>
+            <span className="font-helvetica-light text-white/70 group-hover:text-white transition-colors text-2xl block mt-2">ACADEMY</span>
+          </div>
         </div>
 
         <nav className="flex-1 px-4 space-y-1.5 py-2">
