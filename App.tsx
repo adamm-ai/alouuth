@@ -866,17 +866,17 @@ const App: React.FC = () => {
         <div className="p-8 relative">
 
           <div
-            className="cursor-pointer group"
+            className="cursor-pointer group flex flex-col gap-1"
             onClick={() => setCurrentView('LANDING')}
           >
-            <svg width="193" height="40" viewBox="0 0 1926 400" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-48 h-auto group-hover:brightness-110 transition-all">
+            <svg width="193" height="40" viewBox="0 0 1926 400" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-24 h-auto group-hover:brightness-110 transition-all">
               <path d="M1925.41 400H1825.38V0H1925.41V400Z" fill="white"/>
               <path d="M1400.29 400H1312.78V0H1368.25L1639.82 244.8H1650.35V0H1737.87V400H1682.39L1410.82 155.2H1400.29V400Z" fill="white"/>
               <path d="M1225.26 400H1125.24V0H1225.26V400Z" fill="white"/>
               <path d="M625.132 400H537.613V0H674.577L787.666 244.8H790.179L903.268 0H1037.72V400H950.2V175L955.854 104H947.247L804.001 400H773.216L629.969 105.067H621.99L625.132 175V400Z" fill="white"/>
               <path d="M450.095 0V400H350.505V110.4H349.211L113.17 400H0V390.4L329.164 0H450.095Z" fill="white"/>
             </svg>
-            <span className="font-helvetica-light text-white/70 group-hover:text-white transition-colors text-2xl block mt-2">ACADEMY</span>
+            <span className="font-helvetica-light text-white/70 group-hover:text-white transition-colors text-xs tracking-widest">ACADEMY</span>
           </div>
         </div>
 
@@ -1083,9 +1083,15 @@ const App: React.FC = () => {
           <div className="absolute inset-0 bg-white/[0.02] backdrop-blur-[12px] border-b border-white/[0.05]" />
           <div className="absolute inset-x-0 bottom-0 h-[1px] bg-gradient-to-r from-transparent via-[#D4AF37]/15 to-transparent" />
           <div className="relative max-w-7xl mx-auto px-8 h-20 flex items-center justify-between">
-            <div className="text-xl font-helvetica-bold tracking-wider">
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#F5D76E] via-[#D4AF37] to-[#B8962E]">AMINI</span>
-              <span className="text-white/40 ml-2 font-helvetica-light tracking-widest">ACADEMY</span>
+            <div className="flex items-center gap-2">
+              <svg width="193" height="40" viewBox="0 0 1926 400" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-20 h-auto">
+                <path d="M1925.41 400H1825.38V0H1925.41V400Z" fill="white"/>
+                <path d="M1400.29 400H1312.78V0H1368.25L1639.82 244.8H1650.35V0H1737.87V400H1682.39L1410.82 155.2H1400.29V400Z" fill="white"/>
+                <path d="M1225.26 400H1125.24V0H1225.26V400Z" fill="white"/>
+                <path d="M625.132 400H537.613V0H674.577L787.666 244.8H790.179L903.268 0H1037.72V400H950.2V175L955.854 104H947.247L804.001 400H773.216L629.969 105.067H621.99L625.132 175V400Z" fill="white"/>
+                <path d="M450.095 0V400H350.505V110.4H349.211L113.17 400H0V390.4L329.164 0H450.095Z" fill="white"/>
+              </svg>
+              <span className="text-white/40 font-helvetica-light tracking-widest text-sm">ACADEMY</span>
             </div>
             <div className="hidden md:flex items-center gap-8">
               <button type="button" onClick={() => scrollTo('paths')} className="text-sm text-zinc-400 hover:text-white transition-colors duration-300">Paths</button>
@@ -1468,9 +1474,15 @@ const App: React.FC = () => {
             <div className="h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent mb-8" />
 
             <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-              <div className="text-xl font-helvetica-bold tracking-wider">
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#F5D76E] via-[#D4AF37] to-[#B8962E]">AMINI</span>
-                <span className="text-white/20 ml-2">ACADEMY</span>
+              <div className="flex items-center gap-2">
+                <svg width="193" height="40" viewBox="0 0 1926 400" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-20 h-auto">
+                  <path d="M1925.41 400H1825.38V0H1925.41V400Z" fill="white"/>
+                  <path d="M1400.29 400H1312.78V0H1368.25L1639.82 244.8H1650.35V0H1737.87V400H1682.39L1410.82 155.2H1400.29V400Z" fill="white"/>
+                  <path d="M1225.26 400H1125.24V0H1225.26V400Z" fill="white"/>
+                  <path d="M625.132 400H537.613V0H674.577L787.666 244.8H790.179L903.268 0H1037.72V400H950.2V175L955.854 104H947.247L804.001 400H773.216L629.969 105.067H621.99L625.132 175V400Z" fill="white"/>
+                  <path d="M450.095 0V400H350.505V110.4H349.211L113.17 400H0V390.4L329.164 0H450.095Z" fill="white"/>
+                </svg>
+                <span className="text-white/20 text-sm">ACADEMY</span>
               </div>
               <p className="text-xs text-zinc-600">
                 2026 Amini Academy | Powering Barbados' Digital Transformation
