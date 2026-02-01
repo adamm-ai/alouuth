@@ -617,6 +617,29 @@ const App: React.FC = () => {
     loadDashboardStats();
   }, [currentView, dashboardStatsLoaded]);
 
+  // Cleanup effect: Reset all user-specific state when user logs out
+  useEffect(() => {
+    if (!user) {
+      // User logged out - clear all user-specific data
+      setUserDashboardStats({
+        totalCourses: 0,
+        enrolledCourses: 0,
+        completedCourses: 0,
+        lessonsCompleted: 0,
+        averageQuizScore: 0,
+        completionPercentage: 0
+      });
+      setDashboardStatsLoaded(false);
+      setAdminStatsLoaded(false);
+      setDataLoaded(false);
+      setCourses([]);
+      setPaths([]);
+      setActiveCourse(null);
+      setActiveLesson(null);
+      setAdminStats([]);
+    }
+  }, [user]);
+
   // Learning Path Enforcement: Check if user can access a course
   // UNLOCK RULES:
   // 1. First course in each level is unlocked (if previous level is complete)
@@ -960,9 +983,34 @@ const App: React.FC = () => {
           <button
             type="button"
             onClick={() => {
-              setAuthToken(null); // Clear the JWT token
+              // Clear authentication
+              setAuthToken(null);
               setUser(null);
-              setIsAdminPreviewMode(false); // Reset preview mode
+
+              // Reset ALL user-specific state to prevent data leakage between users
+              setUserDashboardStats({
+                totalCourses: 0,
+                enrolledCourses: 0,
+                completedCourses: 0,
+                lessonsCompleted: 0,
+                averageQuizScore: 0,
+                completionPercentage: 0
+              });
+
+              // Reset all data loaded flags
+              setDashboardStatsLoaded(false);
+              setAdminStatsLoaded(false);
+              setDataLoaded(false);
+
+              // Clear course and progress data
+              setCourses([]);
+              setPaths([]);
+              setActiveCourse(null);
+              setActiveLesson(null);
+              setAdminStats([]);
+
+              // Reset admin mode and view
+              setIsAdminPreviewMode(false);
               setCurrentView('LANDING');
             }}
             className="flex items-center gap-2.5 text-sm text-zinc-500 hover:text-red-400 transition-all w-full group py-2 px-3 rounded-xl hover:bg-red-500/10"
