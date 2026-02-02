@@ -406,6 +406,13 @@ export const addLesson = async (req, res) => {
     // If quiz questions were provided, create them
     let savedQuiz = [];
     if (quiz && Array.isArray(quiz) && quiz.length > 0) {
+      // Validate maximum 15 questions
+      if (quiz.length > 15) {
+        return res.status(400).json({
+          error: `Quiz can have a maximum of 15 questions. Got ${quiz.length}.`
+        });
+      }
+
       for (let i = 0; i < quiz.length; i++) {
         const q = quiz[i];
         if (q.question && q.options) {
@@ -520,6 +527,13 @@ export const updateLesson = async (req, res) => {
     // Handle quiz synchronization if quiz array is provided
     let savedQuiz = [];
     if (quiz !== undefined && Array.isArray(quiz)) {
+      // Validate maximum 15 questions
+      if (quiz.length > 15) {
+        return res.status(400).json({
+          error: `Quiz can have a maximum of 15 questions. Got ${quiz.length}.`
+        });
+      }
+
       // Get existing quiz questions for this lesson
       const existingQuizResult = await pool.query(
         'SELECT id FROM quiz_questions WHERE lesson_id = $1',
