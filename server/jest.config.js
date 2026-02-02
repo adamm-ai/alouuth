@@ -15,4 +15,6 @@ export default {
   clearMocks: true,
   resetMocks: true,
   restoreMocks: true,
+  maxWorkers: 1, // Run tests serially to avoid database race conditions
+  testTimeout: 30000, // Increase timeout to 30 seconds
 };

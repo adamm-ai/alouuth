@@ -1,10 +1,14 @@
 import { beforeAll, afterAll } from '@jest/globals';
 import dotenv from 'dotenv';
 import bcryptjs from 'bcryptjs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 import pool from '../config/database.js';
 
 // Load test environment variables
-dotenv.config({ path: '.env.test' });
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+dotenv.config({ path: join(__dirname, '..', '.env.test') });
 
 // Setup test database
 beforeAll(async () => {
@@ -21,7 +25,7 @@ beforeAll(async () => {
 
     // Drop and recreate tables for clean state
     await client.query('DROP SCHEMA IF EXISTS public CASCADE');
-    await client.query('CREATE SCHEMA public');
+    await client.query('CREATE SCHEMA IF NOT EXISTS public');
 
     // Create users table
     await client.query(`
@@ -71,10 +75,28 @@ beforeAll(async () => {
         video_url VARCHAR(500),
         video_source VARCHAR(50),
         file_url VARCHAR(500),
+        file_name VARCHAR(255),
+        file_size INTEGER,
+        page_count INTEGER,
+        is_external_link BOOLEAN DEFAULT false,
         content TEXT,
         is_published BOOLEAN DEFAULT true,
+        passing_score INTEGER DEFAULT 70,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    // Create quiz_questions table
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS quiz_questions (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        lesson_id UUID REFERENCES lessons(id) ON DELETE CASCADE,
+        question TEXT NOT NULL,
+        options JSONB NOT NULL,
+        correct_answer INTEGER NOT NULL,
+        explanation TEXT,
+        order_index INTEGER DEFAULT 0
       );
     `);
 
@@ -101,6 +123,7 @@ beforeAll(async () => {
         progress_percent INTEGER DEFAULT 0,
         quiz_score INTEGER,
         quiz_attempts INTEGER DEFAULT 0,
+        passed BOOLEAN DEFAULT false,
         started_at TIMESTAMP,
         completed_at TIMESTAMP,
         last_accessed TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -127,7 +150,7 @@ afterAll(async () => {
 export async function clearDatabase() {
   const client = await pool.connect();
   try {
-    await client.query('TRUNCATE TABLE lesson_progress, enrollments, lessons, courses, users CASCADE');
+    await client.query('TRUNCATE TABLE lesson_progress, enrollments, quiz_questions, lessons, courses, users CASCADE');
   } finally {
     client.release();
   }

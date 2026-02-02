@@ -184,8 +184,15 @@ export const getCourseById = async (req, res) => {
 // Create course (Admin only)
 export const createCourse = async (req, res) => {
   try {
-    const { title, description, level, thumbnailUrl, totalDuration } = req.body;
+    const { title, description, level, thumbnailUrl, totalDuration, is_published } = req.body;
+
+    // Validation
+    if (!title || title.trim() === '') {
+      return res.status(400).json({ error: 'Course title is required.' });
+    }
+
     const courseLevel = level || 'Beginner';
+    const isPublished = is_published !== undefined ? is_published : false;
 
     // Calculate next order_index for this level
     const maxOrderResult = await pool.query(
@@ -196,9 +203,9 @@ export const createCourse = async (req, res) => {
 
     const result = await pool.query(`
       INSERT INTO courses (title, description, level, thumbnail_url, total_duration, created_by, is_published, order_index)
-      VALUES ($1, $2, $3, $4, $5, $6, true, $7)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
       RETURNING *
-    `, [title, description, courseLevel, thumbnailUrl, totalDuration, req.user.id, orderIndex]);
+    `, [title, description, courseLevel, thumbnailUrl, totalDuration, req.user.id, isPublished, orderIndex]);
 
     const course = result.rows[0];
 
