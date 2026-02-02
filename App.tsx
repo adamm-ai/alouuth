@@ -889,7 +889,7 @@ const App: React.FC = () => {
         <div className="p-8 relative">
 
           <div
-            className="cursor-pointer group flex items-center gap-2"
+            className="cursor-pointer group flex items-center gap-3"
             onClick={() => setCurrentView('LANDING')}
           >
             <svg width="193" height="40" viewBox="0 0 1926 400" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-16 h-auto group-hover:brightness-110 transition-all">
@@ -899,7 +899,7 @@ const App: React.FC = () => {
               <path d="M625.132 400H537.613V0H674.577L787.666 244.8H790.179L903.268 0H1037.72V400H950.2V175L955.854 104H947.247L804.001 400H773.216L629.969 105.067H621.99L625.132 175V400Z" fill="white"/>
               <path d="M450.095 0V400H350.505V110.4H349.211L113.17 400H0V390.4L329.164 0H450.095Z" fill="white"/>
             </svg>
-            <span className="font-helvetica-light text-white/70 group-hover:text-white transition-colors text-sm tracking-[0.2em] -ml-1">ACADEMY</span>
+            <span className="font-helvetica-light text-white/70 group-hover:text-white transition-colors text-base tracking-[0.25em]">ACADEMY</span>
           </div>
         </div>
 
@@ -1131,7 +1131,7 @@ const App: React.FC = () => {
           <div className="absolute inset-0 bg-white/[0.02] backdrop-blur-[12px] border-b border-white/[0.05]" />
           <div className="absolute inset-x-0 bottom-0 h-[1px] bg-gradient-to-r from-transparent via-[#D4AF37]/15 to-transparent" />
           <div className="relative max-w-7xl mx-auto px-8 h-20 flex items-center justify-between">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <svg width="193" height="40" viewBox="0 0 1926 400" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-16 h-auto">
                 <path d="M1925.41 400H1825.38V0H1925.41V400Z" fill="white"/>
                 <path d="M1400.29 400H1312.78V0H1368.25L1639.82 244.8H1650.35V0H1737.87V400H1682.39L1410.82 155.2H1400.29V400Z" fill="white"/>
@@ -1139,7 +1139,7 @@ const App: React.FC = () => {
                 <path d="M625.132 400H537.613V0H674.577L787.666 244.8H790.179L903.268 0H1037.72V400H950.2V175L955.854 104H947.247L804.001 400H773.216L629.969 105.067H621.99L625.132 175V400Z" fill="white"/>
                 <path d="M450.095 0V400H350.505V110.4H349.211L113.17 400H0V390.4L329.164 0H450.095Z" fill="white"/>
               </svg>
-              <span className="text-white/40 font-helvetica-light tracking-[0.2em] text-sm -ml-1">ACADEMY</span>
+              <span className="text-white/40 font-helvetica-light tracking-[0.25em] text-base">ACADEMY</span>
             </div>
             <div className="hidden md:flex items-center gap-8">
               <button type="button" onClick={() => scrollTo('paths')} className="text-sm text-zinc-400 hover:text-white transition-colors duration-300">Paths</button>
@@ -1522,7 +1522,7 @@ const App: React.FC = () => {
             <div className="h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent mb-8" />
 
             <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 <svg width="193" height="40" viewBox="0 0 1926 400" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-16 h-auto opacity-20">
                   <path d="M1925.41 400H1825.38V0H1925.41V400Z" fill="white"/>
                   <path d="M1400.29 400H1312.78V0H1368.25L1639.82 244.8H1650.35V0H1737.87V400H1682.39L1410.82 155.2H1400.29V400Z" fill="white"/>
@@ -1530,7 +1530,7 @@ const App: React.FC = () => {
                   <path d="M625.132 400H537.613V0H674.577L787.666 244.8H790.179L903.268 0H1037.72V400H950.2V175L955.854 104H947.247L804.001 400H773.216L629.969 105.067H621.99L625.132 175V400Z" fill="white"/>
                   <path d="M450.095 0V400H350.505V110.4H349.211L113.17 400H0V390.4L329.164 0H450.095Z" fill="white"/>
                 </svg>
-                <span className="text-white/20 font-helvetica-light tracking-[0.2em] text-sm -ml-1">ACADEMY</span>
+                <span className="text-white/20 font-helvetica-light tracking-[0.25em] text-base">ACADEMY</span>
               </div>
               <p className="text-xs text-zinc-600">
                 2026 Amini Academy | Powering Barbados' Digital Transformation
@@ -5681,14 +5681,15 @@ const App: React.FC = () => {
                           </Pie>
                           <Tooltip
                             contentStyle={{
-                              backgroundColor: 'rgba(15, 23, 42, 0.98)',
-                              border: '1px solid rgba(212, 175, 55, 0.3)',
+                              backgroundColor: 'rgba(212, 175, 55, 0.95)',
+                              border: '2px solid rgba(255, 255, 255, 0.2)',
                               borderRadius: '12px',
                               padding: '12px 16px',
-                              boxShadow: '0 8px 32px rgba(0,0,0,0.4)'
+                              boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
+                              color: '#000000'
                             }}
-                            itemStyle={{ color: '#D4AF37', fontWeight: '500' }}
-                            labelStyle={{ color: '#ffffff', marginBottom: '4px' }}
+                            itemStyle={{ color: '#000000', fontWeight: '600', fontSize: '14px' }}
+                            labelStyle={{ color: '#000000', marginBottom: '4px', fontWeight: '700', fontSize: '15px' }}
                             formatter={(value: number, name: string) => [`${value} lessons`, name]}
                           />
                         </PieChart>
