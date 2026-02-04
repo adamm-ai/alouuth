@@ -51,7 +51,14 @@ import {
   Building2,
   Key,
   UserPlus,
-  Search
+  Search,
+  Map,
+  LogIn,
+  LayoutDashboard,
+  Route,
+  MessageCircle,
+  GraduationCap,
+  PhoneCall
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from 'recharts';
 import { LiquidBackground } from './components/LiquidBackground';
@@ -66,7 +73,7 @@ import { MINISTRIES } from './constants';
 import { Course, User, UserRole, Lesson, AnalyticData, LearningPath, ContentType } from './types';
 
 // --- Types for Views ---
-type View = 'LANDING' | 'AUTH' | 'DASHBOARD' | 'COURSE_PLAYER' | 'ADMIN';
+type View = 'LANDING' | 'AUTH' | 'DASHBOARD' | 'COURSE_PLAYER' | 'ADMIN' | 'WALKTHROUGH';
 type AdminSection = 'OVERVIEW' | 'USERS' | 'COURSES' | 'ANALYTICS';
 
 // VideoFrame moved to components/UIComponents.tsx
@@ -1145,6 +1152,7 @@ const App: React.FC = () => {
               <button type="button" onClick={() => scrollTo('paths')} className="text-sm text-zinc-400 hover:text-white transition-colors duration-300">Paths</button>
               <button type="button" onClick={() => scrollTo('certification')} className="text-sm text-zinc-400 hover:text-white transition-colors duration-300">Certification</button>
               <button type="button" onClick={() => scrollTo('support')} className="text-sm text-zinc-400 hover:text-white transition-colors duration-300">Support</button>
+              <button type="button" onClick={() => setCurrentView('WALKTHROUGH')} className="text-sm text-zinc-400 hover:text-white transition-colors duration-300">Walkthrough</button>
               <button
                 type="button"
                 onClick={() => setCurrentView('AUTH')}
@@ -1167,6 +1175,7 @@ const App: React.FC = () => {
               <button type="button" onClick={() => { scrollTo('paths'); setMobileMenuOpen(false); }} className="block text-zinc-300 hover:text-white py-2 w-full text-left">Paths</button>
               <button type="button" onClick={() => { scrollTo('certification'); setMobileMenuOpen(false); }} className="block text-zinc-300 hover:text-white py-2 w-full text-left">Certification</button>
               <button type="button" onClick={() => { scrollTo('support'); setMobileMenuOpen(false); }} className="block text-zinc-300 hover:text-white py-2 w-full text-left">Support</button>
+              <button type="button" onClick={() => { setCurrentView('WALKTHROUGH'); setMobileMenuOpen(false); }} className="block text-zinc-300 hover:text-white py-2 w-full text-left">Walkthrough</button>
               <LiquidGlassButton onClick={() => setCurrentView('AUTH')} className="w-full mt-4">Sign In</LiquidGlassButton>
             </motion.div>
           )}
@@ -1499,22 +1508,25 @@ const App: React.FC = () => {
                   <li><span className="text-zinc-500 hover:text-white transition-colors cursor-default">Foundations</span></li>
                   <li><span className="text-zinc-500 hover:text-white transition-colors cursor-default">API Publishing</span></li>
                   <li><span className="text-zinc-500 hover:text-white transition-colors cursor-default">Certification</span></li>
+                  <li><button type="button" onClick={() => setCurrentView('WALKTHROUGH')} className="text-zinc-500 hover:text-white transition-colors">Platform Walkthrough</button></li>
                 </ul>
               </div>
               <div>
                 <h4 className="text-[#D4AF37] font-bold uppercase tracking-wider text-xs mb-5">Resources</h4>
                 <ul className="space-y-3 text-sm">
                   <li><span className="text-zinc-500 hover:text-white transition-colors cursor-default">Documentation</span></li>
-                  <li><span className="text-zinc-500 hover:text-white transition-colors cursor-default">Office Hours</span></li>
+                  <li><a href="https://calendly.com/chadi-lgs/1-1-call-with-amini" target="_blank" rel="noopener noreferrer" className="text-zinc-500 hover:text-white transition-colors">Office Hours</a></li>
                   <li><span className="text-zinc-500 hover:text-white transition-colors cursor-default">FAQs</span></li>
+                  <li><a href="https://form.typeform.com/to/hmKfwlfB" target="_blank" rel="noopener noreferrer" className="text-zinc-500 hover:text-white transition-colors">Report a Problem</a></li>
+                  <li><a href="https://form.typeform.com/to/Btyf6iJf" target="_blank" rel="noopener noreferrer" className="text-zinc-500 hover:text-white transition-colors">Contact Us</a></li>
                 </ul>
               </div>
               <div>
                 <h4 className="text-[#D4AF37] font-bold uppercase tracking-wider text-xs mb-5">About</h4>
                 <ul className="space-y-3 text-sm">
-                  <li><span className="text-zinc-500 hover:text-white transition-colors cursor-default">Amini HQ</span></li>
-                  <li><span className="text-zinc-500 hover:text-white transition-colors cursor-default">Privacy Policy</span></li>
-                  <li><span className="text-zinc-500 hover:text-white transition-colors cursor-default">Terms of Use</span></li>
+                  <li><a href="https://www.amini.ai/" target="_blank" rel="noopener noreferrer" className="text-zinc-500 hover:text-white transition-colors">Amini HQ</a></li>
+                  <li><a href="https://www.amini.ai/legal-pages/%20data-privacy-policy" target="_blank" rel="noopener noreferrer" className="text-zinc-500 hover:text-white transition-colors">Privacy Policy</a></li>
+                  <li><a href="https://www.amini.ai/legal-pages/terms-of-service" target="_blank" rel="noopener noreferrer" className="text-zinc-500 hover:text-white transition-colors">Terms of Use</a></li>
                 </ul>
               </div>
             </div>
@@ -1535,6 +1547,734 @@ const App: React.FC = () => {
               <p className="text-xs text-zinc-600">
                 2026 Amini Academy | Powering Barbados' Digital Transformation
               </p>
+            </div>
+          </div>
+        </footer>
+      </div>
+    );
+  };
+
+  const WalkthroughView = () => {
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+    const scrollTo = (id: string) => {
+      const el = document.getElementById(id);
+      const container = scrollContainerRef.current;
+      if (el && container) {
+        const offsetTop = el.offsetTop - 80;
+        container.scrollTo({ top: offsetTop, behavior: 'smooth' });
+      }
+    };
+
+    const fadeInUp = {
+      initial: { opacity: 0, y: 30 },
+      animate: { opacity: 1, y: 0 },
+      transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] }
+    };
+
+    return (
+      <div ref={scrollContainerRef} className="absolute inset-0 overflow-y-auto overflow-x-hidden z-10 scroll-smooth">
+        {/* ===== NAVIGATION - Liquid Glass ===== */}
+        <motion.nav
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="fixed top-0 left-0 right-0 z-50"
+        >
+          <div className="absolute inset-0 bg-white/[0.02] backdrop-blur-[12px] border-b border-white/[0.05]" />
+          <div className="absolute inset-x-0 bottom-0 h-[1px] bg-gradient-to-r from-transparent via-[#D4AF37]/15 to-transparent" />
+          <div className="relative max-w-7xl mx-auto px-8 h-20 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <svg width="193" height="40" viewBox="0 0 1926 400" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-16 h-auto">
+                <path d="M1925.41 400H1825.38V0H1925.41V400Z" fill="white"/>
+                <path d="M1400.29 400H1312.78V0H1368.25L1639.82 244.8H1650.35V0H1737.87V400H1682.39L1410.82 155.2H1400.29V400Z" fill="white"/>
+                <path d="M1225.26 400H1125.24V0H1225.26V400Z" fill="white"/>
+                <path d="M625.132 400H537.613V0H674.577L787.666 244.8H790.179L903.268 0H1037.72V400H950.2V175L955.854 104H947.247L804.001 400H773.216L629.969 105.067H621.99L625.132 175V400Z" fill="white"/>
+                <path d="M450.095 0V400H350.505V110.4H349.211L113.17 400H0V390.4L329.164 0H450.095Z" fill="white"/>
+              </svg>
+              <span className="text-white/40 font-helvetica-light tracking-[0.25em] text-base">ACADEMY</span>
+            </div>
+            <div className="hidden md:flex items-center gap-8">
+              <button type="button" onClick={() => scrollTo('getting-started')} className="text-sm text-zinc-400 hover:text-white transition-colors duration-300">Getting Started</button>
+              <button type="button" onClick={() => scrollTo('dashboard')} className="text-sm text-zinc-400 hover:text-white transition-colors duration-300">Dashboard</button>
+              <button type="button" onClick={() => scrollTo('learning-tracks')} className="text-sm text-zinc-400 hover:text-white transition-colors duration-300">Learning Tracks</button>
+              <button type="button" onClick={() => scrollTo('support')} className="text-sm text-zinc-400 hover:text-white transition-colors duration-300">Support</button>
+              <button
+                type="button"
+                onClick={() => setCurrentView('LANDING')}
+                className="relative px-6 py-2.5 text-sm font-medium rounded-full overflow-hidden group/nav bg-white/[0.02] backdrop-blur-sm border border-white/[0.08] hover:border-[#D4AF37]/40 hover:bg-[#D4AF37]/[0.05] transition-all duration-300"
+              >
+                <span className="relative text-white group-hover/nav:text-[#D4AF37] transition-colors duration-300">Back to Home</span>
+              </button>
+            </div>
+            <button type="button" className="md:hidden text-white/80" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+              {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+          </div>
+          {mobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="md:hidden bg-white/[0.02] backdrop-blur-xl border-b border-white/[0.05] px-8 py-6 space-y-4"
+            >
+              <button type="button" onClick={() => { scrollTo('getting-started'); setMobileMenuOpen(false); }} className="block text-zinc-300 hover:text-white py-2 w-full text-left">Getting Started</button>
+              <button type="button" onClick={() => { scrollTo('dashboard'); setMobileMenuOpen(false); }} className="block text-zinc-300 hover:text-white py-2 w-full text-left">Dashboard</button>
+              <button type="button" onClick={() => { scrollTo('learning-tracks'); setMobileMenuOpen(false); }} className="block text-zinc-300 hover:text-white py-2 w-full text-left">Learning Tracks</button>
+              <button type="button" onClick={() => { scrollTo('support'); setMobileMenuOpen(false); }} className="block text-zinc-300 hover:text-white py-2 w-full text-left">Support</button>
+              <LiquidGlassButton onClick={() => setCurrentView('LANDING')} className="w-full mt-4">Back to Home</LiquidGlassButton>
+            </motion.div>
+          )}
+        </motion.nav>
+
+        {/* ===== HERO ===== */}
+        <section className="min-h-screen flex flex-col items-center justify-center px-8 pt-20 pb-32 relative">
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.3 }}
+            className="max-w-5xl mx-auto text-center relative"
+          >
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-helvetica-bold leading-[1.2] mb-8 tracking-tight liquid-glass-text uppercase">
+              <span className="mercury-blob" aria-hidden="true" />
+              <span className="mercury-sheen" aria-hidden="true" />
+              <span className="relative z-[1] text-white whitespace-nowrap">ACADEMY</span>
+              <br />
+              <span className="relative z-[1] text-transparent bg-clip-text bg-gradient-to-r from-[#F5D76E] via-[#D4AF37] to-[#B8962E] whitespace-nowrap">
+                WALKTHROUGH
+              </span>
+            </h1>
+
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5, duration: 0.6 }}
+              className="text-xl md:text-2xl text-zinc-400 max-w-3xl mx-auto mb-14 leading-relaxed font-light"
+            >
+              Your complete guide to mastering the Amini Academy platform
+            </motion.p>
+
+            <motion.button
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6, duration: 0.5 }}
+              type="button"
+              onClick={() => scrollTo('getting-started')}
+              className="group relative px-10 py-4 rounded-xl overflow-hidden bg-gradient-to-r from-[#B8962E] via-[#D4AF37] to-[#F5D76E] text-black font-bold text-lg hover:shadow-[0_0_50px_rgba(212,175,55,0.4)] transition-all duration-500"
+            >
+              <span className="relative z-10">Begin Guide</span>
+              <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0 translate-x-[-150%] group-hover:translate-x-[150%] transition-transform duration-700" />
+            </motion.button>
+          </motion.div>
+
+          <motion.button
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1, duration: 0.5 }}
+            type="button"
+            onClick={() => scrollTo('getting-started')}
+            className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3 text-zinc-500 hover:text-[#D4AF37] transition-colors duration-300 cursor-pointer"
+          >
+            <span className="text-xs uppercase tracking-[0.3em] font-medium">Scroll</span>
+            <ChevronDown size={24} className="animate-bounce" />
+          </motion.button>
+        </section>
+
+        {/* ===== GETTING STARTED ===== */}
+        <section id="getting-started" className="py-28 px-8">
+          <div className="max-w-7xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+              className="text-center mb-16"
+            >
+              <h2 className="text-4xl md:text-5xl font-helvetica-bold mb-6 text-white">Getting Started</h2>
+              <p className="text-lg text-zinc-400 max-w-2xl mx-auto">Everything you need to begin your learning journey</p>
+            </motion.div>
+
+            <div className="grid md:grid-cols-2 gap-8">
+              <motion.div
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+              >
+                <LiquidGlass>
+                  <div className="p-8">
+                    <div className="w-14 h-14 rounded-xl bg-blue-400/[0.08] backdrop-blur-sm border border-blue-400/[0.15] flex items-center justify-center mb-6">
+                      <Map size={28} className="text-blue-400" />
+                    </div>
+                    <h3 className="text-xl font-bold text-white mb-4">Visit Academy</h3>
+                    <p className="text-zinc-400 mb-5 text-sm leading-relaxed">
+                      Navigate to <span className="text-[#D4AF37] font-mono">academy.amini.ai</span> to access the platform
+                    </p>
+                    <ul className="space-y-3 text-sm text-zinc-400">
+                      <li className="flex items-start gap-3">
+                        <div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37] mt-2" />
+                        <span>Explore the learning paths available</span>
+                      </li>
+                      <li className="flex items-start gap-3">
+                        <div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37] mt-2" />
+                        <span>Review certification requirements</span>
+                      </li>
+                      <li className="flex items-start gap-3">
+                        <div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37] mt-2" />
+                        <span>Understand the course structure</span>
+                      </li>
+                    </ul>
+                  </div>
+                </LiquidGlass>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+              >
+                <LiquidGlass gold>
+                  <div className="p-8">
+                    <div className="w-14 h-14 rounded-xl bg-[#D4AF37]/[0.1] backdrop-blur-sm border border-[#D4AF37]/[0.2] flex items-center justify-center mb-6">
+                      <UserPlus size={28} className="text-[#D4AF37]" />
+                    </div>
+                    <h3 className="text-xl font-bold text-white mb-4">Create Account</h3>
+                    <p className="text-zinc-300 mb-5 text-sm leading-relaxed">
+                      Register with your government email to request access
+                    </p>
+                    <ul className="space-y-3 text-sm text-zinc-300">
+                      <li className="flex items-start gap-3">
+                        <div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37] mt-2" />
+                        <span>Use your official government email address</span>
+                      </li>
+                      <li className="flex items-start gap-3">
+                        <div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37] mt-2" />
+                        <span>Provide your ministry and role information</span>
+                      </li>
+                      <li className="flex items-start gap-3">
+                        <div className="w-1.5 h-1.5 rounded-full bg-[#D4AF37] mt-2" />
+                        <span>Submit your access request for admin approval</span>
+                      </li>
+                    </ul>
+                  </div>
+                </LiquidGlass>
+              </motion.div>
+            </div>
+          </div>
+        </section>
+
+        {/* ===== SIGN IN ===== */}
+        <section id="sign-in" className="py-28 px-8 bg-white/[0.01]">
+          <div className="max-w-5xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+            >
+              <LiquidGlass>
+                <div className="p-12">
+                  <div className="flex items-start gap-6">
+                    <div className="w-16 h-16 rounded-xl bg-emerald-400/[0.08] backdrop-blur-sm border border-emerald-400/[0.15] flex items-center justify-center shrink-0">
+                      <LogIn size={32} className="text-emerald-400" />
+                    </div>
+                    <div className="flex-1">
+                      <h2 className="text-3xl font-helvetica-bold mb-6 text-white">Sign In Process</h2>
+                      <div className="space-y-6">
+                        <div>
+                          <h4 className="text-lg font-bold text-white mb-3">Login & Approval</h4>
+                          <p className="text-zinc-400 text-sm leading-relaxed mb-4">
+                            After your account is created, an administrator must approve your access before you can begin learning.
+                          </p>
+                          <div className="flex flex-wrap gap-2">
+                            <span className="px-3 py-1.5 rounded-lg text-xs bg-white/[0.03] text-zinc-400 border border-white/[0.08]">Account verification</span>
+                            <span className="px-3 py-1.5 rounded-lg text-xs bg-white/[0.03] text-zinc-400 border border-white/[0.08]">Admin approval required</span>
+                            <span className="px-3 py-1.5 rounded-lg text-xs bg-white/[0.03] text-zinc-400 border border-white/[0.08]">Email notification</span>
+                          </div>
+                        </div>
+                        <div className="h-px bg-gradient-to-r from-transparent via-white/[0.1] to-transparent" />
+                        <div>
+                          <h4 className="text-lg font-bold text-white mb-3">First Login</h4>
+                          <p className="text-zinc-400 text-sm leading-relaxed">
+                            Once approved, sign in with your credentials to access your personalized dashboard and begin your learning journey.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </LiquidGlass>
+            </motion.div>
+          </div>
+        </section>
+
+        {/* ===== DASHBOARD ===== */}
+        <section id="dashboard" className="py-28 px-8">
+          <div className="max-w-7xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+              className="text-center mb-16"
+            >
+              <h2 className="text-4xl md:text-5xl font-helvetica-bold mb-6 text-white">Your Dashboard</h2>
+              <p className="text-lg text-zinc-400 max-w-2xl mx-auto">Track your progress and access all learning materials</p>
+            </motion.div>
+
+            <div className="grid md:grid-cols-3 gap-8 mb-8">
+              <motion.div
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+              >
+                <LiquidGlass>
+                  <div className="p-8">
+                    <div className="w-14 h-14 rounded-xl bg-purple-400/[0.08] backdrop-blur-sm border border-purple-400/[0.15] flex items-center justify-center mb-6">
+                      <BarChart3 size={28} className="text-purple-400" />
+                    </div>
+                    <h3 className="text-xl font-bold text-white mb-3">Learning Metrics</h3>
+                    <p className="text-zinc-400 text-sm leading-relaxed">
+                      View your course completion stats, quiz scores, and overall progress at a glance.
+                    </p>
+                  </div>
+                </LiquidGlass>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+              >
+                <LiquidGlass>
+                  <div className="p-8">
+                    <div className="w-14 h-14 rounded-xl bg-orange-400/[0.08] backdrop-blur-sm border border-orange-400/[0.15] flex items-center justify-center mb-6">
+                      <Route size={28} className="text-orange-400" />
+                    </div>
+                    <h3 className="text-xl font-bold text-white mb-3">Learning Journey</h3>
+                    <p className="text-zinc-400 text-sm leading-relaxed">
+                      Follow your path through BX1-BX8 modules with visual progress tracking and milestones.
+                    </p>
+                  </div>
+                </LiquidGlass>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+              >
+                <LiquidGlass gold>
+                  <div className="p-8">
+                    <div className="w-14 h-14 rounded-xl bg-[#D4AF37]/[0.1] backdrop-blur-sm border border-[#D4AF37]/[0.2] flex items-center justify-center mb-6">
+                      <Target size={28} className="text-[#D4AF37]" />
+                    </div>
+                    <h3 className="text-xl font-bold text-white mb-3">Course Access</h3>
+                    <p className="text-zinc-300 text-sm leading-relaxed">
+                      Quick access to all your enrolled courses and upcoming lessons in one place.
+                    </p>
+                  </div>
+                </LiquidGlass>
+              </motion.div>
+            </div>
+          </div>
+        </section>
+
+        {/* ===== LEARNING TRACKS ===== */}
+        <section id="learning-tracks" className="py-28 px-8 bg-white/[0.01]">
+          <div className="max-w-7xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+              className="text-center mb-16"
+            >
+              <h2 className="text-4xl md:text-5xl font-helvetica-bold mb-6 text-white">Learning Tracks</h2>
+              <p className="text-lg text-zinc-400 max-w-2xl mx-auto">Structured paths from fundamentals to advanced mastery</p>
+            </motion.div>
+
+            <div className="space-y-6">
+              {/* Beginner Track */}
+              <motion.div
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+              >
+                <LiquidGlass>
+                  <div className="p-8 md:p-10">
+                    <div className="flex items-start gap-6">
+                      <div className="w-16 h-16 rounded-xl bg-green-400/[0.08] backdrop-blur-sm border border-green-400/[0.15] flex items-center justify-center shrink-0">
+                        <BookOpen size={32} className="text-green-400" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-4">
+                          <h3 className="text-2xl font-bold text-white">Beginner Track</h3>
+                          <span className="px-3 py-1 rounded-full text-xs bg-green-400/[0.08] text-green-400 border border-green-400/[0.15]">Weeks 1-2</span>
+                        </div>
+                        <p className="text-zinc-400 mb-6 text-sm leading-relaxed">
+                          Build foundational knowledge of APIs, Bajan-X platform basics, and core concepts needed for government digital services.
+                        </p>
+                        <div className="grid sm:grid-cols-2 gap-4">
+                          <div className="flex items-start gap-3">
+                            <CheckCircle size={20} className="text-green-400 shrink-0 mt-0.5" />
+                            <div>
+                              <p className="text-white font-medium text-sm">BX1: API Fundamentals</p>
+                              <p className="text-zinc-500 text-xs">Understanding REST APIs</p>
+                            </div>
+                          </div>
+                          <div className="flex items-start gap-3">
+                            <CheckCircle size={20} className="text-green-400 shrink-0 mt-0.5" />
+                            <div>
+                              <p className="text-white font-medium text-sm">BX2: Platform Basics</p>
+                              <p className="text-zinc-500 text-xs">Navigating Bajan-X</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </LiquidGlass>
+              </motion.div>
+
+              {/* Intermediate Track */}
+              <motion.div
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+              >
+                <LiquidGlass>
+                  <div className="p-8 md:p-10">
+                    <div className="flex items-start gap-6">
+                      <div className="w-16 h-16 rounded-xl bg-blue-400/[0.08] backdrop-blur-sm border border-blue-400/[0.15] flex items-center justify-center shrink-0">
+                        <Settings size={32} className="text-blue-400" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-4">
+                          <h3 className="text-2xl font-bold text-white">Intermediate Track</h3>
+                          <span className="px-3 py-1 rounded-full text-xs bg-blue-400/[0.08] text-blue-400 border border-blue-400/[0.15]">Week 3</span>
+                        </div>
+                        <p className="text-zinc-400 mb-6 text-sm leading-relaxed">
+                          Develop hands-on skills in API development, documentation, and integration with government systems.
+                        </p>
+                        <div className="grid sm:grid-cols-2 gap-4">
+                          <div className="flex items-start gap-3">
+                            <CheckCircle size={20} className="text-blue-400 shrink-0 mt-0.5" />
+                            <div>
+                              <p className="text-white font-medium text-sm">BX3-BX5: Development</p>
+                              <p className="text-zinc-500 text-xs">Building & testing APIs</p>
+                            </div>
+                          </div>
+                          <div className="flex items-start gap-3">
+                            <CheckCircle size={20} className="text-blue-400 shrink-0 mt-0.5" />
+                            <div>
+                              <p className="text-white font-medium text-sm">Documentation</p>
+                              <p className="text-zinc-500 text-xs">Publishing API specs</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </LiquidGlass>
+              </motion.div>
+
+              {/* Advanced Track */}
+              <motion.div
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+              >
+                <LiquidGlass gold>
+                  <div className="p-8 md:p-10">
+                    <div className="flex items-start gap-6">
+                      <div className="w-16 h-16 rounded-xl bg-[#D4AF37]/[0.1] backdrop-blur-sm border border-[#D4AF37]/[0.2] flex items-center justify-center shrink-0">
+                        <Trophy size={32} className="text-[#D4AF37]" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-4">
+                          <h3 className="text-2xl font-bold text-white">Advanced Track</h3>
+                          <span className="px-3 py-1 rounded-full text-xs bg-[#D4AF37]/[0.08] text-[#D4AF37] border border-[#D4AF37]/[0.15]">Week 4</span>
+                        </div>
+                        <p className="text-zinc-300 mb-6 text-sm leading-relaxed">
+                          Master advanced topics including monitoring, governance, security, and maintenance of production APIs.
+                        </p>
+                        <div className="grid sm:grid-cols-2 gap-4">
+                          <div className="flex items-start gap-3">
+                            <CheckCircle size={20} className="text-[#D4AF37] shrink-0 mt-0.5" />
+                            <div>
+                              <p className="text-white font-medium text-sm">BX6-BX8: Advanced</p>
+                              <p className="text-zinc-500 text-xs">Monitoring & governance</p>
+                            </div>
+                          </div>
+                          <div className="flex items-start gap-3">
+                            <CheckCircle size={20} className="text-[#D4AF37] shrink-0 mt-0.5" />
+                            <div>
+                              <p className="text-white font-medium text-sm">Production Ready</p>
+                              <p className="text-zinc-500 text-xs">Security & best practices</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </LiquidGlass>
+              </motion.div>
+            </div>
+          </div>
+        </section>
+
+        {/* ===== GETTING HELP ===== */}
+        <section id="support" className="py-28 px-8">
+          <div className="max-w-7xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+              className="text-center mb-16"
+            >
+              <h2 className="text-4xl md:text-5xl font-helvetica-bold mb-6 text-white">Getting Help</h2>
+              <p className="text-lg text-zinc-400 max-w-2xl mx-auto">Multiple support channels to keep you moving forward</p>
+            </motion.div>
+
+            <div className="grid md:grid-cols-2 gap-8">
+              <motion.div
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+              >
+                <LiquidGlass>
+                  <div className="p-8">
+                    <div className="w-14 h-14 rounded-xl bg-indigo-400/[0.08] backdrop-blur-sm border border-indigo-400/[0.15] flex items-center justify-center mb-6">
+                      <Clock size={28} className="text-indigo-400" />
+                    </div>
+                    <h3 className="text-xl font-bold text-white mb-4">Office Hours</h3>
+                    <p className="text-zinc-400 mb-5 text-sm leading-relaxed">
+                      Join scheduled office hours to get live help from instructors and discuss challenges with peers.
+                    </p>
+                    <div className="space-y-2">
+                      <p className="text-xs text-zinc-500">Available for real-time support</p>
+                    </div>
+                  </div>
+                </LiquidGlass>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+              >
+                <LiquidGlass>
+                  <div className="p-8">
+                    <div className="w-14 h-14 rounded-xl bg-pink-400/[0.08] backdrop-blur-sm border border-pink-400/[0.15] flex items-center justify-center mb-6">
+                      <MessageCircle size={28} className="text-pink-400" />
+                    </div>
+                    <h3 className="text-xl font-bold text-white mb-4">Contact Form</h3>
+                    <p className="text-zinc-400 mb-5 text-sm leading-relaxed">
+                      Submit detailed questions or issues through the contact form for personalized assistance.
+                    </p>
+                    <div className="space-y-2">
+                      <p className="text-xs text-zinc-500">Get responses within 24-48 hours</p>
+                    </div>
+                  </div>
+                </LiquidGlass>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+              >
+                <LiquidGlass>
+                  <div className="p-8">
+                    <div className="w-14 h-14 rounded-xl bg-cyan-400/[0.08] backdrop-blur-sm border border-cyan-400/[0.15] flex items-center justify-center mb-6">
+                      <Users size={28} className="text-cyan-400" />
+                    </div>
+                    <h3 className="text-xl font-bold text-white mb-4">Live Cohort Sessions</h3>
+                    <p className="text-zinc-400 mb-5 text-sm leading-relaxed">
+                      Participate in live sessions with your cohort to collaborate, learn together, and share experiences.
+                    </p>
+                    <div className="space-y-2">
+                      <p className="text-xs text-zinc-500">Interactive group learning</p>
+                    </div>
+                  </div>
+                </LiquidGlass>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.4 }}
+              >
+                <LiquidGlass>
+                  <div className="p-8">
+                    <div className="w-14 h-14 rounded-xl bg-red-400/[0.08] backdrop-blur-sm border border-red-400/[0.15] flex items-center justify-center mb-6">
+                      <AlertTriangle size={28} className="text-red-400" />
+                    </div>
+                    <h3 className="text-xl font-bold text-white mb-4">Report a Problem</h3>
+                    <p className="text-zinc-400 mb-5 text-sm leading-relaxed">
+                      Encountered a technical issue or bug? Report it directly to help us improve the platform.
+                    </p>
+                    <div className="space-y-2">
+                      <p className="text-xs text-zinc-500">Quick issue reporting</p>
+                    </div>
+                  </div>
+                </LiquidGlass>
+              </motion.div>
+            </div>
+          </div>
+        </section>
+
+        {/* ===== CERTIFICATION ===== */}
+        <section id="certification" className="py-28 px-8 bg-white/[0.01]">
+          <div className="max-w-7xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+              className="text-center mb-16"
+            >
+              <h2 className="text-4xl md:text-5xl font-helvetica-bold mb-6 text-white">Earning Certification</h2>
+              <p className="text-lg text-zinc-400 max-w-2xl mx-auto">Two paths to demonstrate your mastery</p>
+            </motion.div>
+
+            <div className="space-y-8">
+              {/* Champion */}
+              <motion.div
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+              >
+                <LiquidGlass gold>
+                  <div className="p-10 md:p-12">
+                    <div className="flex flex-col md:flex-row items-start gap-8">
+                      <div className="w-20 h-20 rounded-xl bg-[#D4AF37]/[0.1] backdrop-blur-sm border border-[#D4AF37]/[0.2] flex items-center justify-center shrink-0">
+                        <Award size={40} className="text-[#D4AF37]" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-3xl font-bold text-white mb-4">Bajan-X Champion</h3>
+                        <p className="text-zinc-300 mb-6 text-base leading-relaxed">
+                          The premier certification demonstrating comprehensive mastery of the Bajan-X platform and API development for government services.
+                        </p>
+                        <div className="space-y-4 mb-6">
+                          <div className="flex items-start gap-4">
+                            <CheckCircle size={24} className="text-[#D4AF37] shrink-0 mt-1" />
+                            <div>
+                              <p className="text-white font-semibold mb-1">Complete All 8 Courses</p>
+                              <p className="text-zinc-400 text-sm">Finish BX1 through BX8 with all lessons and quizzes</p>
+                            </div>
+                          </div>
+                          <div className="flex items-start gap-4">
+                            <CheckCircle size={24} className="text-[#D4AF37] shrink-0 mt-1" />
+                            <div>
+                              <p className="text-white font-semibold mb-1">Capstone Project</p>
+                              <p className="text-zinc-400 text-sm">Build a production-ready API demonstrating all learned concepts</p>
+                            </div>
+                          </div>
+                          <div className="flex items-start gap-4">
+                            <CheckCircle size={24} className="text-[#D4AF37] shrink-0 mt-1" />
+                            <div>
+                              <p className="text-white font-semibold mb-1">Final Assessment</p>
+                              <p className="text-zinc-400 text-sm">Achieve 80% or higher on the comprehensive final exam</p>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="inline-block px-4 py-2 rounded-lg text-sm bg-[#D4AF37]/[0.08] text-[#D4AF37] border border-[#D4AF37]/[0.15]">
+                          Estimated completion: 4 weeks
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </LiquidGlass>
+              </motion.div>
+
+              {/* Superuser */}
+              <motion.div
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+              >
+                <LiquidGlass>
+                  <div className="p-10 md:p-12">
+                    <div className="flex flex-col md:flex-row items-start gap-8">
+                      <div className="w-20 h-20 rounded-xl bg-blue-400/[0.08] backdrop-blur-sm border border-blue-400/[0.15] flex items-center justify-center shrink-0">
+                        <GraduationCap size={40} className="text-blue-400" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-3xl font-bold text-white mb-4">Certified Superuser</h3>
+                        <p className="text-zinc-400 mb-6 text-base leading-relaxed">
+                          Advanced certification for platform experts who can train others and provide technical leadership.
+                        </p>
+                        <div className="space-y-4 mb-6">
+                          <div className="flex items-start gap-4">
+                            <CheckCircle size={24} className="text-blue-400 shrink-0 mt-1" />
+                            <div>
+                              <p className="text-white font-semibold mb-1">Champion Prerequisite</p>
+                              <p className="text-zinc-400 text-sm">First earn your Bajan-X Champion certification</p>
+                            </div>
+                          </div>
+                          <div className="flex items-start gap-4">
+                            <CheckCircle size={24} className="text-blue-400 shrink-0 mt-1" />
+                            <div>
+                              <p className="text-white font-semibold mb-1">Advanced Training</p>
+                              <p className="text-zinc-400 text-sm">Complete specialized modules on platform administration and best practices</p>
+                            </div>
+                          </div>
+                          <div className="flex items-start gap-4">
+                            <CheckCircle size={24} className="text-blue-400 shrink-0 mt-1" />
+                            <div>
+                              <p className="text-white font-semibold mb-1">Peer Mentorship</p>
+                              <p className="text-zinc-400 text-sm">Assist in training and mentoring other learners</p>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="inline-block px-4 py-2 rounded-lg text-sm bg-blue-400/[0.05] text-blue-400 border border-blue-400/[0.15]">
+                          Leadership & expertise recognition
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </LiquidGlass>
+              </motion.div>
+            </div>
+          </div>
+        </section>
+
+        {/* ===== FOOTER ===== */}
+        <footer className="py-16 px-8 border-t border-white/[0.05]">
+          <div className="max-w-7xl mx-auto">
+            <div className="flex flex-col items-center justify-center gap-6 text-center">
+              <div className="flex items-center gap-3">
+                <svg width="193" height="40" viewBox="0 0 1926 400" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-16 h-auto opacity-30">
+                  <path d="M1925.41 400H1825.38V0H1925.41V400Z" fill="white"/>
+                  <path d="M1400.29 400H1312.78V0H1368.25L1639.82 244.8H1650.35V0H1737.87V400H1682.39L1410.82 155.2H1400.29V400Z" fill="white"/>
+                  <path d="M1225.26 400H1125.24V0H1225.26V400Z" fill="white"/>
+                  <path d="M625.132 400H537.613V0H674.577L787.666 244.8H790.179L903.268 0H1037.72V400H950.2V175L955.854 104H947.247L804.001 400H773.216L629.969 105.067H621.99L625.132 175V400Z" fill="white"/>
+                  <path d="M450.095 0V400H350.505V110.4H349.211L113.17 400H0V390.4L329.164 0H450.095Z" fill="white"/>
+                </svg>
+                <span className="text-white/20 font-helvetica-light tracking-[0.25em] text-base">ACADEMY</span>
+              </div>
+              <p className="text-xs text-zinc-600">
+                2026 Amini Academy | Powering Barbados' Digital Transformation
+              </p>
+              <LiquidGlassButton onClick={() => setCurrentView('LANDING')} className="mt-4">
+                Return to Home
+              </LiquidGlassButton>
             </div>
           </div>
         </footer>
@@ -6514,7 +7254,7 @@ const App: React.FC = () => {
     <ToastProvider>
       <div className="font-helvetica text-slate-50 selection:bg-yellow-400/30 h-screen overflow-hidden animate-page-entrance">
         {/* Use enhanced interactive background on landing, regular on other pages */}
-        {(currentView === 'LANDING' || currentView === 'AUTH') ? <LandingBackground /> : <LiquidBackground />}
+        {(currentView === 'LANDING' || currentView === 'AUTH' || currentView === 'WALKTHROUGH') ? <LandingBackground /> : <LiquidBackground />}
 
         {/* Sidebar for authenticated views except player */}
         {(currentView === 'DASHBOARD' || currentView === 'ADMIN') && <Sidebar />}
@@ -6545,6 +7285,11 @@ const App: React.FC = () => {
             {currentView === 'ADMIN' && (
               <PageTransition key="admin">
                 <AdminView />
+              </PageTransition>
+            )}
+            {currentView === 'WALKTHROUGH' && (
+              <PageTransition key="walkthrough">
+                <WalkthroughView />
               </PageTransition>
             )}
           </AnimatePresence>
