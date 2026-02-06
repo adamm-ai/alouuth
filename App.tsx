@@ -73,7 +73,7 @@ import { MINISTRIES } from './constants';
 import { Course, User, UserRole, Lesson, AnalyticData, LearningPath, ContentType } from './types';
 
 // --- Types for Views ---
-type View = 'LANDING' | 'AUTH' | 'DASHBOARD' | 'COURSE_PLAYER' | 'ADMIN' | 'WALKTHROUGH' | 'OFFICE_HOURS';
+type View = 'LANDING' | 'AUTH' | 'DASHBOARD' | 'COURSE_PLAYER' | 'ADMIN' | 'WALKTHROUGH' | 'OFFICE_HOURS' | 'INFO_BAJANX' | 'INFO_BRIDGE' | 'INFO_CHATBB' | 'INFO_API_PUBLISHING' | 'INFO_CERTIFICATION' | 'INFO_FAQS';
 type AdminSection = 'OVERVIEW' | 'USERS' | 'COURSES' | 'ANALYTICS';
 
 // VideoFrame moved to components/UIComponents.tsx
@@ -1500,26 +1500,26 @@ const App: React.FC = () => {
               <div>
                 <h4 className="text-[#D4AF37] font-bold uppercase tracking-wider text-xs mb-5">Products</h4>
                 <ul className="space-y-3 text-sm">
-                  <li><span className="text-zinc-500 hover:text-white transition-colors cursor-default">Bridge Platform</span></li>
-                  <li><span className="text-zinc-500 hover:text-white transition-colors cursor-default">ChatBB</span></li>
-                  <li><span className="text-zinc-500 hover:text-white transition-colors cursor-default">Bajan-X</span></li>
+                  <li><button type="button" onClick={() => setCurrentView('INFO_BRIDGE')} className="text-zinc-500 hover:text-white transition-colors">Bridge Platform</button></li>
+                  <li><button type="button" onClick={() => setCurrentView('INFO_CHATBB')} className="text-zinc-500 hover:text-white transition-colors">ChatBB</button></li>
+                  <li><button type="button" onClick={() => setCurrentView('INFO_BAJANX')} className="text-zinc-500 hover:text-white transition-colors">Bajan-X</button></li>
                 </ul>
               </div>
               <div>
                 <h4 className="text-[#D4AF37] font-bold uppercase tracking-wider text-xs mb-5">Learning</h4>
                 <ul className="space-y-3 text-sm">
-                  <li><span className="text-zinc-500 hover:text-white transition-colors cursor-default">Foundations</span></li>
-                  <li><span className="text-zinc-500 hover:text-white transition-colors cursor-default">API Publishing</span></li>
-                  <li><span className="text-zinc-500 hover:text-white transition-colors cursor-default">Certification</span></li>
+                  <li><button type="button" onClick={() => setCurrentView('INFO_BAJANX')} className="text-zinc-500 hover:text-white transition-colors">Foundations</button></li>
+                  <li><button type="button" onClick={() => setCurrentView('INFO_API_PUBLISHING')} className="text-zinc-500 hover:text-white transition-colors">API Publishing</button></li>
+                  <li><button type="button" onClick={() => setCurrentView('INFO_CERTIFICATION')} className="text-zinc-500 hover:text-white transition-colors">Certification</button></li>
                   <li><button type="button" onClick={() => setCurrentView('WALKTHROUGH')} className="text-zinc-500 hover:text-white transition-colors">Platform Walkthrough</button></li>
                 </ul>
               </div>
               <div>
                 <h4 className="text-[#D4AF37] font-bold uppercase tracking-wider text-xs mb-5">Resources</h4>
                 <ul className="space-y-3 text-sm">
-                  <li><span className="text-zinc-500 hover:text-white transition-colors cursor-default">Documentation</span></li>
+                  <li><button type="button" onClick={() => setCurrentView('WALKTHROUGH')} className="text-zinc-500 hover:text-white transition-colors">Documentation</button></li>
                   <li><a href="https://calendly.com/chadi-lgs/1-1-call-with-amini" target="_blank" rel="noopener noreferrer" className="text-zinc-500 hover:text-white transition-colors">Office Hours</a></li>
-                  <li><span className="text-zinc-500 hover:text-white transition-colors cursor-default">FAQs</span></li>
+                  <li><button type="button" onClick={() => setCurrentView('INFO_FAQS')} className="text-zinc-500 hover:text-white transition-colors">FAQs</button></li>
                   <li><a href="https://form.typeform.com/to/hmKfwlfB" target="_blank" rel="noopener noreferrer" className="text-zinc-500 hover:text-white transition-colors">Report a Problem</a></li>
                   <li><a href="https://form.typeform.com/to/Btyf6iJf" target="_blank" rel="noopener noreferrer" className="text-zinc-500 hover:text-white transition-colors">Contact Us</a></li>
                 </ul>
@@ -2733,6 +2733,1180 @@ const App: React.FC = () => {
             </div>
           </LiquidGlass>
         </motion.div>
+      </div>
+    );
+  };
+
+  // ===== INFO PAGE VIEWS =====
+
+  // Shared Info Page Navigation Component
+  const InfoPageNav = ({ title, onBack }: { title: string; onBack: () => void }) => (
+    <motion.nav
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay: 0.2 }}
+      className="fixed top-0 left-0 right-0 z-50"
+    >
+      <div className="absolute inset-0 bg-white/[0.02] backdrop-blur-[12px] border-b border-white/[0.05]" />
+      <div className="absolute inset-x-0 bottom-0 h-[1px] bg-gradient-to-r from-transparent via-[#D4AF37]/15 to-transparent" />
+      <div className="relative max-w-7xl mx-auto px-8 h-20 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <svg width="193" height="40" viewBox="0 0 1926 400" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-16 h-auto">
+            <path d="M1925.41 400H1825.38V0H1925.41V400Z" fill="white"/>
+            <path d="M1400.29 400H1312.78V0H1368.25L1639.82 244.8H1650.35V0H1737.87V400H1682.39L1410.82 155.2H1400.29V400Z" fill="white"/>
+            <path d="M1225.26 400H1125.24V0H1225.26V400Z" fill="white"/>
+            <path d="M625.132 400H537.613V0H674.577L787.666 244.8H790.179L903.268 0H1037.72V400H950.2V175L955.854 104H947.247L804.001 400H773.216L629.969 105.067H621.99L625.132 175V400Z" fill="white"/>
+            <path d="M450.095 0V400H350.505V110.4H349.211L113.17 400H0V390.4L329.164 0H450.095Z" fill="white"/>
+          </svg>
+          <span className="text-white/40 font-helvetica-light tracking-[0.25em] text-base">ACADEMY</span>
+        </div>
+        <button
+          type="button"
+          onClick={onBack}
+          className="relative px-6 py-2.5 text-sm font-medium rounded-full overflow-hidden group/nav bg-white/[0.02] backdrop-blur-sm border border-white/[0.08] hover:border-[#D4AF37]/40 hover:bg-[#D4AF37]/[0.05] transition-all duration-300 flex items-center gap-2"
+        >
+          <ArrowLeft size={16} className="text-white group-hover/nav:text-[#D4AF37] transition-colors duration-300" />
+          <span className="relative text-white group-hover/nav:text-[#D4AF37] transition-colors duration-300">Back to Home</span>
+        </button>
+      </div>
+    </motion.nav>
+  );
+
+  // Bajan-X Info View
+  const BajanXInfoView = () => {
+    const ministries = [
+      'Ministry of Industry, Innovation, Science and Technology (MIST)',
+      'Ministry of Educational Transformation',
+      'Business Barbados',
+      'Trident ID',
+      'Ministry of Energy',
+      'Lands and Survey'
+    ];
+
+    return (
+      <div className="absolute inset-0 overflow-y-auto overflow-x-hidden z-10 scroll-smooth">
+        <InfoPageNav title="Bajan-X" onBack={() => setCurrentView('LANDING')} />
+
+        {/* Hero Section */}
+        <section className="min-h-screen flex flex-col items-center justify-center px-8 pt-20 pb-32 relative">
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.3 }}
+            className="max-w-5xl mx-auto text-center relative"
+          >
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-400/10 border border-emerald-400/20 text-emerald-400 text-sm font-medium mb-8">
+              <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              AVAILABLE NOW
+            </div>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-helvetica-bold leading-[1.2] mb-8 tracking-tight">
+              <span className="text-white">BAJAN-X</span>
+            </h1>
+            <p className="text-xl md:text-2xl text-zinc-400 max-w-3xl mx-auto mb-8 leading-relaxed font-light">
+              Barbados' secure API platform
+            </p>
+            <p className="text-lg text-zinc-500 max-w-2xl mx-auto leading-relaxed">
+              Bajan-X is Barbados' national platform for sharing data across government. It replaces email attachments and manual processes with secure, automated data exchange.
+            </p>
+          </motion.div>
+        </section>
+
+        {/* What Bajan-X Does */}
+        <section className="py-28 px-8 bg-white/[0.01]">
+          <div className="max-w-7xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mb-16"
+            >
+              <h2 className="text-4xl md:text-5xl font-helvetica-bold mb-6 text-white">What Bajan-X Does</h2>
+            </motion.div>
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[
+                { icon: Search, title: 'Browse APIs', desc: 'Browse available APIs across government' },
+                { icon: Lock, title: 'Secure Publishing', desc: 'Publish APIs with built-in security and logging' },
+                { icon: PlayCircle, title: 'Test Safely', desc: 'Test APIs safely before using them' },
+                { icon: UserCheck, title: 'Access Control', desc: 'Control who can access what' },
+                { icon: BarChart3, title: 'Monitor Health', desc: 'Monitor API health and usage' },
+              ].map((item, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 40 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: idx * 0.1 }}
+                >
+                  <LiquidGlass>
+                    <div className="p-6">
+                      <div className="w-12 h-12 rounded-xl bg-[#D4AF37]/[0.1] border border-[#D4AF37]/20 flex items-center justify-center mb-4">
+                        <item.icon size={24} className="text-[#D4AF37]" />
+                      </div>
+                      <h3 className="text-lg font-bold text-white mb-2">{item.title}</h3>
+                      <p className="text-zinc-400 text-sm">{item.desc}</p>
+                    </div>
+                  </LiquidGlass>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Who It's For */}
+        <section className="py-28 px-8">
+          <div className="max-w-5xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+            >
+              <LiquidGlass gold>
+                <div className="p-12">
+                  <h2 className="text-3xl font-helvetica-bold mb-6 text-white">Who It's For</h2>
+                  <p className="text-zinc-300 text-lg leading-relaxed">
+                    IT professionals, database administrators, data stewards, and ministry champions who manage and share government data.
+                  </p>
+                </div>
+              </LiquidGlass>
+            </motion.div>
+          </div>
+        </section>
+
+        {/* Training */}
+        <section className="py-28 px-8 bg-white/[0.01]">
+          <div className="max-w-7xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mb-16"
+            >
+              <h2 className="text-4xl md:text-5xl font-helvetica-bold mb-6 text-white">Training Programme</h2>
+              <p className="text-lg text-zinc-400 max-w-2xl mx-auto">
+                An 8-module course that takes you from "What's an API?" to publishing your ministry's first API.
+              </p>
+            </motion.div>
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {[
+                { week: 'Week 1', title: 'Foundations', desc: 'What Bajan-X is, why APIs matter' },
+                { week: 'Week 2', title: 'Working with APIs', desc: 'Reading documentation, running tests' },
+                { week: 'Week 3', title: 'Publishing', desc: 'Classification, access rules, the publishing workflow' },
+                { week: 'Week 4', title: 'Monitoring & Capstone', desc: 'Keeping APIs healthy, presenting your work' },
+              ].map((item, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 40 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: idx * 0.1 }}
+                >
+                  <LiquidGlass>
+                    <div className="p-6">
+                      <span className="text-[#D4AF37] text-sm font-bold uppercase tracking-wider">{item.week}</span>
+                      <h3 className="text-lg font-bold text-white mt-2 mb-2">{item.title}</h3>
+                      <p className="text-zinc-400 text-sm">{item.desc}</p>
+                    </div>
+                  </LiquidGlass>
+                </motion.div>
+              ))}
+            </div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mt-12"
+            >
+              <p className="text-zinc-400 mb-8">Complete all modules to earn <span className="text-[#D4AF37] font-bold">Bajan-X Champion</span> certification.</p>
+              <button
+                type="button"
+                onClick={() => setCurrentView('AUTH')}
+                className="group relative px-10 py-4 rounded-xl overflow-hidden bg-gradient-to-r from-[#B8962E] via-[#D4AF37] to-[#F5D76E] text-black font-bold text-lg hover:shadow-[0_0_50px_rgba(212,175,55,0.4)] transition-all duration-500"
+              >
+                <span className="relative z-10">Start Training</span>
+                <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0 translate-x-[-150%] group-hover:translate-x-[150%] transition-transform duration-700" />
+              </button>
+            </motion.div>
+          </div>
+        </section>
+
+        {/* The Ecosystem */}
+        <section className="py-28 px-8">
+          <div className="max-w-7xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mb-16"
+            >
+              <h2 className="text-4xl md:text-5xl font-helvetica-bold mb-6 text-white">The Ecosystem</h2>
+              <p className="text-lg text-zinc-400 max-w-2xl mx-auto">Bajan-X is one of three platforms</p>
+            </motion.div>
+
+            <div className="grid md:grid-cols-3 gap-8">
+              <motion.div initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }}>
+                <LiquidGlass gold>
+                  <div className="p-8 text-center">
+                    <div className="w-16 h-16 rounded-2xl bg-[#D4AF37]/[0.15] border border-[#D4AF37]/30 flex items-center justify-center mx-auto mb-4">
+                      <Key size={32} className="text-[#D4AF37]" />
+                    </div>
+                    <h3 className="text-xl font-bold text-white mb-2">Bajan-X</h3>
+                    <p className="text-zinc-300 text-sm">Structured data exchange (APIs)</p>
+                  </div>
+                </LiquidGlass>
+              </motion.div>
+
+              <motion.div initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.2 }}>
+                <LiquidGlass>
+                  <div className="p-8 text-center">
+                    <div className="w-16 h-16 rounded-2xl bg-purple-400/[0.1] border border-purple-400/20 flex items-center justify-center mx-auto mb-4">
+                      <FileText size={32} className="text-purple-400" />
+                    </div>
+                    <h3 className="text-xl font-bold text-white mb-2">Bridge</h3>
+                    <p className="text-zinc-400 text-sm">Government knowledge (documents and records)</p>
+                  </div>
+                </LiquidGlass>
+              </motion.div>
+
+              <motion.div initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.3 }}>
+                <LiquidGlass>
+                  <div className="p-8 text-center">
+                    <div className="w-16 h-16 rounded-2xl bg-blue-400/[0.1] border border-blue-400/20 flex items-center justify-center mx-auto mb-4">
+                      <MessageCircle size={32} className="text-blue-400" />
+                    </div>
+                    <h3 className="text-xl font-bold text-white mb-2">ChatBB</h3>
+                    <p className="text-zinc-400 text-sm">Citizen services</p>
+                  </div>
+                </LiquidGlass>
+              </motion.div>
+            </div>
+
+            <motion.p
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              className="text-center text-zinc-400 mt-12"
+            >
+              Staff who complete training across all three become <span className="text-[#D4AF37] font-bold">Certified Superusers</span>, recognized leaders in Barbados' digital transformation.
+            </motion.p>
+          </div>
+        </section>
+
+        {/* Participating Ministries */}
+        <section className="py-28 px-8 bg-white/[0.01]">
+          <div className="max-w-5xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mb-16"
+            >
+              <h2 className="text-4xl md:text-5xl font-helvetica-bold mb-6 text-white">Participating Ministries</h2>
+            </motion.div>
+
+            <div className="flex flex-wrap justify-center gap-4">
+              {ministries.map((ministry, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: idx * 0.05 }}
+                  className="px-6 py-3 rounded-full bg-white/[0.03] border border-white/[0.08] text-zinc-300 text-sm"
+                >
+                  {ministry}
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Footer CTA */}
+        <section className="py-28 px-8">
+          <div className="max-w-3xl mx-auto text-center">
+            <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+              <h2 className="text-3xl md:text-4xl font-helvetica-bold mb-8 text-white">Ready to Get Started?</h2>
+              <button
+                type="button"
+                onClick={() => setCurrentView('AUTH')}
+                className="group relative px-12 py-5 rounded-xl overflow-hidden bg-gradient-to-r from-[#B8962E] via-[#D4AF37] to-[#F5D76E] text-black font-bold text-lg hover:shadow-[0_0_50px_rgba(212,175,55,0.4)] transition-all duration-500"
+              >
+                <span className="relative z-10 flex items-center gap-2">
+                  Start Training <ChevronRight size={20} />
+                </span>
+                <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0 translate-x-[-150%] group-hover:translate-x-[150%] transition-transform duration-700" />
+              </button>
+            </motion.div>
+          </div>
+        </section>
+      </div>
+    );
+  };
+
+  // Bridge Info View
+  const BridgeInfoView = () => {
+    return (
+      <div className="absolute inset-0 overflow-y-auto overflow-x-hidden z-10 scroll-smooth">
+        <InfoPageNav title="Bridge" onBack={() => setCurrentView('LANDING')} />
+
+        {/* Hero Section */}
+        <section className="min-h-screen flex flex-col items-center justify-center px-8 pt-20 pb-32 relative">
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.3 }}
+            className="max-w-5xl mx-auto text-center relative"
+          >
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-400/10 border border-purple-400/20 text-purple-400 text-sm font-medium mb-8">
+              <Clock size={14} />
+              COMING SOON
+            </div>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-helvetica-bold leading-[1.2] mb-8 tracking-tight">
+              <span className="text-white">BRIDGE</span>
+            </h1>
+            <p className="text-xl md:text-2xl text-zinc-400 max-w-3xl mx-auto mb-8 leading-relaxed font-light">
+              Barbados' private knowledge graph platform
+            </p>
+            <p className="text-lg text-zinc-500 max-w-2xl mx-auto leading-relaxed">
+              Bridge connects government knowledge — policy documents, cabinet records, historical decisions — into one searchable system.
+            </p>
+          </motion.div>
+        </section>
+
+        {/* What Bridge Does */}
+        <section className="py-28 px-8 bg-white/[0.01]">
+          <div className="max-w-7xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mb-16"
+            >
+              <h2 className="text-4xl md:text-5xl font-helvetica-bold mb-6 text-white">What Bridge Does</h2>
+              <p className="text-lg text-zinc-400 max-w-2xl mx-auto">
+                Instead of hunting through folders and archives, you query Bridge and it finds relevant information across all connected sources.
+              </p>
+            </motion.div>
+
+            <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+              {[
+                { icon: Search, title: 'Search Documents', desc: 'Search across government documents and records' },
+                { icon: FileText, title: 'Surface Precedents', desc: 'Surface relevant precedents when preparing policy recommendations' },
+                { icon: Building2, title: 'Connect Information', desc: 'Connect related information across ministries' },
+                { icon: BookOpen, title: 'Provide Context', desc: 'Provide context when authoring briefs and papers' },
+              ].map((item, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 40 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: idx * 0.1 }}
+                >
+                  <LiquidGlass>
+                    <div className="p-6 flex items-start gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-purple-400/[0.1] border border-purple-400/20 flex items-center justify-center shrink-0">
+                        <item.icon size={24} className="text-purple-400" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-bold text-white mb-2">{item.title}</h3>
+                        <p className="text-zinc-400 text-sm">{item.desc}</p>
+                      </div>
+                    </div>
+                  </LiquidGlass>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Training */}
+        <section className="py-28 px-8">
+          <div className="max-w-5xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+            >
+              <LiquidGlass>
+                <div className="p-12 text-center">
+                  <div className="w-20 h-20 rounded-2xl bg-purple-400/[0.1] border border-purple-400/20 flex items-center justify-center mx-auto mb-6">
+                    <GraduationCap size={40} className="text-purple-400" />
+                  </div>
+                  <h2 className="text-3xl font-helvetica-bold mb-4 text-white">Training</h2>
+                  <p className="text-zinc-400 text-lg leading-relaxed mb-6">
+                    Bridge training is in development. When it launches, you'll learn to query Bridge effectively and contribute to the knowledge graph.
+                  </p>
+                  <p className="text-[#D4AF37] font-medium">
+                    Champions get early access to new training paths.
+                  </p>
+                </div>
+              </LiquidGlass>
+            </motion.div>
+          </div>
+        </section>
+
+        {/* How Bridge Relates to Bajan-X */}
+        <section className="py-28 px-8 bg-white/[0.01]">
+          <div className="max-w-5xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+            >
+              <LiquidGlass gold>
+                <div className="p-12">
+                  <h2 className="text-3xl font-helvetica-bold mb-6 text-white">How Bridge Relates to Bajan-X</h2>
+                  <p className="text-zinc-300 text-lg leading-relaxed mb-8">
+                    <span className="text-[#D4AF37] font-bold">Bajan-X</span> handles structured data (APIs). <span className="text-purple-400 font-bold">Bridge</span> handles unstructured knowledge (documents and records). Together, they form the backbone of Barbados' information infrastructure.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setCurrentView('INFO_BAJANX')}
+                    className="inline-flex items-center gap-2 text-[#D4AF37] font-medium hover:underline"
+                  >
+                    Learn more about Bajan-X <ChevronRight size={18} />
+                  </button>
+                </div>
+              </LiquidGlass>
+            </motion.div>
+          </div>
+        </section>
+      </div>
+    );
+  };
+
+  // ChatBB Info View
+  const ChatBBInfoView = () => {
+    return (
+      <div className="absolute inset-0 overflow-y-auto overflow-x-hidden z-10 scroll-smooth">
+        <InfoPageNav title="ChatBB" onBack={() => setCurrentView('LANDING')} />
+
+        {/* Hero Section */}
+        <section className="min-h-screen flex flex-col items-center justify-center px-8 pt-20 pb-32 relative">
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.3 }}
+            className="max-w-5xl mx-auto text-center relative"
+          >
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-400/10 border border-blue-400/20 text-blue-400 text-sm font-medium mb-8">
+              <Clock size={14} />
+              COMING SOON
+            </div>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-helvetica-bold leading-[1.2] mb-8 tracking-tight">
+              <span className="text-white">CHATBB</span>
+            </h1>
+            <p className="text-xl md:text-2xl text-zinc-400 max-w-3xl mx-auto mb-8 leading-relaxed font-light">
+              Citizen services via WhatsApp
+            </p>
+            <p className="text-lg text-zinc-500 max-w-2xl mx-auto leading-relaxed">
+              ChatBB brings government services to WhatsApp — the app Barbadians and non-Barbadians use every day. Citizens can ask questions and get answers instantly, without needing to know which ministry to contact or which form to fill.
+            </p>
+          </motion.div>
+        </section>
+
+        {/* What ChatBB Does */}
+        <section className="py-28 px-8 bg-white/[0.01]">
+          <div className="max-w-7xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mb-16"
+            >
+              <h2 className="text-4xl md:text-5xl font-helvetica-bold mb-6 text-white">What ChatBB Does</h2>
+            </motion.div>
+
+            <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+              {[
+                { icon: HelpCircle, title: 'Answer Questions', desc: 'Answer common questions about government services' },
+                { icon: Route, title: 'Smart Routing', desc: 'Route complex queries to the right department' },
+                { icon: Clock, title: '24/7 Availability', desc: 'Provide information 24/7 in plain language' },
+                { icon: Users, title: 'Human Support', desc: 'Connect citizens to human support when needed' },
+              ].map((item, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 40 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: idx * 0.1 }}
+                >
+                  <LiquidGlass>
+                    <div className="p-6 flex items-start gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-blue-400/[0.1] border border-blue-400/20 flex items-center justify-center shrink-0">
+                        <item.icon size={24} className="text-blue-400" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-bold text-white mb-2">{item.title}</h3>
+                        <p className="text-zinc-400 text-sm">{item.desc}</p>
+                      </div>
+                    </div>
+                  </LiquidGlass>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Training */}
+        <section className="py-28 px-8">
+          <div className="max-w-5xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+            >
+              <LiquidGlass>
+                <div className="p-12 text-center">
+                  <div className="w-20 h-20 rounded-2xl bg-blue-400/[0.1] border border-blue-400/20 flex items-center justify-center mx-auto mb-6">
+                    <GraduationCap size={40} className="text-blue-400" />
+                  </div>
+                  <h2 className="text-3xl font-helvetica-bold mb-4 text-white">Training</h2>
+                  <p className="text-zinc-400 text-lg leading-relaxed mb-6">
+                    ChatBB training is in development. When it launches, you'll learn to monitor conversations, maintain response quality, and handle escalations.
+                  </p>
+                  <p className="text-[#D4AF37] font-medium">
+                    Champions get early access to new training paths.
+                  </p>
+                </div>
+              </LiquidGlass>
+            </motion.div>
+          </div>
+        </section>
+
+        {/* How ChatBB Relates to Bajan-X */}
+        <section className="py-28 px-8 bg-white/[0.01]">
+          <div className="max-w-5xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+            >
+              <LiquidGlass gold>
+                <div className="p-12">
+                  <h2 className="text-3xl font-helvetica-bold mb-6 text-white">How ChatBB Relates to Bajan-X</h2>
+                  <p className="text-zinc-300 text-lg leading-relaxed mb-4">
+                    ChatBB uses <span className="text-[#D4AF37] font-bold">Bajan-X APIs</span> to get accurate, up-to-date information. When a citizen asks a question, ChatBB queries the relevant API to provide the right answer.
+                  </p>
+                  <p className="text-zinc-300 text-lg leading-relaxed mb-8">
+                    The APIs you publish through Bajan-X can power citizen services through ChatBB.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setCurrentView('INFO_BAJANX')}
+                    className="inline-flex items-center gap-2 text-[#D4AF37] font-medium hover:underline"
+                  >
+                    Learn more about Bajan-X <ChevronRight size={18} />
+                  </button>
+                </div>
+              </LiquidGlass>
+            </motion.div>
+          </div>
+        </section>
+      </div>
+    );
+  };
+
+  // API Publishing Info View
+  const APIPublishingInfoView = () => {
+    const modules = [
+      { code: 'BX4', title: 'Reading Documentation', desc: 'Learn to understand API documentation — what inputs are needed, what outputs to expect.' },
+      { code: 'BX5', title: 'Testing in the Playground', desc: 'Run your first API tests in a safe environment. Learn to interpret results.' },
+      { code: 'BX6', title: 'Classification & Access Rules', desc: "Apply Barbados' data classification framework. Define who can access what." },
+      { code: 'BX7', title: 'Publishing on Bajan-X', desc: "Walk through the publishing workflow. Prepare your ministry's first API candidate." },
+    ];
+
+    return (
+      <div className="absolute inset-0 overflow-y-auto overflow-x-hidden z-10 scroll-smooth">
+        <InfoPageNav title="API Publishing" onBack={() => setCurrentView('LANDING')} />
+
+        {/* Hero Section */}
+        <section className="min-h-screen flex flex-col items-center justify-center px-8 pt-20 pb-32 relative">
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.3 }}
+            className="max-w-5xl mx-auto text-center relative"
+          >
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#D4AF37]/10 border border-[#D4AF37]/20 text-[#D4AF37] text-sm font-medium mb-8">
+              <BookOpen size={14} />
+              LEARNING TRACK
+            </div>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-helvetica-bold leading-[1.2] mb-8 tracking-tight">
+              <span className="text-white">API PUBLISHING</span>
+            </h1>
+            <p className="text-xl md:text-2xl text-zinc-400 max-w-3xl mx-auto mb-8 leading-relaxed font-light">
+              Learn the complete workflow, from finding data to publishing APIs
+            </p>
+            <p className="text-lg text-zinc-500 max-w-2xl mx-auto leading-relaxed">
+              This track takes you from understanding APIs to actually working with them. You'll learn to read documentation, run tests, classify data, and prepare APIs for publishing.
+            </p>
+          </motion.div>
+        </section>
+
+        {/* What You'll Gain */}
+        <section className="py-28 px-8 bg-white/[0.01]">
+          <div className="max-w-7xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mb-16"
+            >
+              <h2 className="text-4xl md:text-5xl font-helvetica-bold mb-6 text-white">What You'll Gain</h2>
+              <p className="text-lg text-zinc-400 max-w-2xl mx-auto">
+                By the end of this track, you'll be able to:
+              </p>
+            </motion.div>
+
+            <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+              {[
+                { icon: FileText, title: 'Read API Documentation', desc: 'Read and interpret API documentation with confidence' },
+                { icon: PlayCircle, title: 'Run Tests', desc: 'Run tests safely in the playground environment' },
+                { icon: Lock, title: 'Classify Data', desc: 'Classify data appropriately (Public, Internal, Restricted)' },
+                { icon: Award, title: 'Prepare API Packages', desc: 'Prepare a complete API candidate package for your ministry' },
+              ].map((item, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 40 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: idx * 0.1 }}
+                >
+                  <LiquidGlass>
+                    <div className="p-6 flex items-start gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-[#D4AF37]/[0.1] border border-[#D4AF37]/20 flex items-center justify-center shrink-0">
+                        <item.icon size={24} className="text-[#D4AF37]" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-bold text-white mb-2">{item.title}</h3>
+                        <p className="text-zinc-400 text-sm">{item.desc}</p>
+                      </div>
+                    </div>
+                  </LiquidGlass>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* The Modules */}
+        <section className="py-28 px-8">
+          <div className="max-w-7xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mb-16"
+            >
+              <h2 className="text-4xl md:text-5xl font-helvetica-bold mb-6 text-white">The Modules</h2>
+            </motion.div>
+
+            <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+              {modules.map((module, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 40 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: idx * 0.1 }}
+                >
+                  <LiquidGlass gold={idx === modules.length - 1}>
+                    <div className="p-6">
+                      <span className="text-[#D4AF37] text-sm font-bold uppercase tracking-wider">{module.code}</span>
+                      <h3 className="text-lg font-bold text-white mt-2 mb-2">{module.title}</h3>
+                      <p className="text-zinc-400 text-sm">{module.desc}</p>
+                    </div>
+                  </LiquidGlass>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Time & Prerequisites */}
+        <section className="py-28 px-8 bg-white/[0.01]">
+          <div className="max-w-5xl mx-auto">
+            <div className="grid md:grid-cols-2 gap-8">
+              <motion.div
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+              >
+                <LiquidGlass>
+                  <div className="p-8">
+                    <div className="w-14 h-14 rounded-xl bg-blue-400/[0.1] border border-blue-400/20 flex items-center justify-center mb-6">
+                      <Clock size={28} className="text-blue-400" />
+                    </div>
+                    <h3 className="text-xl font-bold text-white mb-3">Time Commitment</h3>
+                    <p className="text-zinc-400">
+                      About 5–6 hours total, including documentation work.
+                    </p>
+                  </div>
+                </LiquidGlass>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.1 }}
+              >
+                <LiquidGlass>
+                  <div className="p-8">
+                    <div className="w-14 h-14 rounded-xl bg-orange-400/[0.1] border border-orange-400/20 flex items-center justify-center mb-6">
+                      <Route size={28} className="text-orange-400" />
+                    </div>
+                    <h3 className="text-xl font-bold text-white mb-3">Prerequisites</h3>
+                    <p className="text-zinc-400">
+                      Complete the Foundations track first.
+                    </p>
+                  </div>
+                </LiquidGlass>
+              </motion.div>
+            </div>
+          </div>
+        </section>
+
+        {/* CTA */}
+        <section className="py-28 px-8">
+          <div className="max-w-3xl mx-auto text-center">
+            <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+              <p className="text-zinc-400 mb-4 text-lg">
+                Whether you'll be publishing APIs yourself or requesting access to others' APIs, this track gives you the skills to participate fully in Barbados' data ecosystem.
+              </p>
+              <button
+                type="button"
+                onClick={() => setCurrentView('AUTH')}
+                className="group relative px-12 py-5 rounded-xl overflow-hidden bg-gradient-to-r from-[#B8962E] via-[#D4AF37] to-[#F5D76E] text-black font-bold text-lg hover:shadow-[0_0_50px_rgba(212,175,55,0.4)] transition-all duration-500 mt-8"
+              >
+                <span className="relative z-10 flex items-center gap-2">
+                  Continue to API Publishing <ChevronRight size={20} />
+                </span>
+                <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0 translate-x-[-150%] group-hover:translate-x-[150%] transition-transform duration-700" />
+              </button>
+            </motion.div>
+          </div>
+        </section>
+      </div>
+    );
+  };
+
+  // Certification Info View
+  const CertificationInfoView = () => {
+    return (
+      <div className="absolute inset-0 overflow-y-auto overflow-x-hidden z-10 scroll-smooth">
+        <InfoPageNav title="Certification" onBack={() => setCurrentView('LANDING')} />
+
+        {/* Hero Section */}
+        <section className="min-h-screen flex flex-col items-center justify-center px-8 pt-20 pb-32 relative">
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.3 }}
+            className="max-w-5xl mx-auto text-center relative"
+          >
+            <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-[#D4AF37]/20 to-[#D4AF37]/5 border border-[#D4AF37]/30 flex items-center justify-center mx-auto mb-8 shadow-[0_0_60px_rgba(212,175,55,0.2)]">
+              <Award size={48} className="text-[#D4AF37]" />
+            </div>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-helvetica-bold leading-[1.2] mb-8 tracking-tight">
+              <span className="text-white">CERTIFICATION</span>
+            </h1>
+            <p className="text-xl md:text-2xl text-zinc-400 max-w-3xl mx-auto mb-8 leading-relaxed font-light">
+              Validate your skills. Get recognized.
+            </p>
+            <p className="text-lg text-zinc-500 max-w-2xl mx-auto leading-relaxed">
+              Certification shows your ministry — and yourself — that you've mastered the skills to participate in Barbados' digital transformation. It's recognition that lasts.
+            </p>
+          </motion.div>
+        </section>
+
+        {/* Bajan-X Champion */}
+        <section className="py-28 px-8 bg-white/[0.01]">
+          <div className="max-w-7xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mb-16"
+            >
+              <h2 className="text-4xl md:text-5xl font-helvetica-bold mb-6 text-white">Bajan-X Champion</h2>
+              <p className="text-lg text-zinc-400 max-w-2xl mx-auto">
+                The certification for completing the Bajan-X programme.
+              </p>
+            </motion.div>
+
+            <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+              <motion.div
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+              >
+                <LiquidGlass>
+                  <div className="p-8">
+                    <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                      <Target size={20} className="text-[#D4AF37]" />
+                      How to Earn It
+                    </h3>
+                    <ol className="space-y-4">
+                      {[
+                        'Complete all 8 modules (BX1–BX8)',
+                        'Pass all quizzes (70% or higher)',
+                        'Submit your capstone project',
+                        'Pass the final assessment (80% or higher)',
+                      ].map((step, idx) => (
+                        <li key={idx} className="flex items-start gap-3">
+                          <span className="w-6 h-6 rounded-full bg-[#D4AF37]/20 text-[#D4AF37] text-sm font-bold flex items-center justify-center shrink-0">{idx + 1}</span>
+                          <span className="text-zinc-300">{step}</span>
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
+                </LiquidGlass>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.1 }}
+              >
+                <LiquidGlass gold>
+                  <div className="p-8">
+                    <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                      <Award size={20} className="text-[#D4AF37]" />
+                      What You Receive
+                    </h3>
+                    <ul className="space-y-3">
+                      {[
+                        'Digital certificate (PDF)',
+                        'Bajan-X Champion badge',
+                      ].map((item, idx) => (
+                        <li key={idx} className="flex items-center gap-3">
+                          <CheckCircle size={18} className="text-[#D4AF37]" />
+                          <span className="text-zinc-300">{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </LiquidGlass>
+              </motion.div>
+            </div>
+
+            {/* Perks */}
+            <motion.div
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="mt-8 max-w-5xl mx-auto"
+            >
+              <LiquidGlass>
+                <div className="p-8">
+                  <h3 className="text-xl font-bold text-white mb-6">Perks of Being a Champion</h3>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    {[
+                      "Recognized as your ministry's go-to expert on APIs",
+                      'Priority consideration for digital transformation projects',
+                      'Opportunity to mentor new learners',
+                      'Access to Champion-only resources and updates',
+                    ].map((perk, idx) => (
+                      <div key={idx} className="flex items-start gap-3">
+                        <div className="w-2 h-2 rounded-full bg-[#D4AF37] mt-2 shrink-0" />
+                        <span className="text-zinc-400 text-sm">{perk}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </LiquidGlass>
+            </motion.div>
+          </div>
+        </section>
+
+        {/* Certified Superuser */}
+        <section className="py-28 px-8">
+          <div className="max-w-7xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mb-16"
+            >
+              <h2 className="text-4xl md:text-5xl font-helvetica-bold mb-6 text-white">Certified Superuser</h2>
+              <p className="text-lg text-zinc-400 max-w-2xl mx-auto">
+                For those who want to lead across the entire Amini ecosystem. Superusers are the advanced practitioners — staff who've demonstrated expertise across multiple platforms, not just Bajan-X.
+              </p>
+            </motion.div>
+
+            <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+              <motion.div
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+              >
+                <LiquidGlass>
+                  <div className="p-8">
+                    <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                      <Route size={20} className="text-purple-400" />
+                      How to Become a Superuser
+                    </h3>
+                    <ol className="space-y-4">
+                      {[
+                        'Earn Bajan-X Champion certification',
+                        'Complete Bridge training (when available)',
+                        'Complete ChatBB training (when available)',
+                        "Demonstrate leadership in your ministry's digital initiatives",
+                      ].map((step, idx) => (
+                        <li key={idx} className="flex items-start gap-3">
+                          <span className="w-6 h-6 rounded-full bg-purple-400/20 text-purple-400 text-sm font-bold flex items-center justify-center shrink-0">{idx + 1}</span>
+                          <span className="text-zinc-300">{step}</span>
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
+                </LiquidGlass>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.1 }}
+              >
+                <LiquidGlass>
+                  <div className="p-8">
+                    <h3 className="text-xl font-bold text-white mb-6">Perks of Being a Superuser</h3>
+                    <ul className="space-y-3">
+                      {[
+                        'Recognized transformation leader in your ministry',
+                        'Priority access to new training and features',
+                        'Invitation to strategy sessions with the Amini team',
+                        'Exclusive Superuser community and support channels',
+                        'Early access to platform updates and pilots',
+                        'Opportunity to shape future training content',
+                      ].map((perk, idx) => (
+                        <li key={idx} className="flex items-start gap-3">
+                          <CheckCircle size={16} className="text-purple-400 mt-0.5 shrink-0" />
+                          <span className="text-zinc-400 text-sm">{perk}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </LiquidGlass>
+              </motion.div>
+            </div>
+          </div>
+        </section>
+
+        {/* FAQ Section */}
+        <section className="py-28 px-8 bg-white/[0.01]">
+          <div className="max-w-5xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mb-16"
+            >
+              <h2 className="text-3xl font-helvetica-bold mb-6 text-white">Frequently Asked Questions</h2>
+            </motion.div>
+
+            <div className="space-y-4">
+              {[
+                { q: 'Does certification expire?', a: "No. Once you earn your certification, it's yours to keep." },
+                { q: 'Can I retake quizzes?', a: 'Yes. You can retake quizzes as many times as you need. Your highest score counts.' },
+              ].map((faq, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: idx * 0.1 }}
+                >
+                  <LiquidGlass>
+                    <div className="p-6">
+                      <h4 className="text-white font-bold mb-2">{faq.q}</h4>
+                      <p className="text-zinc-400 text-sm">{faq.a}</p>
+                    </div>
+                  </LiquidGlass>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* CTA */}
+        <section className="py-28 px-8">
+          <div className="max-w-3xl mx-auto text-center">
+            <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+              <h2 className="text-3xl md:text-4xl font-helvetica-bold mb-8 text-white">Start Your Certification Journey</h2>
+              <button
+                type="button"
+                onClick={() => setCurrentView('AUTH')}
+                className="group relative px-12 py-5 rounded-xl overflow-hidden bg-gradient-to-r from-[#B8962E] via-[#D4AF37] to-[#F5D76E] text-black font-bold text-lg hover:shadow-[0_0_50px_rgba(212,175,55,0.4)] transition-all duration-500"
+              >
+                <span className="relative z-10 flex items-center gap-2">
+                  Begin Training <ChevronRight size={20} />
+                </span>
+                <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0 translate-x-[-150%] group-hover:translate-x-[150%] transition-transform duration-700" />
+              </button>
+            </motion.div>
+          </div>
+        </section>
+      </div>
+    );
+  };
+
+  // FAQs Info View
+  const FAQsInfoView = () => {
+    const faqSections = [
+      {
+        title: 'About the Programme',
+        icon: BookOpen,
+        color: 'blue',
+        faqs: [
+          { q: 'Who is this for?', a: 'Government staff from participating ministries who will work with APIs. All skill levels welcome — no technical background required.' },
+          { q: 'How long does it take?', a: '4 weeks, with about 3–4 hours per week.' },
+          { q: 'What if I miss a live session?', a: 'All sessions are recorded and available within 24 hours.' },
+          { q: 'What equipment do I need?', a: 'A computer with internet and a modern browser. Chrome works best.' },
+        ]
+      },
+      {
+        title: 'About the Academy',
+        icon: GraduationCap,
+        color: 'purple',
+        faqs: [
+          { q: 'How do I log in?', a: "Use the credentials you registered with. If you haven't registered, click Register and follow the steps. If you still have questions please visit our Welcome Guide to learn more." },
+          { q: 'Why is my next module locked?', a: 'Modules unlock in sequence. Complete the current module and pass its quiz (70%+) to continue.' },
+          { q: 'Can I review completed modules?', a: 'Yes. Everything stays accessible.' },
+          { q: 'What if I score below 70%?', a: 'Retake the quiz as many times as you need. Your highest score counts.' },
+        ]
+      },
+      {
+        title: 'About Certification',
+        icon: Award,
+        color: 'gold',
+        faqs: [
+          { q: 'What do I need to earn certification?', a: 'Complete all 8 modules, pass all quizzes (70%+), submit your capstone, and pass the final assessment (80%+).' },
+          { q: 'Does certification expire?', a: "No. Once earned, it's yours to keep." },
+          { q: "What's the difference between Champion and Superuser?", a: "Champion means you've completed the Bajan-X programme. Superuser means you've completed training across all three platforms (Bajan-X, Bridge, ChatBB)." },
+        ]
+      },
+      {
+        title: 'Technical Questions',
+        icon: Key,
+        color: 'emerald',
+        faqs: [
+          { q: "What's an API?", a: 'A secure way for systems to share data automatically. Think of it as a "data tap" — turn it on, and authorized data flows.' },
+          { q: 'Do I need to code?', a: "No. You'll learn to work with APIs at a practical level — understanding documentation, running tests, interpreting results." },
+        ]
+      },
+      {
+        title: 'Getting Help',
+        icon: HelpCircle,
+        color: 'orange',
+        faqs: [
+          { q: 'How do I get help?', a: 'If you need more support, book Office Hours or submit a contact us form.' },
+          { q: 'How fast will I get a response?', a: 'Support channel responses typically come within 4 hours during business hours.' },
+        ]
+      },
+    ];
+
+    const getColorClasses = (color: string) => {
+      const colors: Record<string, { bg: string; border: string; text: string }> = {
+        blue: { bg: 'bg-blue-400/[0.1]', border: 'border-blue-400/20', text: 'text-blue-400' },
+        purple: { bg: 'bg-purple-400/[0.1]', border: 'border-purple-400/20', text: 'text-purple-400' },
+        gold: { bg: 'bg-[#D4AF37]/[0.1]', border: 'border-[#D4AF37]/20', text: 'text-[#D4AF37]' },
+        emerald: { bg: 'bg-emerald-400/[0.1]', border: 'border-emerald-400/20', text: 'text-emerald-400' },
+        orange: { bg: 'bg-orange-400/[0.1]', border: 'border-orange-400/20', text: 'text-orange-400' },
+      };
+      return colors[color] || colors.blue;
+    };
+
+    return (
+      <div className="absolute inset-0 overflow-y-auto overflow-x-hidden z-10 scroll-smooth">
+        <InfoPageNav title="FAQs" onBack={() => setCurrentView('LANDING')} />
+
+        {/* Hero Section */}
+        <section className="pt-32 pb-20 px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.3 }}
+            className="max-w-5xl mx-auto text-center"
+          >
+            <div className="w-20 h-20 rounded-2xl bg-[#D4AF37]/[0.1] border border-[#D4AF37]/20 flex items-center justify-center mx-auto mb-8">
+              <HelpCircle size={40} className="text-[#D4AF37]" />
+            </div>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-helvetica-bold leading-[1.2] mb-6 tracking-tight text-white">
+              FAQs
+            </h1>
+            <p className="text-xl text-zinc-400 max-w-2xl mx-auto">
+              Quick answers to common questions
+            </p>
+          </motion.div>
+        </section>
+
+        {/* FAQ Sections */}
+        {faqSections.map((section, sectionIdx) => {
+          const colorClasses = getColorClasses(section.color);
+          return (
+            <section key={sectionIdx} className={`py-16 px-8 ${sectionIdx % 2 === 1 ? 'bg-white/[0.01]' : ''}`}>
+              <div className="max-w-5xl mx-auto">
+                <motion.div
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  className="flex items-center gap-4 mb-8"
+                >
+                  <div className={`w-12 h-12 rounded-xl ${colorClasses.bg} ${colorClasses.border} border flex items-center justify-center`}>
+                    <section.icon size={24} className={colorClasses.text} />
+                  </div>
+                  <h2 className="text-2xl font-helvetica-bold text-white">{section.title}</h2>
+                </motion.div>
+
+                <div className="space-y-4">
+                  {section.faqs.map((faq, idx) => (
+                    <motion.div
+                      key={idx}
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: idx * 0.05 }}
+                    >
+                      <LiquidGlass>
+                        <div className="p-6">
+                          <h4 className="text-white font-bold mb-3">{faq.q}</h4>
+                          <p className="text-zinc-400 text-sm leading-relaxed">{faq.a}</p>
+                        </div>
+                      </LiquidGlass>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            </section>
+          );
+        })}
+
+        {/* CTA */}
+        <section className="py-28 px-8">
+          <div className="max-w-3xl mx-auto text-center">
+            <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+              <h2 className="text-2xl md:text-3xl font-helvetica-bold mb-4 text-white">Still Have Questions?</h2>
+              <p className="text-zinc-400 mb-8">Book a 1-on-1 session with our team</p>
+              <a
+                href="https://calendly.com/chadi-lgs/1-1-call-with-amini"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group relative inline-flex items-center gap-2 px-10 py-4 rounded-xl overflow-hidden bg-gradient-to-r from-[#B8962E] via-[#D4AF37] to-[#F5D76E] text-black font-bold text-lg hover:shadow-[0_0_50px_rgba(212,175,55,0.4)] transition-all duration-500"
+              >
+                <span className="relative z-10">Book Office Hours</span>
+                <ChevronRight size={20} className="relative z-10" />
+                <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0 translate-x-[-150%] group-hover:translate-x-[150%] transition-transform duration-700" />
+              </a>
+            </motion.div>
+          </div>
+        </section>
       </div>
     );
   };
@@ -7324,7 +8498,7 @@ const App: React.FC = () => {
     <ToastProvider>
       <div className="font-helvetica text-slate-50 selection:bg-yellow-400/30 h-screen overflow-hidden animate-page-entrance">
         {/* Use enhanced interactive background on landing, regular on other pages */}
-        {(currentView === 'LANDING' || currentView === 'AUTH' || currentView === 'WALKTHROUGH') ? <LandingBackground /> : <LiquidBackground />}
+        {(currentView === 'LANDING' || currentView === 'AUTH' || currentView === 'WALKTHROUGH' || currentView === 'INFO_BAJANX' || currentView === 'INFO_BRIDGE' || currentView === 'INFO_CHATBB' || currentView === 'INFO_API_PUBLISHING' || currentView === 'INFO_CERTIFICATION' || currentView === 'INFO_FAQS') ? <LandingBackground /> : <LiquidBackground />}
 
         {/* Sidebar for authenticated views except player */}
         {(currentView === 'DASHBOARD' || currentView === 'ADMIN' || currentView === 'OFFICE_HOURS') && <Sidebar />}
@@ -7365,6 +8539,36 @@ const App: React.FC = () => {
             {currentView === 'OFFICE_HOURS' && (
               <PageTransition key="office-hours">
                 <OfficeHoursView />
+              </PageTransition>
+            )}
+            {currentView === 'INFO_BAJANX' && (
+              <PageTransition key="info-bajanx">
+                <BajanXInfoView />
+              </PageTransition>
+            )}
+            {currentView === 'INFO_BRIDGE' && (
+              <PageTransition key="info-bridge">
+                <BridgeInfoView />
+              </PageTransition>
+            )}
+            {currentView === 'INFO_CHATBB' && (
+              <PageTransition key="info-chatbb">
+                <ChatBBInfoView />
+              </PageTransition>
+            )}
+            {currentView === 'INFO_API_PUBLISHING' && (
+              <PageTransition key="info-api-publishing">
+                <APIPublishingInfoView />
+              </PageTransition>
+            )}
+            {currentView === 'INFO_CERTIFICATION' && (
+              <PageTransition key="info-certification">
+                <CertificationInfoView />
+              </PageTransition>
+            )}
+            {currentView === 'INFO_FAQS' && (
+              <PageTransition key="info-faqs">
+                <FAQsInfoView />
               </PageTransition>
             )}
           </AnimatePresence>
