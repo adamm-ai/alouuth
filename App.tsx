@@ -2764,17 +2764,16 @@ const App: React.FC = () => {
         </div>
 
         {/* Calendly Embed Container */}
-        <div className="flex-1 overflow-hidden bg-gradient-to-b from-[#0f0f10] to-[#0a0a0b]">
+        <div className="flex-1 overflow-hidden bg-[#0a0a0b]">
           <div className="h-full w-full max-w-5xl mx-auto p-6">
-            <div className="h-full rounded-2xl overflow-hidden border border-white/[0.08] bg-white/[0.02] backdrop-blur-sm">
+            <div className="h-full rounded-2xl overflow-hidden border border-white/[0.08]">
               <iframe
-                src="https://calendly.com/chadi-lgs/1-1-call-with-amini"
+                src="https://calendly.com/chadi-lgs/1-1-call-with-amini?background_color=0a0a0b&text_color=ffffff&primary_color=d4af37&hide_event_type_details=1&hide_gdpr_banner=1"
                 width="100%"
                 height="100%"
                 frameBorder="0"
                 title="Schedule Office Hours"
-                className="bg-transparent"
-                style={{ minHeight: '650px' }}
+                style={{ minHeight: '650px', backgroundColor: '#0a0a0b' }}
               />
             </div>
           </div>
