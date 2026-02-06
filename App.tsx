@@ -919,7 +919,6 @@ const App: React.FC = () => {
             <>
               <SidebarItem icon={<Layout size={20} />} label="Dashboard" active={currentView === 'DASHBOARD'} onClick={() => setCurrentView('DASHBOARD')} />
               <SidebarItem icon={<Calendar size={20} />} label="Office Hours" active={currentView === 'OFFICE_HOURS'} onClick={() => setCurrentView('OFFICE_HOURS')} />
-              <SidebarItem icon={<Trophy size={20} />} label="Certification" active={false} onClick={() => showToast('info', 'Coming Soon', 'Certification feature is an upcoming functionality.')} />
             </>
           )}
 
