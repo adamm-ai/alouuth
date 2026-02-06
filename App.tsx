@@ -2738,44 +2738,67 @@ const App: React.FC = () => {
     );
   };
 
-  // Office Hours View - Embedded Calendly for booking sessions
+  // Office Hours View - Clean booking page
   const OfficeHoursView = () => {
     return (
       <div className="md:ml-64 h-screen overflow-hidden relative z-10 flex flex-col">
-        {/* Header */}
-        <div className="h-16 flex-shrink-0 bg-[linear-gradient(180deg,#121214_0%,#0a0a0b_100%)] border-b border-white/[0.05] flex items-center justify-between px-6 z-30">
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-xl bg-[#D4AF37]/10 border border-[#D4AF37]/20 flex items-center justify-center">
-              <Calendar size={20} className="text-[#D4AF37]" />
+        {/* Main Content */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="max-w-2xl mx-auto px-6 py-16">
+            {/* Header */}
+            <div className="text-center mb-12">
+              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#D4AF37]/20 to-[#D4AF37]/5 border border-[#D4AF37]/30 flex items-center justify-center mx-auto mb-6 shadow-[0_0_40px_rgba(212,175,55,0.15)]">
+                <Calendar size={36} className="text-[#D4AF37]" />
+              </div>
+              <h1 className="text-3xl font-helvetica-bold text-white mb-3">Office Hours</h1>
+              <p className="text-zinc-400 text-lg">Book a 1-on-1 session with the Amini team</p>
             </div>
-            <div>
-              <h2 className="font-helvetica-bold text-lg text-white">Office Hours</h2>
-              <p className="text-xs text-zinc-500">Book a 1-on-1 session with the Amini team</p>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={() => setCurrentView('DASHBOARD')}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.03] border border-white/[0.08] text-zinc-400 hover:text-white hover:border-white/20 transition-all text-sm"
-          >
-            <ArrowLeft size={16} />
-            Back to Dashboard
-          </button>
-        </div>
 
-        {/* Calendly Embed Container */}
-        <div className="flex-1 overflow-hidden bg-[#0a0a0b]">
-          <div className="h-full w-full max-w-5xl mx-auto p-6">
-            <div className="h-full rounded-2xl overflow-hidden border border-white/[0.08]">
-              <iframe
-                src="https://calendly.com/chadi-lgs/1-1-call-with-amini?background_color=0a0a0b&text_color=ffffff&primary_color=d4af37&hide_event_type_details=1&hide_gdpr_banner=1"
-                width="100%"
-                height="100%"
-                frameBorder="0"
-                title="Schedule Office Hours"
-                style={{ minHeight: '650px', backgroundColor: '#0a0a0b' }}
-              />
+            {/* Info Card */}
+            <div className="bg-white/[0.02] border border-white/[0.08] rounded-2xl p-8 mb-8">
+              <h3 className="text-white font-helvetica-bold text-lg mb-4">What to expect</h3>
+              <ul className="space-y-3 text-zinc-400">
+                <li className="flex items-start gap-3">
+                  <CheckCircle size={18} className="text-[#D4AF37] mt-0.5 flex-shrink-0" />
+                  <span>30-minute personalized session with our team</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckCircle size={18} className="text-[#D4AF37] mt-0.5 flex-shrink-0" />
+                  <span>Get answers to your questions about the platform</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckCircle size={18} className="text-[#D4AF37] mt-0.5 flex-shrink-0" />
+                  <span>Receive guidance on your learning path</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckCircle size={18} className="text-[#D4AF37] mt-0.5 flex-shrink-0" />
+                  <span>Discuss API integration and technical support</span>
+                </li>
+              </ul>
             </div>
+
+            {/* CTA Button */}
+            <a
+              href="https://calendly.com/chadi-lgs/1-1-call-with-amini"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group relative w-full flex items-center justify-center gap-3 px-8 py-4 rounded-xl overflow-hidden bg-gradient-to-r from-[#B8962E] via-[#D4AF37] to-[#F5D76E] text-black font-bold text-lg hover:shadow-[0_0_50px_rgba(212,175,55,0.4)] transition-all duration-500"
+            >
+              <Calendar size={22} />
+              <span>Schedule a Session</span>
+              <ExternalLink size={18} className="opacity-60" />
+              <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0 translate-x-[-150%] group-hover:translate-x-[150%] transition-transform duration-700" />
+            </a>
+
+            {/* Back link */}
+            <button
+              type="button"
+              onClick={() => setCurrentView('DASHBOARD')}
+              className="w-full mt-6 flex items-center justify-center gap-2 text-zinc-500 hover:text-white transition-colors text-sm"
+            >
+              <ArrowLeft size={16} />
+              Back to Dashboard
+            </button>
           </div>
         </div>
       </div>
