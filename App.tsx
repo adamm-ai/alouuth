@@ -73,7 +73,7 @@ import { MINISTRIES } from './constants';
 import { Course, User, UserRole, Lesson, AnalyticData, LearningPath, ContentType } from './types';
 
 // --- Types for Views ---
-type View = 'LANDING' | 'AUTH' | 'DASHBOARD' | 'COURSE_PLAYER' | 'ADMIN' | 'WALKTHROUGH';
+type View = 'LANDING' | 'AUTH' | 'DASHBOARD' | 'COURSE_PLAYER' | 'ADMIN' | 'WALKTHROUGH' | 'OFFICE_HOURS';
 type AdminSection = 'OVERVIEW' | 'USERS' | 'COURSES' | 'ANALYTICS';
 
 // VideoFrame moved to components/UIComponents.tsx
@@ -886,7 +886,10 @@ const App: React.FC = () => {
 
   // --- Sub-Components ---
 
-  const Sidebar = () => (
+  const Sidebar = () => {
+    const { showToast } = useToast();
+
+    return (
     <div className={`fixed inset-y-0 left-0 z-50 w-64 transform ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 transition-transform duration-300 ease-in-out ${draggedCourseId ? 'opacity-20 blur-sm pointer-events-none' : 'opacity-100'} transition-opacity`}>
       {/* Subtle glow accent on edge */}
       <div className="absolute inset-y-0 right-0 w-px bg-gradient-to-b from-transparent via-yellow-400/10 to-transparent" />
@@ -915,8 +918,8 @@ const App: React.FC = () => {
           {user?.role !== UserRole.ADMIN && (
             <>
               <SidebarItem icon={<Layout size={20} />} label="Dashboard" active={currentView === 'DASHBOARD'} onClick={() => setCurrentView('DASHBOARD')} />
-              <SidebarItem icon={<BookOpen size={20} />} label="My Learning" active={false} />
-              <SidebarItem icon={<Trophy size={20} />} label="Achievements" active={false} />
+              <SidebarItem icon={<Calendar size={20} />} label="Office Hours" active={currentView === 'OFFICE_HOURS'} onClick={() => setCurrentView('OFFICE_HOURS')} />
+              <SidebarItem icon={<Trophy size={20} />} label="Certification" active={false} onClick={() => showToast('info', 'Coming Soon', 'Certification feature is an upcoming functionality.')} />
             </>
           )}
 
@@ -1029,6 +1032,7 @@ const App: React.FC = () => {
       </div>
     </div>
   );
+  };
 
   const SidebarItem = ({ icon, label, active, onClick, badge }: any) => {
     const [isRadiating, setIsRadiating] = useState(false);
@@ -2730,6 +2734,51 @@ const App: React.FC = () => {
             </div>
           </LiquidGlass>
         </motion.div>
+      </div>
+    );
+  };
+
+  // Office Hours View - Embedded Calendly for booking sessions
+  const OfficeHoursView = () => {
+    return (
+      <div className="md:ml-64 h-screen overflow-hidden relative z-10 flex flex-col">
+        {/* Header */}
+        <div className="h-16 flex-shrink-0 bg-[linear-gradient(180deg,#121214_0%,#0a0a0b_100%)] border-b border-white/[0.05] flex items-center justify-between px-6 z-30">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 rounded-xl bg-[#D4AF37]/10 border border-[#D4AF37]/20 flex items-center justify-center">
+              <Calendar size={20} className="text-[#D4AF37]" />
+            </div>
+            <div>
+              <h2 className="font-helvetica-bold text-lg text-white">Office Hours</h2>
+              <p className="text-xs text-zinc-500">Book a 1-on-1 session with the Amini team</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setCurrentView('DASHBOARD')}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.03] border border-white/[0.08] text-zinc-400 hover:text-white hover:border-white/20 transition-all text-sm"
+          >
+            <ArrowLeft size={16} />
+            Back to Dashboard
+          </button>
+        </div>
+
+        {/* Calendly Embed Container */}
+        <div className="flex-1 overflow-hidden bg-gradient-to-b from-[#0f0f10] to-[#0a0a0b]">
+          <div className="h-full w-full max-w-5xl mx-auto p-6">
+            <div className="h-full rounded-2xl overflow-hidden border border-white/[0.08] bg-white/[0.02] backdrop-blur-sm">
+              <iframe
+                src="https://calendly.com/chadi-lgs/1-1-call-with-amini"
+                width="100%"
+                height="100%"
+                frameBorder="0"
+                title="Schedule Office Hours"
+                className="bg-transparent"
+                style={{ minHeight: '650px' }}
+              />
+            </div>
+          </div>
+        </div>
       </div>
     );
   };
@@ -7257,7 +7306,7 @@ const App: React.FC = () => {
         {(currentView === 'LANDING' || currentView === 'AUTH' || currentView === 'WALKTHROUGH') ? <LandingBackground /> : <LiquidBackground />}
 
         {/* Sidebar for authenticated views except player */}
-        {(currentView === 'DASHBOARD' || currentView === 'ADMIN') && <Sidebar />}
+        {(currentView === 'DASHBOARD' || currentView === 'ADMIN' || currentView === 'OFFICE_HOURS') && <Sidebar />}
 
         {/* Main Content Router */}
         <main className="h-screen overflow-hidden relative">
@@ -7290,6 +7339,11 @@ const App: React.FC = () => {
             {currentView === 'WALKTHROUGH' && (
               <PageTransition key="walkthrough">
                 <WalkthroughView />
+              </PageTransition>
+            )}
+            {currentView === 'OFFICE_HOURS' && (
+              <PageTransition key="office-hours">
+                <OfficeHoursView />
               </PageTransition>
             )}
           </AnimatePresence>
