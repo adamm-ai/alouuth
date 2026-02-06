@@ -72,6 +72,9 @@ export interface Course {
   // Ordering
   orderIndex?: number;
 
+  // Publishing
+  isPublished?: boolean; // Whether course is visible to learners
+
   // Analytics
   enrolledCount?: number;
   avgCompletionTime?: number; // hours

@@ -186,6 +186,7 @@ export interface Course {
   daysRemaining?: number;
   prerequisiteCourseId?: string;
   isLocked?: boolean;
+  isPublished?: boolean;
 }
 
 export interface LearningPath {
@@ -198,13 +199,15 @@ export interface LearningPath {
 }
 
 // Helper to transform frontend course data to backend format
-const transformCourseForBackend = (data: Partial<Course>) => {
+const transformCourseForBackend = (data: Partial<Course>, isPublishing: boolean = true) => {
   const transformed: Record<string, any> = {};
   if (data.title !== undefined) transformed.title = data.title;
   if (data.description !== undefined) transformed.description = data.description;
   if (data.level !== undefined) transformed.level = data.level;
   if (data.thumbnail !== undefined) transformed.thumbnailUrl = data.thumbnail;
   if (data.totalDuration !== undefined) transformed.totalDuration = data.totalDuration;
+  // Always include isPublished - default to true when saving from admin (publishing)
+  transformed.isPublished = isPublishing;
   return transformed;
 };
 

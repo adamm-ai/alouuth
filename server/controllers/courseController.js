@@ -184,7 +184,7 @@ export const getCourseById = async (req, res) => {
 // Create course (Admin only)
 export const createCourse = async (req, res) => {
   try {
-    const { title, description, level, thumbnailUrl, totalDuration, is_published } = req.body;
+    const { title, description, level, thumbnailUrl, totalDuration, is_published, isPublished: isPublishedCamel } = req.body;
 
     // Validation
     if (!title || title.trim() === '') {
@@ -192,7 +192,8 @@ export const createCourse = async (req, res) => {
     }
 
     const courseLevel = level || 'Beginner';
-    const isPublished = is_published !== undefined ? is_published : false;
+    // Accept both snake_case and camelCase for backwards compatibility, default to true when created from admin
+    const isPublished = isPublishedCamel !== undefined ? isPublishedCamel : (is_published !== undefined ? is_published : true);
 
     // Calculate next order_index for this level
     const maxOrderResult = await pool.query(
