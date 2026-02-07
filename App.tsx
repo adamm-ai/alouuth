@@ -7603,32 +7603,74 @@ const App: React.FC = () => {
                             total: m.totalLearners,
                             active: m.activeLearners || 0
                           })) : []}
-                          barSize={24}
+                          barSize={20}
+                          barGap={4}
                         >
-                          <CartesianGrid strokeDasharray="3 3" stroke="#ffffff08" vertical={false} />
-                          <XAxis dataKey="name" stroke="#64748b" tick={{ fontSize: 9 }} axisLine={false} tickLine={false} angle={-45} textAnchor="end" height={60} />
-                          <YAxis stroke="#64748b" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
+                          <defs>
+                            <linearGradient id="barGoldGradient" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="0%" stopColor="#F5D76E" stopOpacity={1} />
+                              <stop offset="50%" stopColor="#D4AF37" stopOpacity={1} />
+                              <stop offset="100%" stopColor="#B8962E" stopOpacity={0.9} />
+                            </linearGradient>
+                            <linearGradient id="barGreenGradient" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="0%" stopColor="#4ADE80" stopOpacity={1} />
+                              <stop offset="50%" stopColor="#22C55E" stopOpacity={1} />
+                              <stop offset="100%" stopColor="#16A34A" stopOpacity={0.9} />
+                            </linearGradient>
+                            <filter id="barGlow">
+                              <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                              <feMerge>
+                                <feMergeNode in="coloredBlur"/>
+                                <feMergeNode in="SourceGraphic"/>
+                              </feMerge>
+                            </filter>
+                          </defs>
+                          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
+                          <XAxis
+                            dataKey="name"
+                            stroke="#52525b"
+                            tick={{ fontSize: 10, fill: '#71717a' }}
+                            axisLine={{ stroke: 'rgba(255,255,255,0.06)' }}
+                            tickLine={false}
+                            angle={-45}
+                            textAnchor="end"
+                            height={60}
+                          />
+                          <YAxis
+                            stroke="#52525b"
+                            tick={{ fontSize: 10, fill: '#71717a' }}
+                            axisLine={{ stroke: 'rgba(255,255,255,0.06)' }}
+                            tickLine={false}
+                            width={35}
+                          />
                           <Tooltip
-                            cursor={{ fill: '#ffffff08' }}
-                            contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.95)', border: '1px solid rgba(212, 175, 55, 0.3)', borderRadius: '12px', boxShadow: '0 10px 40px rgba(0,0,0,0.5)', backdropFilter: 'blur(10px)' }}
-                            labelStyle={{ color: '#D4AF37', fontWeight: 'bold', marginBottom: '4px' }}
-                            itemStyle={{ color: '#fff', fontSize: '12px' }}
-                            formatter={(value: number, name: string) => [value, name === 'total' ? 'Total Learners' : 'Active']}
+                            cursor={{ fill: 'rgba(212, 175, 55, 0.08)', radius: 8 }}
+                            contentStyle={{
+                              backgroundColor: 'rgba(9, 9, 11, 0.98)',
+                              border: '1px solid rgba(212, 175, 55, 0.4)',
+                              borderRadius: '16px',
+                              boxShadow: '0 20px 60px rgba(0,0,0,0.7), 0 0 40px rgba(212, 175, 55, 0.15)',
+                              backdropFilter: 'blur(20px)',
+                              padding: '12px 16px'
+                            }}
+                            labelStyle={{ color: '#D4AF37', fontWeight: '700', marginBottom: '8px', fontSize: '13px' }}
+                            itemStyle={{ color: '#e4e4e7', fontSize: '12px', padding: '2px 0' }}
+                            formatter={(value: number, name: string) => [value.toLocaleString(), name === 'total' ? 'Total Learners' : 'Active Now']}
                             labelFormatter={(label: string, payload: any[]) => payload[0]?.payload?.fullName || label}
                           />
-                          <Bar dataKey="total" name="Total" radius={[4, 4, 0, 0]} fill="#D4AF37" />
-                          <Bar dataKey="active" name="Active" radius={[4, 4, 0, 0]} fill="#22C55E" />
+                          <Bar dataKey="total" name="Total" radius={[6, 6, 0, 0]} fill="url(#barGoldGradient)" filter="url(#barGlow)" />
+                          <Bar dataKey="active" name="Active" radius={[6, 6, 0, 0]} fill="url(#barGreenGradient)" />
                         </BarChart>
                       </ResponsiveContainer>
                     </div>
-                    <div className="flex justify-center gap-6 mt-4 text-xs">
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-sm bg-[#D4AF37]" />
-                        <span className="text-zinc-400">Total Learners</span>
+                    <div className="flex justify-center gap-8 mt-5 text-xs">
+                      <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-lg bg-[#D4AF37]/10 border border-[#D4AF37]/20">
+                        <div className="w-3 h-3 rounded-md bg-gradient-to-b from-[#F5D76E] to-[#B8962E] shadow-sm shadow-[#D4AF37]/30" />
+                        <span className="text-zinc-300 font-medium">Total Learners</span>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-sm bg-green-500" />
-                        <span className="text-zinc-400">Active Learners</span>
+                      <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-lg bg-green-500/10 border border-green-500/20">
+                        <div className="w-3 h-3 rounded-md bg-gradient-to-b from-[#4ADE80] to-[#16A34A] shadow-sm shadow-green-500/30" />
+                        <span className="text-zinc-300 font-medium">Active Learners</span>
                       </div>
                     </div>
                   </div>
@@ -7643,57 +7685,86 @@ const App: React.FC = () => {
                     <div className="h-48 w-full relative">
                       <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
+                          <defs>
+                            <linearGradient id="pieGold" x1="0" y1="0" x2="1" y2="1">
+                              <stop offset="0%" stopColor="#F5D76E" />
+                              <stop offset="100%" stopColor="#B8962E" />
+                            </linearGradient>
+                            <linearGradient id="pieBlue" x1="0" y1="0" x2="1" y2="1">
+                              <stop offset="0%" stopColor="#60A5FA" />
+                              <stop offset="100%" stopColor="#2563EB" />
+                            </linearGradient>
+                            <linearGradient id="piePurple" x1="0" y1="0" x2="1" y2="1">
+                              <stop offset="0%" stopColor="#A78BFA" />
+                              <stop offset="100%" stopColor="#7C3AED" />
+                            </linearGradient>
+                            <linearGradient id="pieGreen" x1="0" y1="0" x2="1" y2="1">
+                              <stop offset="0%" stopColor="#4ADE80" />
+                              <stop offset="100%" stopColor="#16A34A" />
+                            </linearGradient>
+                            <filter id="pieGlow" x="-20%" y="-20%" width="140%" height="140%">
+                              <feGaussianBlur stdDeviation="3" result="blur"/>
+                              <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+                            </filter>
+                          </defs>
                           <Pie
                             data={contentStats.length > 0 ? contentStats : [
                               { name: 'Video', value: 45 },
                               { name: 'PDF', value: 30 },
                               { name: 'Quiz', value: 25 },
                             ]}
-                            innerRadius={50}
-                            outerRadius={80}
-                            paddingAngle={2}
+                            innerRadius={48}
+                            outerRadius={76}
+                            paddingAngle={4}
                             dataKey="value"
+                            stroke="rgba(9, 9, 11, 0.9)"
+                            strokeWidth={3}
                           >
                             {(contentStats.length > 0 ? contentStats : [1, 2, 3, 4]).map((_, index) => (
                               <Cell
                                 key={`cell-${index}`}
-                                fill={['#D4AF37', '#8B7355', '#6B5D52', '#4A433E'][index % 4]}
-                                stroke="rgba(15, 23, 42, 0.8)"
-                                strokeWidth={2}
+                                fill={['url(#pieGold)', 'url(#pieBlue)', 'url(#piePurple)', 'url(#pieGreen)'][index % 4]}
+                                filter="url(#pieGlow)"
                               />
                             ))}
                           </Pie>
                           <Tooltip
                             contentStyle={{
-                              backgroundColor: 'rgba(212, 175, 55, 0.95)',
-                              border: '2px solid rgba(255, 255, 255, 0.2)',
-                              borderRadius: '12px',
+                              backgroundColor: 'rgba(9, 9, 11, 0.98)',
+                              border: '1px solid rgba(168, 85, 247, 0.4)',
+                              borderRadius: '16px',
                               padding: '12px 16px',
-                              boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
-                              color: '#000000'
+                              boxShadow: '0 20px 60px rgba(0,0,0,0.7), 0 0 40px rgba(168, 85, 247, 0.15)',
+                              backdropFilter: 'blur(20px)'
                             }}
-                            itemStyle={{ color: '#000000', fontWeight: '600', fontSize: '14px' }}
-                            labelStyle={{ color: '#000000', marginBottom: '4px', fontWeight: '700', fontSize: '15px' }}
-                            formatter={(value: number, name: string) => [`${value} lessons`, name]}
+                            itemStyle={{ color: '#e4e4e7', fontWeight: '600', fontSize: '13px' }}
+                            labelStyle={{ color: '#A78BFA', marginBottom: '6px', fontWeight: '700', fontSize: '14px' }}
+                            formatter={(value: number, name: string) => [`${value} lessons`, '']}
                           />
                         </PieChart>
                       </ResponsiveContainer>
                       <div className="absolute inset-0 flex items-center justify-center flex-col pointer-events-none">
-                        <span className="text-3xl font-helvetica-bold text-white drop-shadow-lg">{fullStats?.totalLessons || '—'}</span>
-                        <span className="text-xs text-zinc-400 font-medium">Total Lessons</span>
+                        <span className="text-3xl font-helvetica-bold text-white drop-shadow-[0_2px_10px_rgba(255,255,255,0.2)]">{fullStats?.totalLessons || '—'}</span>
+                        <span className="text-xs text-zinc-400 font-medium tracking-wide">Total Lessons</span>
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-2 mt-4">
+                    <div className="grid grid-cols-2 gap-2.5 mt-5">
                       {(contentStats.length > 0 ? contentStats : [
                         { name: 'Video', count: '—' },
                         { name: 'PDF', count: '—' },
                         { name: 'Quiz', count: '—' },
                         { name: 'Text', count: '—' },
                       ]).slice(0, 4).map((c, idx) => (
-                        <div key={idx} className="flex items-center gap-2 p-2 rounded-lg bg-white/5">
-                          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: ['#D4AF37', '#3B82F6', '#8B5CF6', '#22C55E'][idx % 4] }} />
+                        <div key={idx} className="flex items-center gap-2.5 p-2.5 rounded-xl bg-white/[0.04] border border-white/[0.06] hover:bg-white/[0.08] hover:border-white/[0.1] transition-all duration-200">
+                          <div
+                            className="w-2.5 h-2.5 rounded-md shadow-lg"
+                            style={{
+                              background: ['linear-gradient(135deg, #F5D76E, #B8962E)', 'linear-gradient(135deg, #60A5FA, #2563EB)', 'linear-gradient(135deg, #A78BFA, #7C3AED)', 'linear-gradient(135deg, #4ADE80, #16A34A)'][idx % 4],
+                              boxShadow: [`0 0 8px rgba(212, 175, 55, 0.4)`, `0 0 8px rgba(59, 130, 246, 0.4)`, `0 0 8px rgba(139, 92, 246, 0.4)`, `0 0 8px rgba(34, 197, 94, 0.4)`][idx % 4]
+                            }}
+                          />
                           <span className="text-xs text-zinc-400 truncate">{c.name}</span>
-                          <span className="text-xs font-medium text-white ml-auto">{c.count || c.value}</span>
+                          <span className="text-xs font-bold text-white ml-auto">{c.count || c.value}</span>
                         </div>
                       ))}
                     </div>
@@ -8252,39 +8323,72 @@ const App: React.FC = () => {
                     </h3>
 
                     {/* Pass Rate Gauge */}
-                    <div className="relative h-40 flex items-center justify-center mb-6">
-                      <svg className="w-40 h-40 transform -rotate-90">
-                        <circle cx="80" cy="80" r="60" stroke="rgba(255,255,255,0.1)" strokeWidth="12" fill="none" />
+                    <div className="relative h-44 flex items-center justify-center mb-6">
+                      <svg className="w-44 h-44 transform -rotate-90" viewBox="0 0 180 180">
+                        {/* Background track with subtle gradient */}
                         <circle
-                          cx="80" cy="80" r="60"
-                          stroke="url(#gaugeGradient)"
-                          strokeWidth="12"
+                          cx="90" cy="90" r="70"
+                          stroke="rgba(255,255,255,0.06)"
+                          strokeWidth="14"
+                          fill="none"
+                        />
+                        {/* Tick marks for reference */}
+                        {[0, 25, 50, 75, 100].map((tick) => (
+                          <circle
+                            key={tick}
+                            cx="90" cy="90" r="70"
+                            stroke="rgba(255,255,255,0.12)"
+                            strokeWidth="14"
+                            fill="none"
+                            strokeDasharray={`1 ${4.4 * 100 - 1}`}
+                            strokeDashoffset={-tick * 4.4}
+                          />
+                        ))}
+                        {/* Progress arc */}
+                        <circle
+                          cx="90" cy="90" r="70"
+                          stroke="url(#enhancedGaugeGradient)"
+                          strokeWidth="14"
                           fill="none"
                           strokeLinecap="round"
-                          strokeDasharray={`${(fullStats?.quizPassRate || 0) * 3.77} 377`}
-                          className="transition-all duration-1000"
+                          strokeDasharray={`${(fullStats?.quizPassRate || 0) * 4.4} 440`}
+                          className="transition-all duration-1000 ease-out"
+                          style={{ filter: 'drop-shadow(0 0 8px rgba(59, 130, 246, 0.5))' }}
                         />
                         <defs>
-                          <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                            <stop offset="0%" stopColor="#3B82F6" />
+                          <linearGradient id="enhancedGaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stopColor="#2563EB" />
+                            <stop offset="50%" stopColor="#3B82F6" />
                             <stop offset="100%" stopColor="#60A5FA" />
                           </linearGradient>
                         </defs>
                       </svg>
                       <div className="absolute inset-0 flex flex-col items-center justify-center">
-                        <span className="text-4xl font-helvetica-bold text-white">{fullStats?.quizPassRate ?? '—'}%</span>
-                        <span className="text-xs text-zinc-400">Pass Rate</span>
+                        <span className="text-5xl font-helvetica-bold text-white drop-shadow-[0_2px_10px_rgba(59,130,246,0.3)]">
+                          {fullStats?.quizPassRate ?? '—'}%
+                        </span>
+                        <span className="text-xs text-blue-400 font-medium tracking-wider uppercase mt-1">Pass Rate</span>
                       </div>
                     </div>
 
                     {/* Quiz Stats */}
                     <div className="space-y-3">
-                      <div className="flex justify-between items-center p-3 rounded-lg bg-white/5">
-                        <span className="text-sm text-zinc-400">Average Score</span>
+                      <div className="flex justify-between items-center p-3.5 rounded-xl bg-white/[0.04] border border-white/[0.06] hover:bg-white/[0.06] transition-all">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-lg bg-blue-500/20 border border-blue-500/30 flex items-center justify-center">
+                            <Award size={16} className="text-blue-400" />
+                          </div>
+                          <span className="text-sm text-zinc-300">Average Score</span>
+                        </div>
                         <span className="text-lg font-helvetica-bold text-white">{fullStats?.averageQuizScore ?? '—'}%</span>
                       </div>
-                      <div className="flex justify-between items-center p-3 rounded-lg bg-white/5">
-                        <span className="text-sm text-zinc-400">Top Ministry Avg</span>
+                      <div className="flex justify-between items-center p-3.5 rounded-xl bg-white/[0.04] border border-white/[0.06] hover:bg-white/[0.06] transition-all">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-lg bg-green-500/20 border border-green-500/30 flex items-center justify-center">
+                            <TrendingUp size={16} className="text-green-400" />
+                          </div>
+                          <span className="text-sm text-zinc-300">Top Ministry Avg</span>
+                        </div>
                         <span className="text-lg font-helvetica-bold text-green-400">
                           {(() => {
                             const scores = ministryStats.filter(m => m.avgQuizScore > 0).map(m => m.avgQuizScore);
@@ -8292,8 +8396,13 @@ const App: React.FC = () => {
                           })()}%
                         </span>
                       </div>
-                      <div className="flex justify-between items-center p-3 rounded-lg bg-white/5">
-                        <span className="text-sm text-zinc-400">Lowest Ministry Avg</span>
+                      <div className="flex justify-between items-center p-3.5 rounded-xl bg-white/[0.04] border border-white/[0.06] hover:bg-white/[0.06] transition-all">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-lg bg-red-500/20 border border-red-500/30 flex items-center justify-center">
+                            <AlertTriangle size={16} className="text-red-400" />
+                          </div>
+                          <span className="text-sm text-zinc-300">Lowest Ministry Avg</span>
+                        </div>
                         <span className="text-lg font-helvetica-bold text-red-400">
                           {(() => {
                             const scores = ministryStats.filter(m => m.avgQuizScore > 0).map(m => m.avgQuizScore);
@@ -8326,32 +8435,74 @@ const App: React.FC = () => {
                             active: m.activeLearners || 0,
                             completed: m.coursesCompleted
                           })) : []}
-                          barSize={24}
+                          barSize={20}
+                          barGap={4}
                         >
-                          <CartesianGrid strokeDasharray="3 3" stroke="#ffffff08" vertical={false} />
-                          <XAxis dataKey="name" stroke="#64748b" tick={{ fontSize: 9 }} axisLine={false} tickLine={false} angle={-45} textAnchor="end" height={60} />
-                          <YAxis stroke="#64748b" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
+                          <defs>
+                            <linearGradient id="analyticsBarGold" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="0%" stopColor="#F5D76E" stopOpacity={1} />
+                              <stop offset="50%" stopColor="#D4AF37" stopOpacity={1} />
+                              <stop offset="100%" stopColor="#B8962E" stopOpacity={0.9} />
+                            </linearGradient>
+                            <linearGradient id="analyticsBarGreen" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="0%" stopColor="#4ADE80" stopOpacity={1} />
+                              <stop offset="50%" stopColor="#22C55E" stopOpacity={1} />
+                              <stop offset="100%" stopColor="#16A34A" stopOpacity={0.9} />
+                            </linearGradient>
+                            <filter id="analyticsBarGlow">
+                              <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                              <feMerge>
+                                <feMergeNode in="coloredBlur"/>
+                                <feMergeNode in="SourceGraphic"/>
+                              </feMerge>
+                            </filter>
+                          </defs>
+                          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
+                          <XAxis
+                            dataKey="name"
+                            stroke="#52525b"
+                            tick={{ fontSize: 10, fill: '#71717a' }}
+                            axisLine={{ stroke: 'rgba(255,255,255,0.06)' }}
+                            tickLine={false}
+                            angle={-45}
+                            textAnchor="end"
+                            height={60}
+                          />
+                          <YAxis
+                            stroke="#52525b"
+                            tick={{ fontSize: 10, fill: '#71717a' }}
+                            axisLine={{ stroke: 'rgba(255,255,255,0.06)' }}
+                            tickLine={false}
+                            width={35}
+                          />
                           <Tooltip
-                            cursor={{ fill: '#ffffff08' }}
-                            contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.95)', border: '1px solid rgba(212, 175, 55, 0.3)', borderRadius: '12px', boxShadow: '0 10px 40px rgba(0,0,0,0.5)', backdropFilter: 'blur(10px)' }}
-                            labelStyle={{ color: '#D4AF37', fontWeight: 'bold', marginBottom: '4px' }}
-                            itemStyle={{ color: '#fff', fontSize: '12px' }}
-                            formatter={(value: number, name: string) => [value, name === 'total' ? 'Total Learners' : name === 'active' ? 'Active' : 'Completed']}
+                            cursor={{ fill: 'rgba(212, 175, 55, 0.08)', radius: 8 }}
+                            contentStyle={{
+                              backgroundColor: 'rgba(9, 9, 11, 0.98)',
+                              border: '1px solid rgba(212, 175, 55, 0.4)',
+                              borderRadius: '16px',
+                              boxShadow: '0 20px 60px rgba(0,0,0,0.7), 0 0 40px rgba(212, 175, 55, 0.15)',
+                              backdropFilter: 'blur(20px)',
+                              padding: '12px 16px'
+                            }}
+                            labelStyle={{ color: '#D4AF37', fontWeight: '700', marginBottom: '8px', fontSize: '13px' }}
+                            itemStyle={{ color: '#e4e4e7', fontSize: '12px', padding: '2px 0' }}
+                            formatter={(value: number, name: string) => [value.toLocaleString(), name === 'total' ? 'Total Learners' : name === 'active' ? 'Active Now' : 'Completed']}
                             labelFormatter={(label: string, payload: any[]) => payload[0]?.payload?.fullName || label}
                           />
-                          <Bar dataKey="total" name="Total" radius={[4, 4, 0, 0]} fill="#D4AF37" />
-                          <Bar dataKey="active" name="Active" radius={[4, 4, 0, 0]} fill="#22C55E" />
+                          <Bar dataKey="total" name="Total" radius={[6, 6, 0, 0]} fill="url(#analyticsBarGold)" filter="url(#analyticsBarGlow)" />
+                          <Bar dataKey="active" name="Active" radius={[6, 6, 0, 0]} fill="url(#analyticsBarGreen)" />
                         </BarChart>
                       </ResponsiveContainer>
                     </div>
-                    <div className="flex justify-center gap-6 mt-4 text-xs">
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-sm bg-[#D4AF37]" />
-                        <span className="text-zinc-400">Total Learners</span>
+                    <div className="flex justify-center gap-8 mt-5 text-xs">
+                      <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-lg bg-[#D4AF37]/10 border border-[#D4AF37]/20">
+                        <div className="w-3 h-3 rounded-md bg-gradient-to-b from-[#F5D76E] to-[#B8962E] shadow-sm shadow-[#D4AF37]/30" />
+                        <span className="text-zinc-300 font-medium">Total Learners</span>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-sm bg-green-500" />
-                        <span className="text-zinc-400">Active Learners</span>
+                      <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-lg bg-green-500/10 border border-green-500/20">
+                        <div className="w-3 h-3 rounded-md bg-gradient-to-b from-[#4ADE80] to-[#16A34A] shadow-sm shadow-green-500/30" />
+                        <span className="text-zinc-300 font-medium">Active Learners</span>
                       </div>
                     </div>
                   </div>
@@ -8366,43 +8517,86 @@ const App: React.FC = () => {
                     <div className="h-56 w-full relative">
                       <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
+                          <defs>
+                            <linearGradient id="analyticsPieGold" x1="0" y1="0" x2="1" y2="1">
+                              <stop offset="0%" stopColor="#F5D76E" />
+                              <stop offset="100%" stopColor="#B8962E" />
+                            </linearGradient>
+                            <linearGradient id="analyticsPieBlue" x1="0" y1="0" x2="1" y2="1">
+                              <stop offset="0%" stopColor="#60A5FA" />
+                              <stop offset="100%" stopColor="#2563EB" />
+                            </linearGradient>
+                            <linearGradient id="analyticsPiePurple" x1="0" y1="0" x2="1" y2="1">
+                              <stop offset="0%" stopColor="#A78BFA" />
+                              <stop offset="100%" stopColor="#7C3AED" />
+                            </linearGradient>
+                            <linearGradient id="analyticsPieGreen" x1="0" y1="0" x2="1" y2="1">
+                              <stop offset="0%" stopColor="#4ADE80" />
+                              <stop offset="100%" stopColor="#16A34A" />
+                            </linearGradient>
+                            <filter id="analyticsPieGlow" x="-20%" y="-20%" width="140%" height="140%">
+                              <feGaussianBlur stdDeviation="3" result="blur"/>
+                              <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+                            </filter>
+                          </defs>
                           <Pie
                             data={contentStats.length > 0 ? contentStats : [
                               { name: 'Video', value: 45 },
                               { name: 'PDF', value: 30 },
                               { name: 'Quiz', value: 25 },
                             ]}
-                            innerRadius={65}
-                            outerRadius={90}
+                            innerRadius={60}
+                            outerRadius={88}
                             paddingAngle={4}
                             dataKey="value"
+                            stroke="rgba(9, 9, 11, 0.9)"
+                            strokeWidth={3}
                           >
                             {(contentStats.length > 0 ? contentStats : [1, 2, 3, 4]).map((_, index) => (
-                              <Cell key={`cell-${index}`} fill={['#D4AF37', '#3B82F6', '#8B5CF6', '#22C55E'][index % 4]} />
+                              <Cell
+                                key={`analytics-cell-${index}`}
+                                fill={['url(#analyticsPieGold)', 'url(#analyticsPieBlue)', 'url(#analyticsPiePurple)', 'url(#analyticsPieGreen)'][index % 4]}
+                                filter="url(#analyticsPieGlow)"
+                              />
                             ))}
                           </Pie>
                           <Tooltip
-                            contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
-                            formatter={(value: number, name: string) => [`${value} lessons`, name]}
+                            contentStyle={{
+                              backgroundColor: 'rgba(9, 9, 11, 0.98)',
+                              border: '1px solid rgba(168, 85, 247, 0.4)',
+                              borderRadius: '16px',
+                              padding: '12px 16px',
+                              boxShadow: '0 20px 60px rgba(0,0,0,0.7), 0 0 40px rgba(168, 85, 247, 0.15)',
+                              backdropFilter: 'blur(20px)'
+                            }}
+                            itemStyle={{ color: '#e4e4e7', fontWeight: '600', fontSize: '13px' }}
+                            labelStyle={{ color: '#A78BFA', marginBottom: '6px', fontWeight: '700', fontSize: '14px' }}
+                            formatter={(value: number, name: string) => [`${value} lessons`, '']}
                           />
                         </PieChart>
                       </ResponsiveContainer>
                       <div className="absolute inset-0 flex items-center justify-center flex-col pointer-events-none">
-                        <span className="text-4xl font-helvetica-bold text-white">{fullStats?.totalLessons || '—'}</span>
-                        <span className="text-xs text-zinc-400">Total Lessons</span>
+                        <span className="text-4xl font-helvetica-bold text-white drop-shadow-[0_2px_10px_rgba(255,255,255,0.2)]">{fullStats?.totalLessons || '—'}</span>
+                        <span className="text-xs text-zinc-400 font-medium tracking-wide">Total Lessons</span>
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-3 mt-4">
+                    <div className="grid grid-cols-2 gap-2.5 mt-5">
                       {(contentStats.length > 0 ? contentStats : [
                         { name: 'Video', count: '—' },
                         { name: 'PDF', count: '—' },
                         { name: 'Quiz', count: '—' },
                         { name: 'Text', count: '—' },
                       ]).map((c, idx) => (
-                        <div key={idx} className="flex items-center gap-2 p-2 rounded-lg bg-white/5">
-                          <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: ['#D4AF37', '#3B82F6', '#8B5CF6', '#22C55E'][idx % 4] }} />
+                        <div key={idx} className="flex items-center gap-2.5 p-2.5 rounded-xl bg-white/[0.04] border border-white/[0.06] hover:bg-white/[0.08] hover:border-white/[0.1] transition-all duration-200">
+                          <div
+                            className="w-2.5 h-2.5 rounded-md shadow-lg"
+                            style={{
+                              background: ['linear-gradient(135deg, #F5D76E, #B8962E)', 'linear-gradient(135deg, #60A5FA, #2563EB)', 'linear-gradient(135deg, #A78BFA, #7C3AED)', 'linear-gradient(135deg, #4ADE80, #16A34A)'][idx % 4],
+                              boxShadow: [`0 0 8px rgba(212, 175, 55, 0.4)`, `0 0 8px rgba(59, 130, 246, 0.4)`, `0 0 8px rgba(139, 92, 246, 0.4)`, `0 0 8px rgba(34, 197, 94, 0.4)`][idx % 4]
+                            }}
+                          />
                           <span className="text-xs text-zinc-400">{c.name}</span>
-                          <span className="text-xs font-medium text-white ml-auto">{c.count || c.value}</span>
+                          <span className="text-xs font-bold text-white ml-auto">{c.count || c.value}</span>
                         </div>
                       ))}
                     </div>
@@ -8449,31 +8643,67 @@ const App: React.FC = () => {
                 {/* Ministry Quiz Score Comparison */}
                 <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-xl border border-white/[0.1] p-6">
                   <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-green-500/30 to-transparent" />
-                  <h3 className="text-xl font-helvetica-bold flex items-center gap-2 mb-5">
-                    <TrendingUp size={20} className="text-green-400" />
-                    Ministry Quiz Performance Comparison
-                  </h3>
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-xl font-helvetica-bold flex items-center gap-2">
+                      <TrendingUp size={20} className="text-green-400" />
+                      Ministry Quiz Performance
+                    </h3>
+                    <div className="flex items-center gap-4 text-xs">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-green-500 to-green-400 shadow-sm shadow-green-500/40" />
+                        <span className="text-zinc-500">≥80%</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-[#D4AF37] to-yellow-400 shadow-sm shadow-[#D4AF37]/40" />
+                        <span className="text-zinc-500">60-79%</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-red-500 to-red-400 shadow-sm shadow-red-500/40" />
+                        <span className="text-zinc-500">&lt;60%</span>
+                      </div>
+                    </div>
+                  </div>
                   <div className="space-y-3">
                     {ministryStats.length > 0 ? [...ministryStats]
                       .sort((a, b) => (b.avgQuizScore || 0) - (a.avgQuizScore || 0))
-                      .map((ministry, idx) => (
-                        <div key={idx} className="flex items-center gap-4">
-                          <div className="w-48 truncate text-sm text-zinc-400">{ministry.name}</div>
-                          <div className="flex-1 h-6 bg-white/5 rounded-full overflow-hidden relative">
-                            <div
-                              className={`h-full rounded-full transition-all duration-700 ${
-                                (ministry.avgQuizScore || 0) >= 80 ? 'bg-gradient-to-r from-green-600 to-green-400' :
-                                (ministry.avgQuizScore || 0) >= 60 ? 'bg-gradient-to-r from-[#D4AF37] to-yellow-400' :
-                                'bg-gradient-to-r from-red-600 to-red-400'
-                              }`}
-                              style={{ width: `${ministry.avgQuizScore || 0}%` }}
-                            />
-                            <span className="absolute inset-0 flex items-center justify-end pr-3 text-xs font-medium text-white">
-                              {ministry.avgQuizScore || 0}%
-                            </span>
+                      .map((ministry, idx) => {
+                        const score = ministry.avgQuizScore || 0;
+                        const isTop3 = idx < 3;
+                        return (
+                          <div
+                            key={idx}
+                            className={`flex items-center gap-4 p-3 rounded-xl transition-all duration-200 ${isTop3 ? 'bg-white/[0.04] border border-white/[0.06]' : 'hover:bg-white/[0.02]'}`}
+                          >
+                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold ${
+                              idx === 0 ? 'bg-gradient-to-br from-yellow-400 to-yellow-600 text-black shadow-lg shadow-yellow-500/30' :
+                              idx === 1 ? 'bg-gradient-to-br from-zinc-300 to-zinc-500 text-black shadow-lg shadow-zinc-400/20' :
+                              idx === 2 ? 'bg-gradient-to-br from-amber-600 to-amber-800 text-white shadow-lg shadow-amber-600/20' :
+                              'bg-white/10 text-zinc-500'
+                            }`}>
+                              {idx + 1}
+                            </div>
+                            <div className="w-44 truncate text-sm text-zinc-300 font-medium">{ministry.name}</div>
+                            <div className="flex-1 h-7 bg-white/[0.04] rounded-lg overflow-hidden relative border border-white/[0.06]">
+                              <div
+                                className={`h-full rounded-lg transition-all duration-1000 ease-out ${
+                                  score >= 80 ? 'bg-gradient-to-r from-green-600 via-green-500 to-green-400 shadow-[inset_0_1px_0_rgba(255,255,255,0.2)]' :
+                                  score >= 60 ? 'bg-gradient-to-r from-[#B8962E] via-[#D4AF37] to-yellow-400 shadow-[inset_0_1px_0_rgba(255,255,255,0.2)]' :
+                                  'bg-gradient-to-r from-red-700 via-red-500 to-red-400 shadow-[inset_0_1px_0_rgba(255,255,255,0.2)]'
+                                }`}
+                                style={{ width: `${Math.max(score, 5)}%` }}
+                              />
+                              <div className="absolute inset-0 flex items-center justify-between px-3">
+                                <span className="text-[10px] font-medium text-zinc-500 uppercase tracking-wider">
+                                  {score >= 80 ? 'Excellent' : score >= 60 ? 'Good' : 'Needs Work'}
+                                </span>
+                                <span className={`text-sm font-bold ${score >= 80 ? 'text-green-400' : score >= 60 ? 'text-[#D4AF37]' : 'text-red-400'}`}>
+                                  {score}%
+                                </span>
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                      )) : (
+                        );
+                      }) : (
                       <div className="text-center text-zinc-500 py-8">No quiz data available yet</div>
                     )}
                   </div>
