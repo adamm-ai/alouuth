@@ -6740,9 +6740,8 @@ const App: React.FC = () => {
       );
     }
 
-    // --- User Management Section (Premium Liquid Glass Design) ---
-    const UserManagementSection = () => {
-      const filteredUsers = allUsers.filter(u => {
+    // --- User Management Section Content (Inline to prevent re-render focus loss) ---
+    const filteredUsers = allUsers.filter(u => {
         const matchesSearch = userSearchQuery === '' ||
           u.name?.toLowerCase().includes(userSearchQuery.toLowerCase()) ||
           u.email?.toLowerCase().includes(userSearchQuery.toLowerCase());
@@ -6754,7 +6753,8 @@ const App: React.FC = () => {
       const activeUsers = allUsers.filter(u => u.is_approved && u.is_active).length;
       const adminCount = allUsers.filter(u => u.role === 'ADMIN' || u.role === 'SUBADMIN').length;
 
-      return (
+      // User Management JSX (defined as const to prevent component re-creation)
+      const userManagementContent = (
         <div className="space-y-8">
           {/* Premium Header with Stats */}
           <div className="relative">
@@ -7411,7 +7411,6 @@ const App: React.FC = () => {
           )}
         </div>
       );
-    };
 
     // --- Main Admin Dashboard ---
     return (
@@ -7419,7 +7418,7 @@ const App: React.FC = () => {
         <div className={`p-6 md:p-10 max-w-7xl mx-auto space-y-8 pb-20 relative z-[60]`}>
 
           <PageTransition viewKey={adminSection}>
-            {adminSection === 'USERS' && <UserManagementSection />}
+            {adminSection === 'USERS' && userManagementContent}
 
             {adminSection === 'OVERVIEW' && (
               <div className="space-y-8">
