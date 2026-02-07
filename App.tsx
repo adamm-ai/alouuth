@@ -501,17 +501,17 @@ const App: React.FC = () => {
             } else {
               setCurrentView('DASHBOARD');
             }
-          } else if (savedView === 'ADMIN' && (fetchedUser.role === 'ADMIN' || fetchedUser.role === 'SUPERUSER')) {
+          } else if (savedView === 'ADMIN' && (fetchedUser.role === 'ADMIN' || fetchedUser.role === 'SUBADMIN')) {
             setCurrentView('ADMIN');
           } else if (savedView === 'DASHBOARD') {
             setCurrentView('DASHBOARD');
           } else {
-            // Default based on role
-            setCurrentView(fetchedUser.role === 'ADMIN' || fetchedUser.role === 'SUPERUSER' ? 'ADMIN' : 'DASHBOARD');
+            // Default based on role - ADMIN and SUBADMIN go to admin view
+            setCurrentView(fetchedUser.role === 'ADMIN' || fetchedUser.role === 'SUBADMIN' ? 'ADMIN' : 'DASHBOARD');
           }
         } else {
           // No saved view, default based on role
-          setCurrentView(fetchedUser.role === 'ADMIN' || fetchedUser.role === 'SUPERUSER' ? 'ADMIN' : 'DASHBOARD');
+          setCurrentView(fetchedUser.role === 'ADMIN' || fetchedUser.role === 'SUBADMIN' ? 'ADMIN' : 'DASHBOARD');
         }
       } catch (error) {
         // Token is invalid or expired, clear it
@@ -538,6 +538,15 @@ const App: React.FC = () => {
       }
     }
   }, [currentView, activeCourse, activeLesson, user]);
+
+  // Redirect SUBADMIN away from restricted admin sections (Users, Analytics)
+  useEffect(() => {
+    if (user?.role === UserRole.SUBADMIN && currentView === 'ADMIN') {
+      if (adminSection === 'USERS' || adminSection === 'ANALYTICS') {
+        setAdminSection('COURSES');
+      }
+    }
+  }, [user, currentView, adminSection]);
 
   // Track if initial data has been loaded
   const [dataLoaded, setDataLoaded] = useState(false);
@@ -914,18 +923,20 @@ const App: React.FC = () => {
         </div>
 
         <nav className="flex-1 px-4 space-y-1.5 py-2">
-          {/* User Navigation */}
-          {user?.role !== UserRole.ADMIN && (
+          {/* User Navigation - for non-admin users */}
+          {user?.role !== UserRole.ADMIN && user?.role !== UserRole.SUBADMIN && (
             <>
               <SidebarItem icon={<Layout size={20} />} label="Dashboard" active={currentView === 'DASHBOARD'} onClick={() => setCurrentView('DASHBOARD')} />
               <SidebarItem icon={<Calendar size={20} />} label="Office Hours" active={currentView === 'OFFICE_HOURS'} onClick={() => setCurrentView('OFFICE_HOURS')} />
             </>
           )}
 
-          {/* Admin Navigation */}
-          {user?.role === UserRole.ADMIN && (
+          {/* Admin & Subadmin Navigation */}
+          {(user?.role === UserRole.ADMIN || user?.role === UserRole.SUBADMIN) && (
             <>
-              <div className="text-[10px] uppercase tracking-[0.2em] text-zinc-500 font-helvetica-bold px-4 pt-4 pb-2">Admin Portal</div>
+              <div className="text-[10px] uppercase tracking-[0.2em] text-zinc-500 font-helvetica-bold px-4 pt-4 pb-2">
+                {user?.role === UserRole.ADMIN ? 'Admin Portal' : 'Course Management'}
+              </div>
 
               <SidebarItem
                 icon={<Layout size={20} />}
@@ -934,12 +945,15 @@ const App: React.FC = () => {
                 onClick={() => { if (currentView !== 'ADMIN') setCurrentView('ADMIN'); setAdminSection('OVERVIEW'); }}
               />
 
-              <SidebarItem
-                icon={<UserCheck size={20} />}
-                label="User Approvals"
-                active={currentView === 'ADMIN' && adminSection === 'USERS'}
-                onClick={() => { if (currentView !== 'ADMIN') setCurrentView('ADMIN'); setAdminSection('USERS'); }}
-              />
+              {/* User Approvals - ADMIN only */}
+              {user?.role === UserRole.ADMIN && (
+                <SidebarItem
+                  icon={<UserCheck size={20} />}
+                  label="User Approvals"
+                  active={currentView === 'ADMIN' && adminSection === 'USERS'}
+                  onClick={() => { if (currentView !== 'ADMIN') setCurrentView('ADMIN'); setAdminSection('USERS'); }}
+                />
+              )}
 
               <SidebarItem
                 icon={<BookOpen size={20} />}
@@ -948,12 +962,15 @@ const App: React.FC = () => {
                 onClick={() => { if (currentView !== 'ADMIN') setCurrentView('ADMIN'); setAdminSection('COURSES'); }}
               />
 
-              <SidebarItem
-                icon={<Trophy size={20} />}
-                label="Analytics"
-                active={currentView === 'ADMIN' && adminSection === 'ANALYTICS'}
-                onClick={() => { if (currentView !== 'ADMIN') setCurrentView('ADMIN'); setAdminSection('ANALYTICS'); }}
-              />
+              {/* Analytics - ADMIN only */}
+              {user?.role === UserRole.ADMIN && (
+                <SidebarItem
+                  icon={<Trophy size={20} />}
+                  label="Analytics"
+                  active={currentView === 'ADMIN' && adminSection === 'ANALYTICS'}
+                  onClick={() => { if (currentView !== 'ADMIN') setCurrentView('ADMIN'); setAdminSection('ANALYTICS'); }}
+                />
+              )}
 
 
 
@@ -2351,7 +2368,7 @@ const App: React.FC = () => {
               completedPaths: []
             };
             setUser(newUser);
-            setCurrentView(response.user.role === 'ADMIN' ? 'ADMIN' : 'DASHBOARD');
+            setCurrentView(response.user.role === 'ADMIN' || response.user.role === 'SUBADMIN' ? 'ADMIN' : 'DASHBOARD');
           }
         } else {
           const response = await authAPI.register({
@@ -8059,7 +8076,7 @@ const App: React.FC = () => {
             )}
 
 
-            {adminSection === 'ANALYTICS' && (
+            {adminSection === 'ANALYTICS' && user?.role === UserRole.ADMIN && (
               <div className="space-y-6">
                 {/* Header with glassmorphism */}
                 <div className="relative">

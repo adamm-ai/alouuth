@@ -21,20 +21,20 @@ const router = Router();
 router.get('/', optionalAuth, getCourses);
 router.get('/:id', optionalAuth, getCourseById);
 
-// Admin routes - Course CRUD
-router.post('/', authenticate, requireRole('ADMIN'), createCourse);
-router.put('/:id', authenticate, requireRole('ADMIN'), updateCourse);
-router.delete('/:id', authenticate, requireRole('ADMIN'), deleteCourse);
-router.post('/reorder', authenticate, requireRole('ADMIN'), reorderCourses);
+// Admin & Subadmin routes - Course CRUD
+router.post('/', authenticate, requireRole('ADMIN', 'SUBADMIN'), createCourse);
+router.put('/:id', authenticate, requireRole('ADMIN', 'SUBADMIN'), updateCourse);
+router.delete('/:id', authenticate, requireRole('ADMIN', 'SUBADMIN'), deleteCourse);
+router.post('/reorder', authenticate, requireRole('ADMIN', 'SUBADMIN'), reorderCourses);
 
-// Admin routes - Lesson CRUD
-router.post('/:courseId/lessons', authenticate, requireRole('ADMIN'), addLesson);
-router.put('/lessons/:lessonId', authenticate, requireRole('ADMIN'), updateLesson);
-router.delete('/lessons/:lessonId', authenticate, requireRole('ADMIN'), deleteLesson);
+// Admin & Subadmin routes - Lesson CRUD
+router.post('/:courseId/lessons', authenticate, requireRole('ADMIN', 'SUBADMIN'), addLesson);
+router.put('/lessons/:lessonId', authenticate, requireRole('ADMIN', 'SUBADMIN'), updateLesson);
+router.delete('/lessons/:lessonId', authenticate, requireRole('ADMIN', 'SUBADMIN'), deleteLesson);
 
-// Admin routes - Quiz CRUD
-router.post('/lessons/:lessonId/quiz', authenticate, requireRole('ADMIN'), addQuizQuestion);
-router.put('/quiz/:questionId', authenticate, requireRole('ADMIN'), updateQuizQuestion);
-router.delete('/quiz/:questionId', authenticate, requireRole('ADMIN'), deleteQuizQuestion);
+// Admin & Subadmin routes - Quiz CRUD
+router.post('/lessons/:lessonId/quiz', authenticate, requireRole('ADMIN', 'SUBADMIN'), addQuizQuestion);
+router.put('/quiz/:questionId', authenticate, requireRole('ADMIN', 'SUBADMIN'), updateQuizQuestion);
+router.delete('/quiz/:questionId', authenticate, requireRole('ADMIN', 'SUBADMIN'), deleteQuizQuestion);
 
 export default router;
