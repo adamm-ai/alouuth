@@ -10,9 +10,9 @@ import {
 
 const router = Router();
 
-// All routes require admin authentication
+// All routes require admin or subadmin authentication
 router.use(authenticate);
-router.use(requireRole('ADMIN'));
+router.use(requireRole('ADMIN', 'SUBADMIN'));
 
 // Upload routes
 router.post('/single', upload.single('file'), handleUploadError, uploadFile);
